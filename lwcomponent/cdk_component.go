@@ -18,21 +18,21 @@ const (
 )
 
 type CDKComponent struct {
-	Name           string
-	Description    string
-	Type           Type
-	Status         Status
-	InstallMessage string
-	UpdateMessage  string
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	Type           Type   `json:"type"`
+	Status         Status `json:"-"`
+	InstallMessage string `json:"-"`
+	UpdateMessage  string `json:"-"`
 
-	Exec Executer
+	Exec Executer `json:"-"`
 
-	ApiInfo  ApiInfo
-	HostInfo HostInfo
+	ApiInfo  *ApiInfo  `json:"apiInfo,omitempty"`
+	HostInfo *HostInfo `json:"-"`
 	stage    Stager
 }
 
-func NewCDKComponent(name string, desc string, componentType Type, apiInfo ApiInfo, hostInfo HostInfo) CDKComponent {
+func NewCDKComponent(name string, desc string, componentType Type, apiInfo *ApiInfo, hostInfo *HostInfo) CDKComponent {
 	var (
 		exec Executer = &nonExecutable{}
 	)
@@ -42,7 +42,7 @@ func NewCDKComponent(name string, desc string, componentType Type, apiInfo ApiIn
 	switch status {
 	case Installed, UpdateAvailable, InstalledDeprecated, Development:
 		{
-			dir := hostInfo.Dir()
+			dir := hostInfo.Dir
 
 			if componentType == BinaryType || componentType == CommandType {
 				exec = NewExecuable(name, dir)
@@ -116,6 +116,15 @@ func (c *CDKComponent) InstalledVersion() (version *semver.Version) {
 		if err == nil {
 			return
 		}
+
+		if componentDir, err := c.Dir(); err == nil {
+			if devInfo, err := newDevInfo(componentDir); err == nil {
+				version, err = semver.NewVersion(devInfo.Version)
+				if err == nil {
+					return
+				}
+			}
+		}
 	}
 
 	return
@@ -123,7 +132,7 @@ func (c *CDKComponent) InstalledVersion() (version *semver.Version) {
 
 func (c *CDKComponent) LatestVersion() (version *semver.Version) {
 	if c.ApiInfo != nil {
-		version = c.ApiInfo.LatestVersion()
+		version = c.ApiInfo.Version
 	}
 
 	return
@@ -133,26 +142,13 @@ func (c *CDKComponent) PrintSummary() []string {
 	var (
 		colorize *color.Color
 		version  *semver.Version
-		err      error
 	)
 
 	switch c.Status {
-	case Installed, InstalledDeprecated, NotInstalledDeprecated, UpdateAvailable, Tainted:
-		version, err = c.HostInfo.Version()
-		if err != nil {
-			panic(err)
-		}
-	case NotInstalled:
-		version = c.ApiInfo.LatestVersion()
-	case Development:
-		devInfo, err := NewDevInfo(c.HostInfo.Dir())
-		if err != nil {
-			panic(err)
-		}
-		version, err = semver.NewVersion(devInfo.Version)
-		if err != nil {
-			panic(err)
-		}
+	case Installed, InstalledDeprecated, UpdateAvailable, Development, Tainted:
+		version = c.InstalledVersion()
+	case NotInstalled, NotInstalledDeprecated:
+		version = c.ApiInfo.Version
 	default:
 		version = &semver.Version{}
 	}
@@ -167,7 +163,7 @@ func (c *CDKComponent) PrintSummary() []string {
 	}
 }
 
-func status(apiInfo ApiInfo, hostInfo HostInfo) Status {
+func status(apiInfo *ApiInfo, hostInfo *HostInfo) Status {
 	status := UnknownStatus
 
 	if hostInfo != nil {
@@ -189,11 +185,11 @@ func status(apiInfo ApiInfo, hostInfo HostInfo) Status {
 				return Tainted
 			}
 
-			if apiInfo.Deprecated() {
+			if apiInfo.Deprecated {
 				return InstalledDeprecated
 			}
 
-			latestVer := apiInfo.LatestVersion()
+			latestVer := apiInfo.Version
 			if latestVer.GreaterThan(installedVer) {
 				return UpdateAvailable
 			} else {
@@ -205,7 +201,7 @@ func status(apiInfo ApiInfo, hostInfo HostInfo) Status {
 	}
 
 	if apiInfo != nil && hostInfo == nil {
-		if apiInfo.Deprecated() {
+		if apiInfo.Deprecated {
 			return NotInstalledDeprecated
 		}
 
@@ -215,8 +211,8 @@ func status(apiInfo ApiInfo, hostInfo HostInfo) Status {
 	return status
 }
 
-func isTainted(apiInfo ApiInfo, installedVer *semver.Version) bool {
-	for _, ver := range apiInfo.AllVersions() {
+func isTainted(apiInfo *ApiInfo, installedVer *semver.Version) bool {
+	for _, ver := range apiInfo.AllVersions {
 		if ver.Equal(installedVer) {
 			return false
 		}

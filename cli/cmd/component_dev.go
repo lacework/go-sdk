@@ -92,8 +92,7 @@ func devModeComponent(args []string) error {
 
 	cli.StartProgress("Loading components Catalog...")
 
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
-	defer catalog.Persist()
+	catalog, err := LoadCatalog()
 
 	cli.StopProgress()
 	if err != nil {

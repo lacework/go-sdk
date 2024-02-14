@@ -19,7 +19,7 @@ func TestApiInfoId(t *testing.T) {
 
 	info := lwcomponent.NewAPIInfo(id, "test", version, allVersions, "", 0, false, lwcomponent.BinaryType)
 
-	result := info.Id()
+	result := info.Id
 	assert.Equal(t, id, result)
 }
 
@@ -34,6 +34,6 @@ func TestApiInfoLatestVersion(t *testing.T) {
 
 	info := lwcomponent.NewAPIInfo(1, "test", version, allVersions, "", 0, false, lwcomponent.BinaryType)
 
-	result := info.LatestVersion()
+	result := info.Version
 	assert.Equal(t, expectedVer, result.String())
 }

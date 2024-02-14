@@ -15,6 +15,7 @@ import (
 
 const (
 	componentCacheDir string = "components"
+	cdkCacheName      string = "cdk_cache"
 	featureFlag       string = "PUBLIC.cdk.v1"
 	operatingSystem   string = runtime.GOOS
 	architecture      string = runtime.GOARCH
@@ -58,10 +59,6 @@ func (c *Catalog) ComponentCount() int {
 	return len(c.Components)
 }
 
-func (c *Catalog) Persist() {
-	// @jon-stewart: TODO: store catalog on disk
-}
-
 // Return a CDKComponent that is present on the host.
 func (c *Catalog) GetComponent(name string) (*CDKComponent, error) {
 	component, exists := c.Components[name]
@@ -74,16 +71,16 @@ func (c *Catalog) GetComponent(name string) (*CDKComponent, error) {
 
 func (c *Catalog) ListComponentVersions(component *CDKComponent) (versions []*semver.Version, err error) {
 	if component.ApiInfo == nil {
-		err = errors.Errorf("component '%s' api info  already installed", component.Name)
+		err = errors.Errorf("component '%s' api info not available", component.Name)
 		return
 	}
 
-	versions = component.ApiInfo.AllVersions()
+	versions = component.ApiInfo.AllVersions
 	if versions != nil {
-		return versions, nil
+		return
 	}
 
-	return listComponentVersions(c.client, component.ApiInfo.Id())
+	return listComponentVersions(c.client, component.ApiInfo.Id)
 }
 
 func (c *Catalog) PrintComponents() [][]string {
@@ -107,7 +104,7 @@ func (c *Catalog) Stage(
 	stageClose = func() {}
 
 	if version == "" {
-		semv = component.ApiInfo.LatestVersion()
+		semv = component.ApiInfo.Version
 	} else {
 		semv, err = semver.NewVersion(version)
 		if err != nil {
@@ -130,7 +127,7 @@ func (c *Catalog) Stage(
 	}
 
 	response, err := c.client.V2.Components.FetchComponentArtifact(
-		component.ApiInfo.Id(),
+		component.ApiInfo.Id,
 		operatingSystem,
 		architecture,
 		semv.String())
@@ -213,6 +210,13 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 		return
 	}
 
+	if component.ApiInfo != nil &&
+		(component.ApiInfo.ComponentType == BinaryType || component.ApiInfo.ComponentType == CommandType) {
+		if err := os.Chmod(filepath.Join(componentDir, component.Name), 0744); err != nil {
+			return errors.Wrap(err, "unable to make component executable")
+		}
+	}
+
 	component.HostInfo = NewHostInfo(componentDir)
 
 	return
@@ -244,12 +248,7 @@ func NewCatalog(
 	includeComponentVersions bool,
 ) (*Catalog, error) {
 	if stageConstructor == nil {
-		return nil, errors.New("nil Catalog StageConstructor")
-	}
-
-	localComponents, err := loadLocalComponents()
-	if err != nil {
-		return nil, err
+		return nil, errors.New("StageConstructor is not specified to create new catalog")
 	}
 
 	response, err := client.V2.Components.ListComponents(operatingSystem, architecture)
@@ -263,7 +262,7 @@ func NewCatalog(
 		rawComponents = response.Data[0].Components
 	}
 
-	cdkComponents := make(map[string]CDKComponent, len(rawComponents)+len(localComponents))
+	cdkComponents := make(map[string]CDKComponent, len(rawComponents))
 
 	for _, c := range rawComponents {
 		ver, err := semver.NewVersion(c.Version)
@@ -279,63 +278,68 @@ func NewCatalog(
 			}
 		}
 
-		api := NewAPIInfo(c.Id, c.Name, ver, allVersions, c.Description, c.Size, c.Deprecated, Type(c.ComponentType))
-
-		host, found := localComponents[c.Name]
-		if found {
-			delete(localComponents, c.Name)
-		}
-
-		component := NewCDKComponent(c.Name, c.Description, Type(c.ComponentType), api, host)
-
-		cdkComponents[c.Name] = component
+		apiInfo := NewAPIInfo(c.Id, c.Name, ver, allVersions, c.Description, c.Size, c.Deprecated, Type(c.ComponentType))
+		cdkComponents[c.Name] = NewCDKComponent(c.Name, c.Description, Type(c.ComponentType), apiInfo, nil)
 	}
 
-	for _, localHost := range localComponents {
-		if localHost.Development() {
-			devInfo, err := NewDevInfo(localHost.Dir())
-			if err != nil {
-				return nil, err
-			}
-
-			cdkComponents[localHost.Name()] = NewCDKComponent(
-				localHost.Name(),
-				devInfo.Desc,
-				devInfo.ComponentType,
-				nil,
-				localHost)
-		} else {
-			// @jon-stewart: persisted API info
-			cdkComponents[localHost.Name()] = NewCDKComponent(localHost.Name(), "", BinaryType, nil, localHost)
-		}
+	components, err := mergeComponents(cdkComponents)
+	if err != nil {
+		return nil, err
 	}
 
-	return &Catalog{client, cdkComponents, stageConstructor}, nil
+	return &Catalog{client, components, stageConstructor}, nil
 }
 
-func LocalComponents() (components []CDKComponent, err error) {
-	var localHost map[string]HostInfo
+func NewCachedCatalog(
+	client *api.Client,
+	stageConstructor StageConstructor,
+	cachedComponentsApiInfo map[string]*ApiInfo,
+) (*Catalog, error) {
+	if stageConstructor == nil {
+		return nil, errors.New("StageConstructor is not specified to create new catalog")
+	}
 
-	localHost, err = loadLocalComponents()
+	cachedComponents := make(map[string]CDKComponent, len(cachedComponentsApiInfo))
 
-	for _, l := range localHost {
-		if l.Development() {
-			devInfo, err := NewDevInfo(l.Dir())
-			if err != nil {
-				return nil, err
-			}
+	for _, a := range cachedComponentsApiInfo {
+		cachedComponents[a.Name] = NewCDKComponent(a.Name, a.Desc, a.ComponentType, a, nil)
+	}
 
-			components = append(components, NewCDKComponent(l.Name(), devInfo.Desc, devInfo.ComponentType, nil, l))
-		} else {
-			// @jon-stewart: persisted API info
-			components = append(components, NewCDKComponent(l.Name(), "", BinaryType, nil, l))
+	components, err := mergeComponents(cachedComponents)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Catalog{client, components, stageConstructor}, nil
+}
+
+// mergeComponents combines the passed in components with the local components
+func mergeComponents(components map[string]CDKComponent) (allComponents map[string]CDKComponent, err error) {
+	localComponents, err := LoadLocalComponents()
+	if err != nil {
+		return
+	}
+
+	allComponents = make(map[string]CDKComponent, len(localComponents)+len(components))
+
+	for _, c := range components {
+		var hostInfo *HostInfo
+		component, ok := localComponents[c.Name]
+		if ok {
+			hostInfo = component.HostInfo
+			delete(localComponents, c.Name)
 		}
+		allComponents[c.Name] = NewCDKComponent(c.Name, c.Description, c.Type, c.ApiInfo, hostInfo)
+	}
+
+	for _, c := range localComponents {
+		allComponents[c.Name] = c
 	}
 
 	return
 }
 
-func loadLocalComponents() (local map[string]HostInfo, err error) {
+func LoadLocalComponents() (components map[string]CDKComponent, err error) {
 	cacheDir, err := CatalogCacheDir()
 	if err != nil {
 		return
@@ -346,14 +350,25 @@ func loadLocalComponents() (local map[string]HostInfo, err error) {
 		return
 	}
 
-	local = make(map[string]HostInfo, len(subDir))
+	components = make(map[string]CDKComponent, len(subDir))
 
 	for _, file := range subDir {
 		if !file.IsDir() {
 			continue
 		}
 
-		local[file.Name()] = NewHostInfo(filepath.Join(cacheDir, file.Name()))
+		hostInfo := NewHostInfo(filepath.Join(cacheDir, file.Name()))
+
+		if hostInfo.Development() {
+			devInfo, err := newDevInfo(hostInfo.Dir)
+			if err != nil {
+				return nil, err
+			}
+			components[hostInfo.Name()] = NewCDKComponent(hostInfo.Name(), devInfo.Desc, devInfo.ComponentType, nil, hostInfo)
+		} else {
+			// Unknown components
+			components[hostInfo.Name()] = NewCDKComponent(hostInfo.Name(), "", EmptyType, nil, hostInfo)
+		}
 	}
 
 	return

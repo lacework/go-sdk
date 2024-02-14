@@ -4,27 +4,15 @@ import (
 	"github.com/Masterminds/semver"
 )
 
-type ApiInfo interface {
-	Id() int32
-
-	LatestVersion() *semver.Version
-
-	AllVersions() []*semver.Version
-
-	Deprecated() bool
-
-	Size() int64
-}
-
-type apiInfo struct {
-	id            int32
-	name          string
-	version       semver.Version
-	allVersions   []*semver.Version
-	desc          string
-	sizeKB        int64
-	deprecated    bool
-	componentType Type
+type ApiInfo struct {
+	Id            int32             `json:"id"`
+	Name          string            `json:"name"`
+	Version       *semver.Version   `json:"version"`
+	AllVersions   []*semver.Version `json:"allVersions"`
+	Desc          string            `json:"desc"`
+	SizeKB        int64             `json:"sizeKB"`
+	Deprecated    bool              `json:"deprecated"`
+	ComponentType Type              `json:"componentType"`
 }
 
 func NewAPIInfo(
@@ -36,39 +24,15 @@ func NewAPIInfo(
 	size int64,
 	deprecated bool,
 	componentType Type,
-) ApiInfo {
-	return &apiInfo{
-		id:            id,
-		name:          name,
-		version:       *version,
-		allVersions:   allVersions,
-		desc:          desc,
-		sizeKB:        size,
-		deprecated:    deprecated,
-		componentType: componentType,
+) *ApiInfo {
+	return &ApiInfo{
+		Id:            id,
+		Name:          name,
+		Version:       version,
+		AllVersions:   allVersions,
+		Desc:          desc,
+		SizeKB:        size,
+		Deprecated:    deprecated,
+		ComponentType: componentType,
 	}
-}
-
-func (a *apiInfo) Id() int32 {
-	return a.id
-}
-
-// AllVersions implements ApiInfo.
-func (a *apiInfo) AllVersions() []*semver.Version {
-	return a.allVersions
-}
-
-// LatestVersion implements ApiInfo.
-func (a *apiInfo) LatestVersion() *semver.Version {
-	return &a.version
-}
-
-// Deprecated implements ApiInfo.
-func (a *apiInfo) Deprecated() bool {
-	return a.deprecated
-}
-
-// Size implements ApiInfo.
-func (a *apiInfo) Size() int64 {
-	return a.sizeKB
 }

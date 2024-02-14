@@ -17,56 +17,36 @@ var (
 	DevelopmentFile = ".dev"
 )
 
-type HostInfo interface {
-	Delete() error
-
-	Development() bool
-
-	Dir() string
-
-	Name() string
-
-	Signature() (sig []byte, err error)
-
-	Validate() error
-
-	Version() (*semver.Version, error)
+type HostInfo struct {
+	Dir string
 }
 
-type hostInfo struct {
-	dir string
+func NewHostInfo(dir string) *HostInfo {
+	return &HostInfo{dir}
 }
 
-func NewHostInfo(dir string) HostInfo {
-	return &hostInfo{dir}
+func (h *HostInfo) Delete() error {
+	return os.RemoveAll(h.Dir)
 }
 
-func (h *hostInfo) Delete() error {
-	return os.RemoveAll(h.dir)
-}
-
-func (h *hostInfo) Development() bool {
-	return file.FileExists(filepath.Join(h.dir, DevelopmentFile))
-}
-
-func (h *hostInfo) Dir() string {
-	return h.dir
+func (h *HostInfo) Development() bool {
+	return file.FileExists(filepath.Join(h.Dir, DevelopmentFile))
 }
 
 // Returns the Component name
 //
 // The Component name is the same as the name of the base directory
-func (h *hostInfo) Name() string {
-	return filepath.Base(h.dir)
+func (h *HostInfo) Name() string {
+	return filepath.Base(h.Dir)
 }
 
-func (h *hostInfo) Signature() (sig []byte, err error) {
-	_, err = os.Stat(h.dir)
+func (h *HostInfo) Signature() (sig []byte, err error) {
+	_, err = os.Stat(h.Dir)
 	if os.IsNotExist(err) {
 		return
 	}
 
-	path := filepath.Join(h.dir, SignatureFile)
+	path := filepath.Join(h.Dir, SignatureFile)
 	if !file.FileExists(path) {
 		return
 	}
@@ -79,15 +59,15 @@ func (h *hostInfo) Signature() (sig []byte, err error) {
 	return
 }
 
-func (h *hostInfo) Version() (version *semver.Version, err error) {
-	_, err = os.Stat(h.dir)
+func (h *HostInfo) Version() (version *semver.Version, err error) {
+	_, err = os.Stat(h.Dir)
 	if os.IsNotExist(err) {
 		return
 	}
 
-	path := filepath.Join(h.dir, VersionFile)
+	path := filepath.Join(h.Dir, VersionFile)
 	if !file.FileExists(path) {
-		return
+		return nil, errors.New("missing .version file")
 	}
 
 	data, err := os.ReadFile(path)
@@ -98,8 +78,8 @@ func (h *hostInfo) Version() (version *semver.Version, err error) {
 	return semver.NewVersion(strings.TrimSpace(string(data)))
 }
 
-func (h *hostInfo) Validate() (err error) {
-	data, err := os.ReadFile(filepath.Join(h.dir, VersionFile))
+func (h *HostInfo) Validate() (err error) {
+	data, err := os.ReadFile(filepath.Join(h.Dir, VersionFile))
 	if err != nil {
 		return
 	}
@@ -113,11 +93,11 @@ func (h *hostInfo) Validate() (err error) {
 
 	componentName := h.Name()
 
-	if !file.FileExists(filepath.Join(h.dir, SignatureFile)) {
+	if !file.FileExists(filepath.Join(h.Dir, SignatureFile)) {
 		return errors.New(fmt.Sprintf("missing file '%s'", componentName))
 	}
 
-	if !file.FileExists(filepath.Join(h.dir, componentName)) {
+	if !file.FileExists(filepath.Join(h.Dir, componentName)) {
 		return errors.New(fmt.Sprintf("missing file '%s'", componentName))
 	}
 

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/Masterminds/semver"
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/file"
 	"github.com/lacework/go-sdk/internal/lacework"
@@ -160,6 +161,81 @@ func TestCatalogNewCatalog(t *testing.T) {
 
 	})
 
+}
+
+func TestCatalogNewCachedCatalog(t *testing.T) {
+	var (
+		prefix                = "testComponentWithApiInfo"
+		cachedComponentsCount = 4
+	)
+
+	t.Run("return new catalog with correct components", func(t *testing.T) {
+		_, home := FakeHome()
+		defer ResetHome(home)
+
+		fakeServer := lacework.MockServer()
+		defer fakeServer.Close()
+
+		client, _ := api.NewClient("catalog_test",
+			api.WithToken("TOKEN"),
+			api.WithURL(fakeServer.URL()),
+		)
+
+		allVersions := []*semver.Version{}
+		versionStrings := []string{"1.0.0", "1.1.1", "3.0.1", "5.4.3"}
+		for _, ver := range versionStrings {
+			version, _ := semver.NewVersion(ver)
+			allVersions = append(allVersions, version)
+		}
+		latestVersion := allVersions[len(allVersions)-1]
+
+		cachedComponentsApiInfo := make(map[string]*lwcomponent.ApiInfo, cachedComponentsCount)
+		for i := 0; i < cachedComponentsCount; i++ {
+			name := fmt.Sprintf("%s-%d", prefix, i)
+			cachedComponentsApiInfo[name] = lwcomponent.NewAPIInfo(1, name, latestVersion, allVersions, "", 1, false, lwcomponent.BinaryType)
+		}
+
+		CreateLocalComponent("testComponentWithApiInfo-0", "5.4.3", false)
+		CreateLocalComponent("testComponentWithApiInfo-1", "1.0.0", false)
+		CreateLocalComponent("testComponentWithApiInfo-2", "2.0.1", false)
+		CreateLocalComponent("testComponentWithApiInfo-3", "3.0.1", true)
+		CreateLocalComponent("testComponent", "0.0.1-dev", true)
+
+		catalog, err := lwcomponent.NewCachedCatalog(client, newTestStage, cachedComponentsApiInfo)
+		assert.NotNil(t, catalog)
+		assert.Equal(t, 5, catalog.ComponentCount())
+		assert.Nil(t, err)
+
+		// `Installed` component should be returned
+		component, err := catalog.GetComponent("testComponentWithApiInfo-0")
+		assert.NotNil(t, component)
+		assert.Nil(t, err)
+		assert.Equal(t, lwcomponent.Installed, component.Status)
+
+		// `UpdateAvailable` component should be returned
+		component, err = catalog.GetComponent("testComponentWithApiInfo-1")
+		assert.NotNil(t, component)
+		assert.Nil(t, err)
+		assert.Equal(t, lwcomponent.UpdateAvailable, component.Status)
+
+		// `Tainted` component should be returned
+		component, err = catalog.GetComponent("testComponentWithApiInfo-2")
+		assert.NotNil(t, component)
+		assert.Nil(t, err)
+		assert.Equal(t, lwcomponent.Tainted, component.Status)
+
+		// `Development` component should be returned
+		component, err = catalog.GetComponent("testComponentWithApiInfo-3")
+		assert.NotNil(t, component)
+		assert.Nil(t, err)
+		assert.Equal(t, lwcomponent.Development, component.Status)
+
+		// `Development` local component should be returned
+		component, err = catalog.GetComponent("testComponent")
+		assert.NotNil(t, component)
+		assert.Nil(t, err)
+		assert.Equal(t, lwcomponent.Development, component.Status)
+	})
 }
 
 func TestCatalogComponentCount(t *testing.T) {

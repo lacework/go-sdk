@@ -34,6 +34,7 @@ import (
 
 const (
 	componentTypeAnnotation string = "component"
+	componentsCacheKey      string = "components"
 )
 
 var (
@@ -163,13 +164,11 @@ func (c *cliState) IsComponentInstalled(name string) bool {
 
 // Load v1 components
 func (c *cliState) LoadComponents() {
-	components, err := lwcomponent.LocalComponents()
+	components, err := lwcomponent.LoadLocalComponents()
 	if err != nil {
 		c.Log.Debugw("unable to load components", "error", err)
 		return
 	}
-
-	// @jon-stewart: TODO: load from cached API info
 
 	for _, component := range components {
 		exists := false
@@ -187,18 +186,8 @@ func (c *cliState) LoadComponents() {
 		}
 
 		version := component.InstalledVersion()
-		componentDir, err := component.Dir()
-		if err != nil {
-			c.Log.Debugw("unable to find component directory", "error", err)
-			return
-		}
-		if devInfo, _ := lwcomponent.NewDevInfo(componentDir); devInfo != nil {
-			if devVersion, _ := semver.NewVersion(devInfo.Version); devVersion != nil {
-				version = devVersion
-			}
-		}
 
-		if version != nil && component.Exec.Executable() {
+		if version != nil {
 			componentCmd := &cobra.Command{
 				Use:                   component.Name,
 				Short:                 component.Description,
@@ -208,7 +197,7 @@ func (c *cliState) LoadComponents() {
 				DisableFlagParsing:    true,
 				DisableFlagsInUseLine: true,
 				RunE: func(cmd *cobra.Command, args []string) error {
-					return v1ComponentCommand(c, cmd, args)
+					return v1ComponentCommand(c, cmd)
 				},
 			}
 
@@ -224,7 +213,7 @@ func startGrpcServer(c *cliState) {
 	}
 }
 
-func v1ComponentCommand(c *cliState, cmd *cobra.Command, args []string) error {
+func v1ComponentCommand(c *cliState, cmd *cobra.Command) error {
 	// Parse component -v/--version flag
 	versionVal, _ := cmd.Flags().GetBool("version")
 	if versionVal {
@@ -234,11 +223,7 @@ func v1ComponentCommand(c *cliState, cmd *cobra.Command, args []string) error {
 
 	go startGrpcServer(c)
 
-	c.Log.Debugw("running component", "component", cmd.Use,
-		"args", c.componentParser.componentArgs,
-		"cli_flags", c.componentParser.cliArgs)
-
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
+	catalog, err := LoadCatalog()
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -247,6 +232,14 @@ func v1ComponentCommand(c *cliState, cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	if !component.Exec.Executable() {
+		return errors.New("component is not executable")
+	}
+
+	c.Log.Debugw("running component", "component", cmd.Use,
+		"args", c.componentParser.componentArgs,
+		"cli_flags", c.componentParser.cliArgs)
 
 	// @jon-stewart: TODO: v1 dailyComponentUpdateAvailable
 
@@ -355,12 +348,7 @@ func runComponentsList(_ *cobra.Command, _ []string) (err error) {
 }
 
 func listComponents() error {
-	cli.StartProgress("Loading component Catalog...")
-
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, true)
-	defer catalog.Persist()
-
-	cli.StopProgress()
+	catalog, err := LoadCatalog()
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -378,8 +366,6 @@ func listComponents() error {
 	}
 
 	printComponents(catalog.PrintComponents())
-
-	cli.OutputHuman("\nComponents version: %s\n", cli.LwComponents.Version)
 
 	return nil
 }
@@ -423,12 +409,7 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 	cli.Event.Feature = "install_component"
 	defer cli.SendHoneyvent()
 
-	cli.StartProgress("Loading component Catalog...")
-
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
-	defer catalog.Persist()
-
-	cli.StopProgress()
+	catalog, err := LoadCatalog()
 	if err != nil {
 		err = errors.Wrap(err, "unable to load component Catalog")
 		return
@@ -524,12 +505,7 @@ func showComponent(args []string) error {
 		componentName string = args[0]
 	)
 
-	cli.StartProgress("Loading components Catalog...")
-
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
-	defer catalog.Persist()
-
-	cli.StopProgress()
+	catalog, err := LoadCatalog()
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -598,12 +574,7 @@ func updateComponent(args []string) (err error) {
 		targetVersion    *semver.Version
 	)
 
-	cli.StartProgress("Loading components Catalog...")
-
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
-	defer catalog.Persist()
-
-	cli.StopProgress()
+	catalog, err := LoadCatalog()
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -724,12 +695,7 @@ func deleteComponent(args []string) (err error) {
 		componentName string = args[0]
 	)
 
-	cli.StartProgress("Loading components Catalog...")
-
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, false)
-	defer catalog.Persist()
-
-	cli.StopProgress()
+	catalog, err := LoadCatalog()
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -1214,4 +1180,38 @@ func downloadProgress(complete chan int8, path string, sizeB int64) {
 
 		time.Sleep(time.Second)
 	}
+}
+
+func LoadCatalog() (*lwcomponent.Catalog, error) {
+	cli.StartProgress("Loading component catalog...")
+	defer cli.StopProgress()
+
+	var componentsApiInfo map[string]*lwcomponent.ApiInfo
+
+	// try to load components Catalog from cache
+	if !cli.noCache {
+		expired := cli.ReadCachedAsset(componentsCacheKey, &componentsApiInfo)
+		if !expired {
+			cli.Log.Infow("loaded components from cache", "components", componentsApiInfo)
+			return lwcomponent.NewCachedCatalog(cli.LwApi, lwcomponent.NewStageTarGz, componentsApiInfo)
+		}
+	}
+
+	// load components Catalog from API
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, true)
+	if err != nil {
+		return nil, err
+	}
+
+	componentsApiInfo = make(map[string]*lwcomponent.ApiInfo, len(catalog.Components))
+
+	for _, c := range catalog.Components {
+		if c.ApiInfo != nil {
+			componentsApiInfo[c.Name] = c.ApiInfo
+		}
+	}
+
+	cli.WriteAssetToCache(componentsCacheKey, time.Now().Add(time.Hour*12), componentsApiInfo)
+
+	return catalog, nil
 }
