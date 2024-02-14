@@ -8,8 +8,11 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
-  verify-release:
+  release:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
