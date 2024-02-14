@@ -40,7 +40,7 @@ func main() {
 
 func help() error {
 	return errors.New(
-		"This is a dummy go-component for testing. Try the arguments 'run' and 'fail'",
+		"This is a dummy go-component for testing. Try the arguments 'run', 'fail', 'writecache', or 'readcache'",
 	)
 }
 
