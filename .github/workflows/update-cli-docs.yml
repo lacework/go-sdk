@@ -1,0 +1,75 @@
+name: Update CLI Docs
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-cli-docs:
+    runs-on: ubuntu-latest
+    outputs:
+      git-sha: ${{ steps.update.outputs.git-sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          repository: lacework/docs_lw
+          token: ${{ secrets.TOKEN }}
+          path: docs_lw
+      - name: Run update script
+        id: update
+        env:
+          GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+        working-directory: "docs_lw/docusaurus"
+        run: |
+          git remote set-url origin git@github.com:lacework/docs_lw.git
+          sudo apt-get update -y
+          sudo apt-get install gpg-agent -y
+          echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
+          scripts/codefresh/update-cli-docs.sh
+          output=$(git rev-parse HEAD)
+          echo "git-sha=${output}" >> $GITHUB_OUTPUT
+      - name: Notify Slack for Approval
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "#4db748",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "*Lacework CLI documentation update*\nNew documentation for the Lacework CLI has been generated and it is waiting for approval. :hand::skin-tone-4: @docs :party-dinosaur: :go__lw:\n*GitHub Workflow*\nhttps://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}\n*Git SHA*\n${{ steps.update.outputs.git-sha }}"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_DOC_PULL_REQUESTS }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+  deploy-cli-docs:
+    runs-on: ubuntu-latest
+    needs: update-cli-docs
+    environment: cli-docs
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          repository: lacework/docs_lw
+          token: ${{ secrets.TOKEN }}
+          path: docs_lw
+      - name: Deploy CLI docs
+        working-directory: "docs_lw/docusaurus"
+        env:
+          GIT_SHA: ${{ needs.update-cli-docs.outputs.git-sha }}
+          NETLIFY_API_KEY: ${{ secrets.NETLIFY_API_KEY }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          scripts/codefresh/netlify-site-deploy.sh
