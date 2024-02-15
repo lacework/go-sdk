@@ -85,7 +85,8 @@ func (c *CDKCacheMissError) Error() string {
 
 // ReadCacheAsset fetch key from cache
 //
-// if an error is returned, it is always of type CDKCacheMissError which should be handled/treated as non-fatal
+// when an error is returned, if the reason for the error is a cache miss it will be of type
+// CDKCacheMissError which should be handled/treated as non-fatal
 //
 // Response data is in []byte format and will need to be unmarshalled to the correct data type
 func (c *ComponentCDKClient) ReadCacheAsset(key string) ([]byte, error) {
@@ -95,7 +96,7 @@ func (c *ComponentCDKClient) ReadCacheAsset(key string) ([]byte, error) {
 
 	if err != nil {
 		c.logger.Debugf("error reading cache; %s", err.Error())
-		return nil, nil
+		return nil, err
 	}
 
 	if response.Hit {
