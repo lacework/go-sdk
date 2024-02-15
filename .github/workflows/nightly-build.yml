@@ -1,8 +1,6 @@
 name: Nightly Build
 
 on:
-  workflow_dispatch:
-  pull_request:
   schedule:
     - cron: '0 10 * * *' # Run every day at 10AM UTC
 
