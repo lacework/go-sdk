@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::249446771485:role/tf-role-arc-generic
+          aws-region: us-west-2
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.x
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build Artifacts
+        run: |
+          make prepare
+          scripts/release.sh build
+
+      - name: Notify Slack to Sign Artifacts
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "<@U0279A42HV0> sign_cli ${{ github.ref_name }} https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Create Release
+        env:
+          GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+        run: |
+          make prepare
+          echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
+          scripts/release.sh publish
+
+      - name: Build/Push Docker Image
+        run: |
+          scripts/release_containers.sh
+
+      - name: Trigger Homebrew formula update
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: update-homebrew-formula.yml
+
+      - name: Trigger Trigger CLI docs update
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: update-cli-docs.yml
+
+      - name: Trigger Chocolatey package update
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: chocolatey-release.yml
+
+      - name: Notify Slack on Failure
+        uses: slackapi/slack-github-action@v1.25.0
+        if: failure()
+        with:
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "#E92020",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "*GitHub Workflow Failure*\ngo-sdk/release\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}\n@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
