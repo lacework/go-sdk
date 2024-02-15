@@ -80,7 +80,7 @@ func TestTeamMemberValidateEmail(t *testing.T) {
 		"tm",
 		"create")
 
-	assert.Contains(t, "X Sorry, your reply was invalid: not a valid email invalid", strings.TrimSpace(tmResult))
+	assert.Contains(t, strings.TrimSpace(tmResult), "X Sorry, your reply was invalid: not a valid email invalid")
 }
 
 func runTeamMembersTest(t *testing.T, conditions func(*expect.Console), args ...string) (string, error) {
@@ -124,9 +124,9 @@ func runTeamMemberTestFromDir(t *testing.T, dir string, conditions func(*expect.
 	return state.String(), err
 }
 
-var expectedOutput = `▸ Email:  test.user@email.com                                                   
-▸ First Name:  Test                                                             
-▸ Last Name:  User                                                              
-▸ Company:  Lacework                                                            
-▸ Create at Organization Level? No                                              
+var expectedOutput = `▸ Email:  test.user@email.com
+▸ First Name:  Test
+▸ Last Name:  User
+▸ Company:  Lacework
+▸ Create at Organization Level? No
 ? Account Admin?`
