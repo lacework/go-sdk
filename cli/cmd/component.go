@@ -241,15 +241,27 @@ func v1ComponentCommand(c *cliState, cmd *cobra.Command) error {
 		"args", c.componentParser.componentArgs,
 		"cli_flags", c.componentParser.cliArgs)
 
-	// @jon-stewart: TODO: v1 dailyComponentUpdateAvailable
-
 	envs := []string{
 		fmt.Sprintf("LW_COMPONENT_NAME=%s", cmd.Use),
 	}
 
 	envs = append(envs, c.envs()...)
 
-	return component.Exec.ExecuteInline(c.componentParser.componentArgs, envs...)
+	err = component.Exec.ExecuteInline(c.componentParser.componentArgs, envs...)
+	if err != nil {
+		return err
+	}
+
+	shouldPrint, err := dailyComponentUpdateAvailable(component.Name)
+	if err != nil {
+		cli.Log.Debugw("unable to load components last check cache", "error", err)
+	}
+	if shouldPrint && component.ApiInfo != nil && component.InstalledVersion().LessThan(component.ApiInfo.Version) {
+		format := "\n%s v%s available: to update, run `lacework component update %s`\n"
+		cli.OutputHuman(format, cmd.Use, component.ApiInfo.Version, cmd.Use)
+	}
+
+	return nil
 }
 
 // LoadComponents reads the local components state and loads all installed components
@@ -312,12 +324,12 @@ func (c *cliState) PrototypeLoadComponents() {
 							"cli_flags", c.componentParser.cliArgs)
 						f, ok := c.LwComponents.GetComponent(cmd.Use)
 						if ok {
-							shouldPrint, compVerErr := dailyComponentUpdateAvailable(f)
+							shouldPrint, compVerErr := dailyComponentUpdateAvailable(f.Name)
 							if compVerErr != nil {
 								// Log an error but do not fail
 								cli.Log.Debugw("unable to run daily component version check", "error", err)
 							}
-							if shouldPrint {
+							if shouldPrint && f.Status() == lwcomponent.UpdateAvailable {
 								format := "%s v%s available: to update, run `lacework component update %s`\n"
 								cli.OutputHuman(fmt.Sprintf(format, cmd.Use, f.LatestVersion.String(), cmd.Use))
 							}
