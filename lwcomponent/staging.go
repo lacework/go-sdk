@@ -11,6 +11,7 @@ import (
 
 	"github.com/Masterminds/semver"
 	"github.com/lacework/go-sdk/internal/file"
+	dircopy "github.com/otiai10/copy"
 	"github.com/pkg/errors"
 )
 
@@ -73,19 +74,8 @@ func (s *stageTarGz) Commit(targetDir string) (err error) {
 		return
 	}
 
-	dirEntries, err := os.ReadDir(s.dir)
-	if err != nil {
+	if err = dircopy.Copy(s.dir, targetDir); err != nil {
 		return
-	}
-
-	for _, entry := range dirEntries {
-		src := filepath.Join(s.dir, entry.Name())
-		dst := filepath.Join(targetDir, entry.Name())
-
-		err = os.Rename(src, dst)
-		if err != nil {
-			return err
-		}
 	}
 
 	return
