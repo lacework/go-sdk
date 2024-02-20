@@ -19,16 +19,14 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"time"
 
 	"github.com/lacework/go-sdk/api"
-	cdk "github.com/lacework/go-sdk/cli/cdk/go/proto/v1"
+	componentCDKClient "github.com/lacework/go-sdk/cli/cdk/client/go"
 	"github.com/lacework/go-sdk/lwlogger"
 	"github.com/pkg/errors"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var log = lwlogger.New("").Sugar()
@@ -42,17 +40,17 @@ func main() {
 
 func help() error {
 	return errors.New(
-		"This is a dummy go-component for testing. Try the arguments 'run' and 'fail'",
+		"This is a dummy go-component for testing. Try the arguments 'run', 'fail', 'writecache', or 'readcache'",
 	)
 }
 
 func app() error {
 	// connect to the Lacework CDK server
-	cdkClient, grpcConn, err := Connect()
+	cdkClient, err := componentCDKClient.NewCDKClient("0.0.1")
 	if err != nil {
 		return err
 	}
-	defer grpcConn.Close()
+	defer cdkClient.Close()
 
 	// create a client to access Lacework APIs
 	lacework, err := api.NewClient(os.Getenv("LW_ACCOUNT"),
@@ -74,14 +72,11 @@ func app() error {
 	)
 
 	defer func(sev string) {
-		_, err := cdkClient.Honeyvent(context.Background(), &cdk.HoneyventRequest{
-			DurationMs: time.Since(now).Milliseconds(),
-			Feature:    "test_from_go_component",
-			FeatureData: map[string]string{
-				"arg":              os.Args[1],
-				"highest_severity": sev,
-			},
-		})
+		err := cdkClient.Metric(
+			"test_from_go_component",
+			map[string]string{"arg": os.Args[1], "highest_severity": sev},
+		).WithDuration(time.Since(now).Milliseconds()).Send()
+
 		if err != nil {
 			log.Error("unable to send honeyvent", "error", err)
 		}
@@ -100,31 +95,26 @@ func app() error {
 			highestSev = response.Data[0].Severity
 		}
 		fmt.Printf("Highest Severity: %s\n", highestSev)
-
 		return nil
 
 	case "fail":
 		return errors.New("Purposely failing...")
 
 	case "writecache":
-		r, err := cdkClient.WriteCache(context.Background(), &cdk.WriteCacheRequest{
-			Key:     "test_this_cache",
-			Data:    []byte("data data data"),
-			Expires: timestamppb.New(time.Now().Add(time.Hour * 1)),
-		})
-		if err != nil {
+		if err := cdkClient.WriteCacheAsset("test_this_cache",
+			time.Now().Add(time.Hour*1),
+			[]string{"data", "data", "data"},
+		); err != nil {
 			return err
-		}
-		if r.Error {
-			return fmt.Errorf("failed to write to cache: %s", r.Message)
 		}
 		return nil
 
 	case "readcache":
-		r, _ := cdkClient.ReadCache(context.Background(), &cdk.ReadCacheRequest{
-			Key: "test_this_cache",
-		})
-		fmt.Println(string(r.Data))
+		b, err := cdkClient.ReadCacheAsset("test_this_cache")
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(b))
 		return nil
 
 	default:
