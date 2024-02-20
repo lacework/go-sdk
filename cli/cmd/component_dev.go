@@ -92,7 +92,7 @@ func devModeComponent(args []string) error {
 
 	cli.StartProgress("Loading components Catalog...")
 
-	catalog, err := LoadCatalog()
+	catalog, err := LoadCatalog(componentName, false)
 
 	cli.StopProgress()
 	if err != nil {

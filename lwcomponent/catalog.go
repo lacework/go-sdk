@@ -245,7 +245,6 @@ func (c *Catalog) Delete(component *CDKComponent) (err error) {
 func NewCatalog(
 	client *api.Client,
 	stageConstructor StageConstructor,
-	includeComponentVersions bool,
 ) (*Catalog, error) {
 	if stageConstructor == nil {
 		return nil, errors.New("StageConstructor is not specified to create new catalog")
@@ -271,12 +270,6 @@ func NewCatalog(
 		}
 
 		var allVersions []*semver.Version
-		if includeComponentVersions {
-			allVersions, err = listComponentVersions(client, c.Id)
-			if err != nil {
-				return nil, errors.Wrap(err, fmt.Sprintf("unable to fetch component '%s' versions", c.Name))
-			}
-		}
 
 		apiInfo := NewAPIInfo(c.Id, c.Name, ver, allVersions, c.Description, c.Size, c.Deprecated, Type(c.ComponentType))
 		cdkComponents[c.Name] = NewCDKComponent(c.Name, c.Description, Type(c.ComponentType), apiInfo, nil)

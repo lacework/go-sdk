@@ -212,6 +212,10 @@ func status(apiInfo *ApiInfo, hostInfo *HostInfo) Status {
 }
 
 func isTainted(apiInfo *ApiInfo, installedVer *semver.Version) bool {
+	if len(apiInfo.AllVersions) == 0 {
+		return false
+	}
+
 	for _, ver := range apiInfo.AllVersions {
 		if ver.Equal(installedVer) {
 			return false
