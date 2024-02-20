@@ -223,7 +223,7 @@ func v1ComponentCommand(c *cliState, cmd *cobra.Command) error {
 
 	go startGrpcServer(c)
 
-	catalog, err := LoadCatalog()
+	catalog, err := LoadCatalog(cmd.Use, false)
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -360,7 +360,7 @@ func runComponentsList(_ *cobra.Command, _ []string) (err error) {
 }
 
 func listComponents() error {
-	catalog, err := LoadCatalog()
+	catalog, err := LoadCatalog("", false)
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -406,10 +406,10 @@ func runComponentsInstall(cmd *cobra.Command, args []string) (err error) {
 		return prototypeRunComponentsInstall(cmd, args)
 	}
 
-	return installComponent(cmd, args)
+	return installComponent(args)
 }
 
-func installComponent(cmd *cobra.Command, args []string) (err error) {
+func installComponent(args []string) (err error) {
 	var (
 		componentName    string                 = args[0]
 		downloadComplete                        = make(chan int8)
@@ -421,7 +421,7 @@ func installComponent(cmd *cobra.Command, args []string) (err error) {
 	cli.Event.Feature = "install_component"
 	defer cli.SendHoneyvent()
 
-	catalog, err := LoadCatalog()
+	catalog, err := LoadCatalog(componentName, false)
 	if err != nil {
 		err = errors.Wrap(err, "unable to load component Catalog")
 		return
@@ -517,7 +517,7 @@ func showComponent(args []string) error {
 		componentName string = args[0]
 	)
 
-	catalog, err := LoadCatalog()
+	catalog, err := LoadCatalog(componentName, true)
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -586,7 +586,7 @@ func updateComponent(args []string) (err error) {
 		targetVersion    *semver.Version
 	)
 
-	catalog, err := LoadCatalog()
+	catalog, err := LoadCatalog(componentName, false)
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -707,7 +707,7 @@ func deleteComponent(args []string) (err error) {
 		componentName string = args[0]
 	)
 
-	catalog, err := LoadCatalog()
+	catalog, err := LoadCatalog(componentName, false)
 	if err != nil {
 		return errors.Wrap(err, "unable to load component Catalog")
 	}
@@ -1194,7 +1194,7 @@ func downloadProgress(complete chan int8, path string, sizeB int64) {
 	}
 }
 
-func LoadCatalog() (*lwcomponent.Catalog, error) {
+func LoadCatalog(componentName string, getAllVersions bool) (*lwcomponent.Catalog, error) {
 	cli.StartProgress("Loading component catalog...")
 	defer cli.StopProgress()
 
@@ -1203,16 +1203,37 @@ func LoadCatalog() (*lwcomponent.Catalog, error) {
 	// try to load components Catalog from cache
 	if !cli.noCache {
 		expired := cli.ReadCachedAsset(componentsCacheKey, &componentsApiInfo)
-		if !expired {
+		if !expired && !getAllVersions {
 			cli.Log.Infow("loaded components from cache", "components", componentsApiInfo)
 			return lwcomponent.NewCachedCatalog(cli.LwApi, lwcomponent.NewStageTarGz, componentsApiInfo)
 		}
 	}
 
 	// load components Catalog from API
-	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz, true)
+	catalog, err := lwcomponent.NewCatalog(cli.LwApi, lwcomponent.NewStageTarGz)
 	if err != nil {
 		return nil, err
+	}
+
+	// Retrieve the list of all available versions for a single component
+	if getAllVersions {
+		component, err := catalog.GetComponent(componentName)
+		if err != nil {
+			return nil, err
+		}
+
+		vers, err := catalog.ListComponentVersions(component)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("unable to fetch component '%s' versions", componentName))
+		}
+
+		component.ApiInfo.AllVersions = vers
+		catalog.Components[componentName] = lwcomponent.NewCDKComponent(
+			component.Name,
+			component.Description,
+			component.Type,
+			component.ApiInfo,
+			component.HostInfo)
 	}
 
 	componentsApiInfo = make(map[string]*lwcomponent.ApiInfo, len(catalog.Components))
