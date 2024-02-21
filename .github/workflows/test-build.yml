@@ -59,6 +59,9 @@ jobs:
     container:
       image: techallylw/ally-releases:1.21.0
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Trigger release
         if: github.ref == 'refs/heads/main'
         env:
