@@ -1,3 +1,5 @@
+name: Chocolatey Release
+
 on: workflow_dispatch
 
 jobs:

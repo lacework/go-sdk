@@ -61,7 +61,7 @@ jobs:
                       "type": "section",
                       "text": {
                         "type": "mrkdwn",
-                        "text": "*GitHub Workflow Failure*\ngo-sdk/nightly-build\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}\n@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:"
+                        "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/nightly-build\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
                       }
                     }
                   ]
