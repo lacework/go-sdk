@@ -80,15 +80,14 @@ jobs:
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
   trigger-release:
+    needs: run-tests
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
-    container:
-      image: techallylw/ally-releases:1.21.0
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Trigger release
-        if: github.ref == 'refs/heads/main'
         env:
           GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
