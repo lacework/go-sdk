@@ -999,6 +999,16 @@ func CreateLocalComponent(componentName string, version string, development bool
 		panic(err)
 	}
 
+	info := lwcomponent.HostInfo{Dir: "", Description: "", ComponentType: lwcomponent.BinaryType}
+	data, err := json.Marshal(info)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := os.WriteFile(filepath.Join(path, lwcomponent.InfoFile), []byte(data), 0666); err != nil {
+		panic(err)
+	}
+
 	if err := os.WriteFile(filepath.Join(path, lwcomponent.SignatureFile), []byte(version), 0666); err != nil {
 		panic(err)
 	}

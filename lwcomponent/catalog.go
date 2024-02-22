@@ -210,7 +210,10 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 		return
 	}
 
-	CreateHostInfo(componentDir, component.Description, component.Type)
+	component.HostInfo, err = CreateHostInfo(componentDir, component.Description, component.Type)
+	if err != nil {
+		return
+	}
 
 	if component.ApiInfo != nil &&
 		(component.ApiInfo.ComponentType == BinaryType || component.ApiInfo.ComponentType == CommandType) {
@@ -218,8 +221,6 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 			return errors.Wrap(err, "unable to make component executable")
 		}
 	}
-
-	component.HostInfo, err = NewHostInfo(componentDir)
 
 	return
 }
@@ -349,6 +350,10 @@ func LoadLocalComponents() (components map[string]CDKComponent, err error) {
 
 	// Prototype backwards compatibility
 	prototypeState, err := LocalState()
+	if err != nil {
+		prototypeState = new(State)
+		err = nil
+	}
 	prototypeComponents := make(map[string]Component, len(prototypeState.Components))
 	for _, component := range prototypeState.Components {
 		prototypeComponents[component.Name] = component
@@ -380,7 +385,12 @@ func LoadLocalComponents() (components map[string]CDKComponent, err error) {
 			}
 			components[hostInfo.Name()] = NewCDKComponent(hostInfo.Name(), devInfo.Desc, devInfo.ComponentType, nil, hostInfo)
 		} else {
-			components[hostInfo.Name()] = NewCDKComponent(hostInfo.Name(), hostInfo.Description, hostInfo.ComponentType, nil, hostInfo)
+			components[hostInfo.Name()] = NewCDKComponent(
+				hostInfo.Name(),
+				hostInfo.Description,
+				hostInfo.ComponentType,
+				nil,
+				hostInfo)
 		}
 	}
 
