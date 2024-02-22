@@ -46,7 +46,7 @@ func NewHostInfo(dir string) (*HostInfo, error) {
 	return &info, nil
 }
 
-func CreateHostInfo(dir string, desc string, componentType Type) error {
+func CreateHostInfo(dir string, desc string, componentType Type) (*HostInfo, error) {
 	path := filepath.Join(dir, InfoFile)
 
 	if !file.FileExists(path) {
@@ -58,13 +58,13 @@ func CreateHostInfo(dir string, desc string, componentType Type) error {
 
 		buf := new(bytes.Buffer)
 		if err := json.NewEncoder(buf).Encode(info); err != nil {
-			return err
+			return nil, err
 		}
 
-		return os.WriteFile(path, buf.Bytes(), 0644)
+		return info, os.WriteFile(path, buf.Bytes(), 0644)
 	}
 
-	return nil
+	return NewHostInfo(dir)
 }
 
 func (h *HostInfo) Delete() error {
