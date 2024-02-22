@@ -508,11 +508,12 @@ func (c Component) SignatureFromDisk() ([]byte, error) {
 		return sig, errors.Wrap(err, "unable to read component signature file")
 	}
 
-	// decode artifact signature
-	sig, err = base64.StdEncoding.DecodeString(string(dat))
-	if err != nil {
-		return sig, errors.New("unable to decode component signature")
+	// Artifact signature may or may not be b64encoded
+	decoded_sig, err := base64.StdEncoding.DecodeString(string(dat))
+	if err == nil {
+		sig = decoded_sig
 	}
+
 	return sig, nil
 }
 

@@ -210,6 +210,8 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 		return
 	}
 
+	CreateHostInfo(componentDir, component.Description, component.Type)
+
 	if component.ApiInfo != nil &&
 		(component.ApiInfo.ComponentType == BinaryType || component.ApiInfo.ComponentType == CommandType) {
 		if err := os.Chmod(filepath.Join(componentDir, component.Name), 0744); err != nil {
@@ -217,7 +219,7 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 		}
 	}
 
-	component.HostInfo = NewHostInfo(componentDir)
+	component.HostInfo, err = NewHostInfo(componentDir)
 
 	return
 }
@@ -350,7 +352,10 @@ func LoadLocalComponents() (components map[string]CDKComponent, err error) {
 			continue
 		}
 
-		hostInfo := NewHostInfo(filepath.Join(cacheDir, file.Name()))
+		hostInfo, err := NewHostInfo(filepath.Join(cacheDir, file.Name()))
+		if err != nil {
+			continue
+		}
 
 		if hostInfo.Development() {
 			devInfo, err := newDevInfo(hostInfo.Dir)
@@ -359,8 +364,7 @@ func LoadLocalComponents() (components map[string]CDKComponent, err error) {
 			}
 			components[hostInfo.Name()] = NewCDKComponent(hostInfo.Name(), devInfo.Desc, devInfo.ComponentType, nil, hostInfo)
 		} else {
-			// Unknown components
-			components[hostInfo.Name()] = NewCDKComponent(hostInfo.Name(), "", EmptyType, nil, hostInfo)
+			components[hostInfo.Name()] = NewCDKComponent(hostInfo.Name(), hostInfo.Description, hostInfo.ComponentType, nil, hostInfo)
 		}
 	}
 

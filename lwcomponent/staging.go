@@ -3,6 +3,7 @@ package lwcomponent
 import (
 	"archive/tar"
 	"compress/gzip"
+	"encoding/base64"
 	"io"
 	"net/url"
 	"os"
@@ -122,6 +123,14 @@ func (s *stageTarGz) Signature() (sig []byte, err error) {
 	if err != nil {
 		return
 	}
+
+	// Artifact signature may or may not be b64encoded
+	decoded_sig, err := base64.StdEncoding.DecodeString(string(sig))
+	if err == nil {
+		sig = decoded_sig
+	}
+
+	err = nil
 
 	return
 }
