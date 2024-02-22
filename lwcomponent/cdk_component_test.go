@@ -47,7 +47,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		dir, _ := lwcomponent.CatalogCacheDir()
 
-		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
+		hostInfo, _ := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
 		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, apiInfo, hostInfo)
 
@@ -71,7 +71,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		dir, _ := lwcomponent.CatalogCacheDir()
 
-		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
+		hostInfo, _ := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
 		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, apiInfo, hostInfo)
 
@@ -88,7 +88,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		dir, _ := lwcomponent.CatalogCacheDir()
 
-		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
+		hostInfo, _ := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
 		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, nil, hostInfo)
 
@@ -109,7 +109,7 @@ func TestNewCDKComponent(t *testing.T) {
 		apiInfo := lwcomponent.NewAPIInfo(1, name, version, allVersions, "", 1, true, lwcomponent.BinaryType)
 
 		dir, _ := lwcomponent.CatalogCacheDir()
-		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
+		hostInfo, _ := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
 		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, apiInfo, hostInfo)
 
@@ -147,7 +147,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		dir, _ := lwcomponent.CatalogCacheDir()
 
-		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
+		hostInfo, _ := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
 		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, apiInfo, hostInfo)
 
@@ -164,7 +164,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		dir, _ := lwcomponent.CatalogCacheDir()
 
-		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
+		hostInfo, _ := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
 		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, nil, hostInfo)
 
@@ -186,7 +186,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		dir, _ := lwcomponent.CatalogCacheDir()
 
-		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
+		hostInfo, _ := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
 		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.BinaryType, apiInfo, hostInfo)
 
@@ -209,7 +209,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		dir, _ := lwcomponent.CatalogCacheDir()
 
-		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
+		hostInfo, _ := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
 		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.CommandType, apiInfo, hostInfo)
 
@@ -232,7 +232,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		dir, _ := lwcomponent.CatalogCacheDir()
 
-		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
+		hostInfo, _ := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
 		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.LibraryType, apiInfo, hostInfo)
 
@@ -255,7 +255,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		dir, _ := lwcomponent.CatalogCacheDir()
 
-		hostInfo := lwcomponent.NewHostInfo(filepath.Join(dir, name))
+		hostInfo, _ := lwcomponent.NewHostInfo(filepath.Join(dir, name))
 
 		component := lwcomponent.NewCDKComponent(name, "", lwcomponent.StandaloneType, apiInfo, hostInfo)
 

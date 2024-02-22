@@ -1,6 +1,8 @@
 package lwcomponent
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,15 +16,55 @@ import (
 var (
 	VersionFile     = ".version"
 	SignatureFile   = ".signature"
+	InfoFile        = ".info"
 	DevelopmentFile = ".dev"
 )
 
 type HostInfo struct {
-	Dir string
+	ComponentType Type   `json:"type"`
+	Description   string `json:"description"`
+	Dir           string `json:"-"`
 }
 
-func NewHostInfo(dir string) *HostInfo {
-	return &HostInfo{dir}
+func NewHostInfo(dir string) (*HostInfo, error) {
+	path := filepath.Join(dir, InfoFile)
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, errors.Errorf("unable to read %s file", path)
+	}
+
+	info := HostInfo{}
+
+	err = json.Unmarshal(data, &info)
+	if err != nil {
+		return nil, errors.Errorf("unable to unmarshal %s file", path)
+	}
+
+	info.Dir = dir
+
+	return &info, nil
+}
+
+func CreateHostInfo(dir string, desc string, componentType Type) error {
+	path := filepath.Join(dir, InfoFile)
+
+	if !file.FileExists(path) {
+		info := &HostInfo{
+			Dir:           dir,
+			ComponentType: componentType,
+			Description:   desc,
+		}
+
+		buf := new(bytes.Buffer)
+		if err := json.NewEncoder(buf).Encode(info); err != nil {
+			return err
+		}
+
+		return os.WriteFile(path, buf.Bytes(), 0644)
+	}
+
+	return nil
 }
 
 func (h *HostInfo) Delete() error {
