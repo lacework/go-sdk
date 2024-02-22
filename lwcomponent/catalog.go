@@ -210,7 +210,10 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 		return
 	}
 
-	CreateHostInfo(componentDir, component.Description, component.Type)
+	component.HostInfo, err = CreateHostInfo(componentDir, component.Description, component.Type)
+	if err != nil {
+		return
+	}
 
 	if component.ApiInfo != nil &&
 		(component.ApiInfo.ComponentType == BinaryType || component.ApiInfo.ComponentType == CommandType) {
@@ -218,8 +221,6 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 			return errors.Wrap(err, "unable to make component executable")
 		}
 	}
-
-	component.HostInfo, err = NewHostInfo(componentDir)
 
 	return
 }
