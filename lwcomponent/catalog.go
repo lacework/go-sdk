@@ -350,6 +350,10 @@ func LoadLocalComponents() (components map[string]CDKComponent, err error) {
 
 	// Prototype backwards compatibility
 	prototypeState, err := LocalState()
+	if err != nil {
+		prototypeState = new(State)
+		err = nil
+	}
 	prototypeComponents := make(map[string]Component, len(prototypeState.Components))
 	for _, component := range prototypeState.Components {
 		prototypeComponents[component.Name] = component
