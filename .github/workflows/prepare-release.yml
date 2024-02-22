@@ -21,6 +21,7 @@ jobs:
         env:
           GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
           make prepare
           echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
