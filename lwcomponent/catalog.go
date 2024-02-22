@@ -347,14 +347,30 @@ func LoadLocalComponents() (components map[string]CDKComponent, err error) {
 
 	components = make(map[string]CDKComponent, len(subDir))
 
+	// Prototype backwards compatibility
+	prototypeState, err := LocalState()
+	prototypeComponents := make(map[string]Component, len(prototypeState.Components))
+	for _, component := range prototypeState.Components {
+		prototypeComponents[component.Name] = component
+	}
+
 	for _, file := range subDir {
 		if !file.IsDir() {
 			continue
 		}
 
-		hostInfo, err := NewHostInfo(filepath.Join(cacheDir, file.Name()))
-		if err != nil {
-			continue
+		hostInfo, _ := NewHostInfo(filepath.Join(cacheDir, file.Name()))
+		if hostInfo == nil {
+
+			component, found := prototypeComponents[file.Name()]
+			if !found {
+				continue
+			}
+
+			hostInfo, err = CreateHostInfo(filepath.Join(cacheDir, file.Name()), component.Description, component.Type)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		if hostInfo.Development() {
