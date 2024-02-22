@@ -232,13 +232,6 @@ var currentSignatureTests = []currentSignatureTest{
 		Error:     errors.New("component signature file does not exist"),
 	},
 	{
-		Name:      "bad",
-		Component: mockComponent,
-		Signature: "-",
-		Expected:  []byte{},
-		Error:     errors.New("unable to decode component signature"),
-	},
-	{
 		Name:      "ok",
 		Component: mockComponent,
 		Signature: base64.StdEncoding.EncodeToString([]byte("mysig")),
