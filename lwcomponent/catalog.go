@@ -381,7 +381,12 @@ func LoadLocalComponents() (components map[string]CDKComponent, err error) {
 			}
 			components[hostInfo.Name()] = NewCDKComponent(hostInfo.Name(), devInfo.Desc, devInfo.ComponentType, nil, hostInfo)
 		} else {
-			components[hostInfo.Name()] = NewCDKComponent(hostInfo.Name(), hostInfo.Description, hostInfo.ComponentType, nil, hostInfo)
+			components[hostInfo.Name()] = NewCDKComponent(
+				hostInfo.Name(),
+				hostInfo.Description,
+				hostInfo.ComponentType,
+				nil,
+				hostInfo)
 		}
 	}
 
