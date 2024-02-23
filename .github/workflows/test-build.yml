@@ -7,13 +7,18 @@ on:
     branches:
       - main
 
-concurrency:
-  group: ${{ github.workflow }}
-
 jobs:
   run-tests:
     runs-on: ubuntu-latest
     steps:
+      # To wait for the existing test-build run to complete
+      - name: Turnstyle
+        uses: softprops/turnstyle@v1
+        with:
+          same-branch-only: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -86,11 +91,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.TOKEN }}
 
       - name: Trigger release
         env:
           GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          CI: true
         run: |
           echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
           scripts/release.sh trigger
