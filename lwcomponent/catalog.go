@@ -16,7 +16,7 @@ import (
 const (
 	componentCacheDir string = "components"
 	cdkCacheName      string = "cdk_cache"
-	featureFlag       string = "PUBLIC.cdk.v2"
+	featureFlag       string = "PUBLIC.cdk.v3"
 	operatingSystem   string = runtime.GOOS
 	architecture      string = runtime.GOARCH
 )

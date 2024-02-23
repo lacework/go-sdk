@@ -503,13 +503,13 @@ func (c Component) SignatureFromDisk() ([]byte, error) {
 		return sig, errors.New("component signature file does not exist")
 	}
 
-	dat, err := os.ReadFile(csPath)
+	sig, err = os.ReadFile(csPath)
 	if err != nil {
 		return sig, errors.Wrap(err, "unable to read component signature file")
 	}
 
 	// Artifact signature may or may not be b64encoded
-	decoded_sig, err := base64.StdEncoding.DecodeString(string(dat))
+	decoded_sig, err := base64.StdEncoding.DecodeString(string(sig))
 	if err == nil {
 		sig = decoded_sig
 	}
