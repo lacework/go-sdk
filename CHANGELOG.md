@@ -1,5 +1,10 @@
 # v1.46.0
 
+## Bug Fixes
+* fix: cdk v3 feature flag (#1560) (jonathan stewart)([57876bc7](https://github.com/lacework/go-sdk/commit/57876bc7514bbcbc27f37237dba7b1843762c5f7))
+---
+# v1.46.0
+
 ## Features
 * feat: CDK v2 feature flag (#1548) (jonathan stewart)([e5d3a91c](https://github.com/lacework/go-sdk/commit/e5d3a91c8b909436ba8f21d9fd8b786adae952b8))
 ## Bug Fixes
