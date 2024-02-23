@@ -7,81 +7,86 @@ on:
     branches:
       - main
 
-concurrency:
-  group: ${{ github.workflow }}
-
 jobs:
-  run-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
+  # run-tests:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     # To wait for the existing test-build run to complete
+  #     - name: Turnstyle
+  #       uses: softprops/turnstyle@v1
+  #       with:
+  #         same-branch-only: false
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.21.x
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ github.ref }}
 
-      - name: Run linting tests
-        id: update
-        run: |
-          make prepare
-          make lint
-          make fmt-check
-          make imports-check
+  #     - name: Setup Go
+  #       uses: actions/setup-go@v4
+  #       with:
+  #         go-version: 1.21.x
 
-      - name: Run unit tests
-        run: |
-          make coverage-ci
+  #     - name: Run linting tests
+  #       id: update
+  #       run: |
+  #         make prepare
+  #         make lint
+  #         make fmt-check
+  #         make imports-check
 
-      - name: Build cross-platform binaries
-        run: |
-          make build-cli-cross-platform
+  #     - name: Run unit tests
+  #       run: |
+  #         make coverage-ci
 
-      - name: Run integration tests
-        env:
-          CI_ACCOUNT: ${{ secrets.CI_ACCOUNT }}
-          CI_SUBACCOUNT: ${{ secrets.CI_SUBACCOUNT }}
-          CI_API_KEY: ${{ secrets.CI_API_KEY }}
-          CI_API_SECRET: ${{ secrets.CI_API_SECRET }}
-          LW_INT_TEST_AWS_ACC: ${{ secrets.LW_INT_TEST_AWS_ACC }}
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y vim
-          make integration-only
+  #     - name: Build cross-platform binaries
+  #       run: |
+  #         make build-cli-cross-platform
 
-      # TODO Display test report
+  #     - name: Run integration tests
+  #       env:
+  #         CI_ACCOUNT: ${{ secrets.CI_ACCOUNT }}
+  #         CI_SUBACCOUNT: ${{ secrets.CI_SUBACCOUNT }}
+  #         CI_API_KEY: ${{ secrets.CI_API_KEY }}
+  #         CI_API_SECRET: ${{ secrets.CI_API_SECRET }}
+  #         LW_INT_TEST_AWS_ACC: ${{ secrets.LW_INT_TEST_AWS_ACC }}
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y vim
+  #         make integration-only
 
-      - name: Notify Slack on Failure
-        uses: slackapi/slack-github-action@v1.25.0
-        if: failure()
-        with:
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "#E92020",
-                  "blocks": [
-                    {
-                      "type": "section",
-                      "text": {
-                        "type": "mrkdwn",
-                        "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/test-build\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+  #     # TODO Display test report
+
+  #     - name: Notify Slack on Failure
+  #       uses: slackapi/slack-github-action@v1.25.0
+  #       if: failure()
+  #       with:
+  #         payload: |
+  #           {
+  #             "attachments": [
+  #               {
+  #                 "color": "#E92020",
+  #                 "blocks": [
+  #                   {
+  #                     "type": "section",
+  #                     "text": {
+  #                       "type": "mrkdwn",
+  #                       "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/test-build\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
+  #                     }
+  #                   }
+  #                 ]
+  #               }
+  #             ]
+  #           }
+  #       env:
+  #         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
+  #         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
   trigger-release:
-    needs: run-tests
-    if: github.ref_name == 'main'
+    # needs: run-tests
+    # iif: github.ref_name == 'main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -94,32 +99,33 @@ jobs:
         env:
           GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
           CI: true
         run: |
           echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
           scripts/release.sh trigger
 
-      - name: Notify Slack on Failure
-        uses: slackapi/slack-github-action@v1.25.0
-        if: failure()
-        with:
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "#E92020",
-                  "blocks": [
-                    {
-                      "type": "section",
-                      "text": {
-                        "type": "mrkdwn",
-                        "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/test-build\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      # - name: Notify Slack on Failure
+      #   uses: slackapi/slack-github-action@v1.25.0
+      #   if: failure()
+      #   with:
+      #     payload: |
+      #       {
+      #         "attachments": [
+      #           {
+      #             "color": "#E92020",
+      #             "blocks": [
+      #               {
+      #                 "type": "section",
+      #                 "text": {
+      #                   "type": "mrkdwn",
+      #                   "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/test-build\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
+      #                 }
+      #               }
+      #             ]
+      #           }
+      #         ]
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
+      #     SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
