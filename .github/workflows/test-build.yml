@@ -94,12 +94,13 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+          token: ${{ secrets.TOKEN }}
 
       - name: Trigger release
         env:
           GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          # GITHUB_TOKEN: ${{ secrets.TOKEN }}
           CI: true
         run: |
           echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
