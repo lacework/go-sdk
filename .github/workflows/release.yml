@@ -2,6 +2,7 @@ name: Release
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     tags:
       - 'v*'
@@ -16,7 +17,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
+          # ref: ${{ github.ref }}
+          ref: v1.46.0
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -44,26 +46,26 @@ jobs:
           make prepare
           scripts/release.sh build
 
-      - name: Notify Slack to Sign Artifacts
-        uses: slackapi/slack-github-action@v1.25.0
-        with:
-          payload: |
-            {
-              "text": "<@U0279A42HV0> sign_cli ${{ github.ref_name }} https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      # - name: Notify Slack to Sign Artifacts
+      #   uses: slackapi/slack-github-action@v1.25.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "<@U0279A42HV0> sign_cli ${{ github.ref_name }} https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
+      #     SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
-      - name: Create Release
-        env:
-          GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
-          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-        run: |
-          make prepare
-          echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
-          scripts/release.sh publish
+      # - name: Create Release
+      #   env:
+      #     GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
+      #     GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+      #     GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      #   run: |
+      #     make prepare
+      #     echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
+      #     scripts/release.sh publish
 
       - name: Build/Push Docker Image
         env:
@@ -87,27 +89,27 @@ jobs:
         with:
           workflow: chocolatey-release.yml
 
-      - name: Notify Slack on Failure
-        uses: slackapi/slack-github-action@v1.25.0
-        if: failure()
-        with:
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "#E92020",
-                  "blocks": [
-                    {
-                      "type": "section",
-                      "text": {
-                        "type": "mrkdwn",
-                        "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/release\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      # - name: Notify Slack on Failure
+      #   uses: slackapi/slack-github-action@v1.25.0
+      #   if: failure()
+      #   with:
+      #     payload: |
+      #       {
+      #         "attachments": [
+      #           {
+      #             "color": "#E92020",
+      #             "blocks": [
+      #               {
+      #                 "type": "section",
+      #                 "text": {
+      #                   "type": "mrkdwn",
+      #                   "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/release\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
+      #                 }
+      #               }
+      #             ]
+      #           }
+      #         ]
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
+      #     SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
