@@ -38,6 +38,9 @@ func TestQueryCreateFromEditor(t *testing.T) {
 
 	_ = runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
+			expectString(t, c, "Choose query language")
+			c.SendLine("")
+			time.Sleep(time.Millisecond)
 			expectString(t, c, "Type a query to create")
 			c.SendLine("")
 			time.Sleep(time.Millisecond)
