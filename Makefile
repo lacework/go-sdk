@@ -62,7 +62,9 @@ prepare: git-env install-tools go-vendor ## Initialize the go environment
 
 .PHONY: test
 test: prepare ## Run all go-sdk tests
-	gotestsum -f testname --rerun-fails=3 --packages="./..." -- -v -cover -run=$(regex) -coverprofile=$(COVERAGEOUT) $(shell go list ./... | grep -v integration)
+	$(eval PACKAGES := $(shell go list ./... | grep -v integration))
+	gotestsum -f testname --rerun-fails=3 --packages="$(PACKAGES)" \
+		-- -v -cover -run=$(regex) -coverprofile=$(COVERAGEOUT) $(PACKAGES)
 
 .PHONY: integration
 integration: build-cli-cross-platform integration-only ## Build and run integration tests
@@ -80,8 +82,8 @@ integration-generation-only: ## Run integration tests
 
 .PHONY: integration-only
 integration-only: install-tools ## Run integration tests
-	PATH="$(PWD)/bin:${PATH}" gotestsum -f testname  --rerun-fails=3 --packages="./..." -- -v github.com/lacework/go-sdk/integration -timeout 30m \
-		-tags="$(INTEGRATION_TEST_TAGS)" -run=$(regex)
+	PATH="$(PWD)/bin:${PATH}" gotestsum -f testname  --rerun-fails=3 --packages="github.com/lacework/go-sdk/integration" \
+		-- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="$(INTEGRATION_TEST_TAGS)" -run=$(regex)
 
 .PHONY: integration-only-subset
 integration-only-subset: install-tools ## Run a subset of integration tests
@@ -89,7 +91,8 @@ integration-only-subset: install-tools ## Run a subset of integration tests
 	$(eval END := $(shell echo 7+$(index)*7 | bc))
 	$(eval LENGTH := ${words $(INTEGRATION_TEST_TAGS)})
 	if [ ${START} -le ${LENGTH} ]; then \
-		PATH="$(PWD)/bin:${PATH}" gotestsum -f testname  --rerun-fails=3 --packages="./..." -- -v github.com/lacework/go-sdk/integration -timeout 30m \
+		PATH="$(PWD)/bin:${PATH}" gotestsum -f testname  --rerun-fails=3 --packages="github.com/lacework/go-sdk/integration" \
+			-- -v github.com/lacework/go-sdk/integration -timeout 30m \
 			-tags="${wordlist $(START), $(END), $(INTEGRATION_TEST_TAGS)}" -run=$(regex) \
 		exit 1; \
 	fi
