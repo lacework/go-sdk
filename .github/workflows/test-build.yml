@@ -87,6 +87,7 @@ jobs:
 
       - name: Build cross-platform binaries
         run: |
+          make prepare
           make build-cli-cross-platform
 
       - name: Run integration tests
@@ -99,7 +100,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y vim
-          make prepare
           make integration-only-subset index=${{ matrix.index }}
 
   trigger-release:
