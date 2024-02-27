@@ -99,6 +99,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y vim
+          make prepare
           make integration-only-subset index=${{ matrix.index }}
 
   trigger-release:
