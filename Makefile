@@ -41,13 +41,13 @@ INTEGRATION_TEST_TAGS=account \
 	policy \
 	help \
 	version \
-	generation \
 	compliance \
 	team_member \
 	vulnerability \
 	report_definitions \
 	component \
-	resource_groups
+	resource_groups \
+	generation
 
 .PHONY: help
 help:
@@ -87,8 +87,8 @@ integration-only: install-tools ## Run integration tests
 
 .PHONY: integration-only-subset
 integration-only-subset: install-tools ## Run a subset of integration tests
-	$(eval START := $(shell echo 1+$(index)*7 | bc))
-	$(eval END := $(shell echo 7+$(index)*7 | bc))
+	$(eval START := $(shell echo 1+$(index)*5 | bc))
+	$(eval END := $(shell echo 5+$(index)*5 | bc))
 	$(eval LENGTH := ${words $(INTEGRATION_TEST_TAGS)})
 	if [ ${START} -le ${LENGTH} ]; then \
 		PATH="$(PWD)/bin:${PATH}" gotestsum -f testname  --rerun-fails=3 --packages="github.com/lacework/go-sdk/integration" \
