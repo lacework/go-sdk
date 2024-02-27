@@ -27,6 +27,28 @@ GOFLAGS=-mod=vendor
 CGO_ENABLED?=0
 export GOFLAGS GO_LDFLAGS CGO_ENABLED
 
+INTEGRATION_TEST_TAGS=account \
+	agent_token \
+	alert \
+	alert_rule \
+	alert_channel \
+	alert_profile \
+	agent \
+	configure \
+	cloud_account \
+	container_registry \
+	query \
+	policy \
+	help \
+	version \
+	generation \
+	compliance \
+	team_member \
+	vulnerability \
+	report_definitions \
+	component \
+	resource_groups
+
 .PHONY: help
 help:
 	@echo "-------------------------------------------------------------------"
@@ -58,28 +80,19 @@ integration-generation-only: ## Run integration tests
 
 .PHONY: integration-only
 integration-only: install-tools ## Run integration tests
-	PATH="$(PWD)/bin:${PATH}" gotestsum -f testname -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="\
-		account \
-		agent_token \
-		alert \
-		alert_rule \
-		alert_channel \
-		alert_profile \
-		agent \
-		configure \
-		cloud_account \
-		container_registry \
-		query \
-		policy \
-		help \
-		version \
-		generation \
-		compliance \
-		team_member \
-		vulnerability \
-		report_definitions \
-		component \
-		resource_groups" -run=$(regex)
+	PATH="$(PWD)/bin:${PATH}" gotestsum -f testname -- -v github.com/lacework/go-sdk/integration -timeout 30m \
+		-tags="$(INTEGRATION_TEST_TAGS)" -run=$(regex)
+
+.PHONY: integration-only-subset
+integration-only-subset: install-tools ## Run a subset of integration tests
+	$(eval START := $(shell echo 1+$(index)*7 | bc))
+	$(eval END := $(shell echo 7+$(index)*7 | bc))
+	$(eval LENGTH := ${words $(INTEGRATION_TEST_TAGS)})
+	if [ ${START} -le ${LENGTH} ]; then \
+		PATH="$(PWD)/bin:${PATH}" gotestsum -f testname -- -v github.com/lacework/go-sdk/integration -timeout 30m \
+			-tags="${wordlist $(START), $(END), $(INTEGRATION_TEST_TAGS)}" -run=$(regex) \
+		exit 1; \
+	fi
 
 .PHONY: integration-lql
 integration-lql: build-cli-cross-platform integration-lql-only ## Build and run lql integration tests

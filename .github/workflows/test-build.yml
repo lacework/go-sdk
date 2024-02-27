@@ -8,10 +8,66 @@ on:
       - main
 
 jobs:
-  run-tests:
+  run-linting-and-unit-tests:
     runs-on: ubuntu-latest
     steps:
-      # To wait for the existing test-build run to complete
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.x
+
+      - name: Run linting
+        id: update
+        run: |
+          make prepare
+          make lint
+          make fmt-check
+          make imports-check
+
+      - name: Run unit tests
+        run: |
+          make coverage-ci
+
+      # TODO Display test report
+
+      # - name: Notify Slack on Failure
+      #   uses: slackapi/slack-github-action@v1.25.0
+      #   if: failure()
+      #   with:
+      #     payload: |
+      #       {
+      #         "attachments": [
+      #           {
+      #             "color": "#E92020",
+      #             "blocks": [
+      #               {
+      #                 "type": "section",
+      #                 "text": {
+      #                   "type": "mrkdwn",
+      #                   "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/test-build\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
+      #                 }
+      #               }
+      #             ]
+      #           }
+      #         ]
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
+      #     SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  run-integration-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # To run integration tests with different tags in parallel
+        index: [0, 1, 2]
+    steps:
+      # To wait for the existing test-build run to complete to avoid running same integration tests at the same time
       - name: Turnstyle
         uses: softprops/turnstyle@v1
         with:
@@ -29,18 +85,6 @@ jobs:
         with:
           go-version: 1.21.x
 
-      - name: Run linting tests
-        id: update
-        run: |
-          make prepare
-          make lint
-          make fmt-check
-          make imports-check
-
-      - name: Run unit tests
-        run: |
-          make coverage-ci
-
       - name: Build cross-platform binaries
         run: |
           make build-cli-cross-platform
@@ -55,37 +99,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y vim
-          make integration-only
-
-      # TODO Display test report
-
-      - name: Notify Slack on Failure
-        uses: slackapi/slack-github-action@v1.25.0
-        if: failure()
-        with:
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "#E92020",
-                  "blocks": [
-                    {
-                      "type": "section",
-                      "text": {
-                        "type": "mrkdwn",
-                        "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/test-build\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          make integration-only-subset index=${{ matrix.index }}
 
   trigger-release:
-    needs: run-tests
+    needs: [run-linting-and-unit-tests, run-integration-tests]
     if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     steps:
