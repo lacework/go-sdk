@@ -643,6 +643,10 @@ func cdkGoRunVerify(componentName string) error {
 }
 
 func laceworkCLIBinary() string {
+	if bin := os.Getenv("LW_CLI_BIN"); bin != "" {
+		return bin
+	}
+
 	if os.Getenv("LW_CLI_INTEGRATION_MODE") != "" {
 		return fmt.Sprintf(
 			"lacework-cli-%s-%s",

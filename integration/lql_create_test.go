@@ -38,8 +38,7 @@ func TestQueryCreateHelp(t *testing.T) {
 
 func TestQueryCreateEditor(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("query", "create")
-	assert.Contains(t, out.String(), "Type a query to create")
-	assert.Contains(t, out.String(), "[Enter to launch editor]")
+	assert.Contains(t, out.String(), "Choose query language")
 	assert.Contains(t, err.String(), "ERROR unable to create query:")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
