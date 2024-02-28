@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"encoding/base64"
+	"fmt"
 	"io"
 	"net/url"
 	"os"
@@ -174,8 +175,14 @@ func (s *stageTarGz) Validate() (err error) {
 		return errors.Errorf("missing file '%s'", s.name)
 	}
 
-	if !file.FileExists(filepath.Join(s.dir, s.name)) {
-		return errors.Errorf("missing file '%s'", s.name)
+	path := filepath.Join(s.dir, s.name)
+
+	if operatingSystem == "windows" {
+		path = fmt.Sprintf("%s.exe", path)
+	}
+
+	if !file.FileExists(path) {
+		return errors.Errorf("missing file '%s'", path)
 	}
 
 	return
