@@ -35,30 +35,30 @@ jobs:
 
       # TODO Display test report
 
-      # - name: Notify Slack on Failure
-      #   uses: slackapi/slack-github-action@v1.25.0
-      #   if: failure()
-      #   with:
-      #     payload: |
-      #       {
-      #         "attachments": [
-      #           {
-      #             "color": "#E92020",
-      #             "blocks": [
-      #               {
-      #                 "type": "section",
-      #                 "text": {
-      #                   "type": "mrkdwn",
-      #                   "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/test-build\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
-      #                 }
-      #               }
-      #             ]
-      #           }
-      #         ]
-      #       }
-      #   env:
-      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
-      #     SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      - name: Notify Slack on Failure
+        uses: slackapi/slack-github-action@v1.25.0
+        if: failure()
+        with:
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "#E92020",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/test-build\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
   run-integration-tests:
     runs-on: ubuntu-latest
@@ -100,6 +100,31 @@ jobs:
           LW_CLI_BIN: lacework
         run: |
           make integration-only-subset index=${{ matrix.index }}
+
+      - name: Notify Slack on Failure
+        uses: slackapi/slack-github-action@v1.25.0
+        if: failure()
+        with:
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "#E92020",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/test-build\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
   trigger-release:
     needs: [run-linting-and-unit-tests, run-integration-tests]
