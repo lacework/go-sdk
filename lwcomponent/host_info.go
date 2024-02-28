@@ -139,7 +139,13 @@ func (h *HostInfo) Validate() (err error) {
 		return errors.New(fmt.Sprintf("missing file '%s'", componentName))
 	}
 
-	if !file.FileExists(filepath.Join(h.Dir, componentName)) {
+	path := filepath.Join(h.Dir, componentName)
+
+	if operatingSystem == "windows" {
+		path = fmt.Sprintf("%s.exe", path)
+	}
+
+	if !file.FileExists(path) {
 		return errors.New(fmt.Sprintf("missing file '%s'", componentName))
 	}
 

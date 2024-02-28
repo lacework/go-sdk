@@ -172,7 +172,13 @@ func (c *Catalog) Stage(
 }
 
 func (c *Catalog) Verify(component *CDKComponent) (err error) {
-	data, err := os.ReadFile(filepath.Join(component.stage.Directory(), component.Name))
+	path := filepath.Join(component.stage.Directory(), component.Name)
+
+	if operatingSystem == "windows" {
+		path = fmt.Sprintf("%s.exe", path)
+	}
+
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return
 	}
@@ -215,9 +221,15 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 		return
 	}
 
+	path := filepath.Join(component.stage.Directory(), component.Name)
+
+	if operatingSystem == "windows" {
+		path = fmt.Sprintf("%s.exe", path)
+	}
+
 	if component.ApiInfo != nil &&
 		(component.ApiInfo.ComponentType == BinaryType || component.ApiInfo.ComponentType == CommandType) {
-		if err := os.Chmod(filepath.Join(componentDir, component.Name), 0744); err != nil {
+		if err := os.Chmod(path, 0744); err != nil {
 			return errors.Wrap(err, "unable to make component executable")
 		}
 	}
