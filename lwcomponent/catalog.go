@@ -222,7 +222,7 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 		return
 	}
 
-	component.HostInfo, err = CreateHostInfo(componentDir, component.Description, component.Type)
+	component.HostInfo, err = NewHostInfo(componentDir, component.Description, component.Type)
 	if err != nil {
 		return
 	}
@@ -293,7 +293,7 @@ func NewCatalog(
 		var allVersions []*semver.Version
 
 		apiInfo := NewAPIInfo(c.Id, c.Name, ver, allVersions, c.Description, c.Size, c.Deprecated, Type(c.ComponentType))
-		cdkComponents[c.Name] = NewCDKComponent(c.Name, c.Description, Type(c.ComponentType), apiInfo, nil)
+		cdkComponents[c.Name] = NewCDKComponent(apiInfo, nil)
 	}
 
 	components, err := mergeComponents(cdkComponents)
@@ -315,8 +315,8 @@ func NewCachedCatalog(
 
 	cachedComponents := make(map[string]CDKComponent, len(cachedComponentsApiInfo))
 
-	for _, a := range cachedComponentsApiInfo {
-		cachedComponents[a.Name] = NewCDKComponent(a.Name, a.Desc, a.ComponentType, a, nil)
+	for _, apiInfo := range cachedComponentsApiInfo {
+		cachedComponents[apiInfo.Name] = NewCDKComponent(apiInfo, nil)
 	}
 
 	components, err := mergeComponents(cachedComponents)
@@ -343,7 +343,7 @@ func mergeComponents(components map[string]CDKComponent) (allComponents map[stri
 			hostInfo = component.HostInfo
 			delete(localComponents, c.Name)
 		}
-		allComponents[c.Name] = NewCDKComponent(c.Name, c.Description, c.Type, c.ApiInfo, hostInfo)
+		allComponents[c.Name] = NewCDKComponent(c.ApiInfo, hostInfo)
 	}
 
 	for _, c := range localComponents {
@@ -382,33 +382,27 @@ func LoadLocalComponents() (components map[string]CDKComponent, err error) {
 			continue
 		}
 
-		hostInfo, _ := NewHostInfo(filepath.Join(cacheDir, file.Name()))
+		hostInfo, _ := LoadHostInfo(filepath.Join(cacheDir, file.Name()))
 		if hostInfo == nil {
-
 			component, found := prototypeComponents[file.Name()]
 			if !found {
 				continue
 			}
 
-			hostInfo, err = CreateHostInfo(filepath.Join(cacheDir, file.Name()), component.Description, component.Type)
+			hostInfo, err = NewHostInfo(filepath.Join(cacheDir, file.Name()), component.Description, component.Type)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 		if hostInfo.Development() {
-			devInfo, err := newDevInfo(hostInfo.Dir)
+			_, err := newDevInfo(hostInfo.Dir)
 			if err != nil {
 				return nil, err
 			}
-			components[hostInfo.Name()] = NewCDKComponent(hostInfo.Name(), devInfo.Desc, devInfo.ComponentType, nil, hostInfo)
+			components[hostInfo.Name] = NewCDKComponent(nil, hostInfo)
 		} else {
-			components[hostInfo.Name()] = NewCDKComponent(
-				hostInfo.Name(),
-				hostInfo.Description,
-				hostInfo.ComponentType,
-				nil,
-				hostInfo)
+			components[hostInfo.Name] = NewCDKComponent(nil, hostInfo)
 		}
 	}
 

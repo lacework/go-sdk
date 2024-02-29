@@ -32,7 +32,7 @@ type CDKComponent struct {
 	stage    Stager
 }
 
-func NewCDKComponent(name string, desc string, componentType Type, apiInfo *ApiInfo, hostInfo *HostInfo) CDKComponent {
+func NewCDKComponent(apiInfo *ApiInfo, hostInfo *HostInfo) CDKComponent {
 	var (
 		exec Executer = &nonExecutable{}
 	)
@@ -44,8 +44,8 @@ func NewCDKComponent(name string, desc string, componentType Type, apiInfo *ApiI
 		{
 			dir := hostInfo.Dir
 
-			if componentType == BinaryType || componentType == CommandType {
-				exec = NewExecuable(name, dir)
+			if hostInfo.ComponentType == BinaryType || hostInfo.ComponentType == CommandType {
+				exec = NewExecuable(hostInfo.Name, dir)
 			}
 		}
 	default:
@@ -54,15 +54,31 @@ func NewCDKComponent(name string, desc string, componentType Type, apiInfo *ApiI
 		}
 	}
 
-	return CDKComponent{
-		Name:        name,
-		Description: desc,
-		Type:        componentType,
-		Status:      status,
-		Exec:        exec,
-		ApiInfo:     apiInfo,
-		HostInfo:    hostInfo,
+	if apiInfo != nil {
+		return CDKComponent{
+			Name:        apiInfo.Name,
+			Description: apiInfo.Desc,
+			Type:        apiInfo.ComponentType,
+			Status:      status,
+			Exec:        exec,
+			ApiInfo:     apiInfo,
+			HostInfo:    hostInfo,
+		}
 	}
+
+	if hostInfo != nil {
+		return CDKComponent{
+			Name:        hostInfo.Name,
+			Description: hostInfo.Desc,
+			Type:        hostInfo.ComponentType,
+			Status:      status,
+			Exec:        exec,
+			ApiInfo:     apiInfo,
+			HostInfo:    hostInfo,
+		}
+	}
+
+	return CDKComponent{}
 }
 
 func (c *CDKComponent) Dir() (string, error) {

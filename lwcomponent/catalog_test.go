@@ -88,7 +88,7 @@ func TestCatalogNewCatalog(t *testing.T) {
 		name := fmt.Sprintf("%s-%d", prefix, 1)
 		version := fmt.Sprintf("%d.0.0", 1)
 
-		CreateLocalComponent(name, version, false)
+		CreateLocalComponent(name, version, false, lwcomponent.BinaryType)
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
 		assert.NotNil(t, catalog)
@@ -147,7 +147,7 @@ func TestCatalogNewCatalog(t *testing.T) {
 			api.WithURL(fakeServer.URL()),
 		)
 
-		CreateLocalComponent(name, "invalid-version", false)
+		CreateLocalComponent(name, "invalid-version", false, lwcomponent.BinaryType)
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
 		assert.NotNil(t, catalog)
@@ -195,11 +195,11 @@ func TestCatalogNewCachedCatalog(t *testing.T) {
 			cachedComponentsApiInfo[name] = lwcomponent.NewAPIInfo(1, name, latestVersion, allVersions, "", 1, false, lwcomponent.BinaryType)
 		}
 
-		CreateLocalComponent("testComponentWithApiInfo-0", "5.4.3", false)
-		CreateLocalComponent("testComponentWithApiInfo-1", "1.0.0", false)
-		CreateLocalComponent("testComponentWithApiInfo-2", "2.0.1", false)
-		CreateLocalComponent("testComponentWithApiInfo-3", "3.0.1", true)
-		CreateLocalComponent("testComponent", "0.0.1-dev", true)
+		CreateLocalComponent("testComponentWithApiInfo-0", "5.4.3", false, lwcomponent.BinaryType)
+		CreateLocalComponent("testComponentWithApiInfo-1", "1.0.0", false, lwcomponent.BinaryType)
+		CreateLocalComponent("testComponentWithApiInfo-2", "2.0.1", false, lwcomponent.BinaryType)
+		CreateLocalComponent("testComponentWithApiInfo-3", "3.0.1", true, lwcomponent.BinaryType)
+		CreateLocalComponent("testComponent", "0.0.1-dev", true, lwcomponent.BinaryType)
 
 		catalog, err := lwcomponent.NewCachedCatalog(client, newTestStage, cachedComponentsApiInfo)
 		assert.NotNil(t, catalog)
@@ -285,7 +285,7 @@ func TestCatalogComponentCount(t *testing.T) {
 		defer ResetHome(home)
 
 		for i := 0; i < apiCount; i++ {
-			CreateLocalComponent(fmt.Sprintf("%s-%d", prefix, i), fmt.Sprintf("%d.0.0", i), false)
+			CreateLocalComponent(fmt.Sprintf("%s-%d", prefix, i), fmt.Sprintf("%d.0.0", i), false, lwcomponent.BinaryType)
 		}
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
@@ -299,7 +299,7 @@ func TestCatalogComponentCount(t *testing.T) {
 		defer ResetHome(home)
 
 		for i := 0; i < deprecatedCount; i++ {
-			CreateLocalComponent(fmt.Sprintf("deprecated-%d", i), fmt.Sprintf("%d.0.0", i), false)
+			CreateLocalComponent(fmt.Sprintf("deprecated-%d", i), fmt.Sprintf("%d.0.0", i), false, lwcomponent.BinaryType)
 		}
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
@@ -313,7 +313,7 @@ func TestCatalogComponentCount(t *testing.T) {
 		defer ResetHome(home)
 
 		for i := 0; i < developmentCount; i++ {
-			CreateLocalComponent(fmt.Sprintf("dev-%d", i), fmt.Sprintf("%d.0.0", i), true)
+			CreateLocalComponent(fmt.Sprintf("dev-%d", i), fmt.Sprintf("%d.0.0", i), true, lwcomponent.BinaryType)
 		}
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
@@ -327,11 +327,11 @@ func TestCatalogComponentCount(t *testing.T) {
 		defer ResetHome(home)
 
 		for i := 0; i < deprecatedCount; i++ {
-			CreateLocalComponent(fmt.Sprintf("all-deprecated-%d", i), fmt.Sprintf("%d.0.0", i), false)
+			CreateLocalComponent(fmt.Sprintf("all-deprecated-%d", i), fmt.Sprintf("%d.0.0", i), false, lwcomponent.BinaryType)
 		}
 
 		for i := 0; i < developmentCount; i++ {
-			CreateLocalComponent(fmt.Sprintf("all-dev-%d", i), fmt.Sprintf("%d.0.0", i), true)
+			CreateLocalComponent(fmt.Sprintf("all-dev-%d", i), fmt.Sprintf("%d.0.0", i), true, lwcomponent.BinaryType)
 		}
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
@@ -380,7 +380,7 @@ func TestCatalogGetComponent(t *testing.T) {
 		_, home := FakeHome()
 		defer ResetHome(home)
 
-		CreateLocalComponent(name, version, false)
+		CreateLocalComponent(name, version, false, lwcomponent.BinaryType)
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
 		assert.Nil(t, err)
@@ -412,7 +412,7 @@ func TestCatalogGetComponent(t *testing.T) {
 		_, home := FakeHome()
 		defer ResetHome(home)
 
-		CreateLocalComponent(name, version, true)
+		CreateLocalComponent(name, version, true, lwcomponent.BinaryType)
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
 		assert.Nil(t, err)
@@ -435,7 +435,7 @@ func TestCatalogGetComponent(t *testing.T) {
 		_, home := FakeHome()
 		defer ResetHome(home)
 
-		CreateLocalComponent(name, version, false)
+		CreateLocalComponent(name, version, false, lwcomponent.BinaryType)
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
 		assert.Nil(t, err)
@@ -657,7 +657,7 @@ func TestCatalogStage(t *testing.T) {
 	})
 
 	t.Run("already installed", func(t *testing.T) {
-		CreateLocalComponent(name, version, false)
+		CreateLocalComponent(name, version, false, lwcomponent.BinaryType)
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
 		assert.NotNil(t, catalog)
@@ -889,7 +889,7 @@ func TestCatalogDelete(t *testing.T) {
 	t.Run("delete-installed", func(t *testing.T) {
 		name := fmt.Sprintf("%s-1", prefix)
 
-		CreateLocalComponent(name, version, false)
+		CreateLocalComponent(name, version, false, lwcomponent.BinaryType)
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
 		assert.NotNil(t, catalog)
@@ -913,7 +913,7 @@ func TestCatalogDelete(t *testing.T) {
 	t.Run("delete-development", func(t *testing.T) {
 		name := "delete-dev"
 
-		CreateLocalComponent(name, version, true)
+		CreateLocalComponent(name, version, true, lwcomponent.BinaryType)
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
 		assert.NotNil(t, catalog)
@@ -952,7 +952,7 @@ func TestCatalogDelete(t *testing.T) {
 	t.Run("delete-twice", func(t *testing.T) {
 		name := fmt.Sprintf("%s-2", prefix)
 
-		CreateLocalComponent(name, version, false)
+		CreateLocalComponent(name, version, false, lwcomponent.BinaryType)
 
 		catalog, err := lwcomponent.NewCatalog(client, newTestStage)
 		assert.NotNil(t, catalog)
@@ -1054,7 +1054,7 @@ func generateFetchResponse(id int32, name string, version string, url string) st
 	return string(result)
 }
 
-func CreateLocalComponent(componentName string, version string, development bool) {
+func CreateLocalComponent(componentName string, version string, development bool, componentType lwcomponent.Type) {
 	dir, err := lwcomponent.CatalogCacheDir()
 	if err != nil {
 		panic(err)
@@ -1082,7 +1082,7 @@ func CreateLocalComponent(componentName string, version string, development bool
 		panic(err)
 	}
 
-	info := lwcomponent.HostInfo{Dir: "", Description: "", ComponentType: lwcomponent.BinaryType}
+	info := lwcomponent.HostInfo{Dir: "", Desc: "", ComponentType: componentType}
 	data, err := json.Marshal(info)
 	if err != nil {
 		panic(err)
