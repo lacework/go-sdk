@@ -54,7 +54,7 @@ func TestQueryUpdateFromIDEditor(t *testing.T) {
 			c.SendLine("")
 			time.Sleep(time.Millisecond)
 			// Move to line number 4 and add comment "--- Updated from CLI Editor"
-			c.Send("4Go--- Updated from CLI Editor\x1b")
+			c.Send("4Gc$--- Updated from CLI Editor\x1b")
 			c.SendLine(":wq!") // save and close
 			time.Sleep(time.Millisecond)
 			expectString(t, c,

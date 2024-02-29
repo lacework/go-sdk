@@ -37,7 +37,7 @@ jobs:
 
       - name: Notify Slack on Failure
         uses: slackapi/slack-github-action@v1.25.0
-        if: failure()
+        if: failure() && github.event_name != 'pull_request'
         with:
           payload: |
             {
@@ -103,7 +103,7 @@ jobs:
 
       - name: Notify Slack on Failure
         uses: slackapi/slack-github-action@v1.25.0
-        if: failure()
+        if: failure() && github.event_name != 'pull_request'
         with:
           payload: |
             {
