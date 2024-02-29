@@ -1,7 +1,7 @@
 //go:build component
 
-// Author:: Salim Afiune Maya (<afiune@lacework.net>)
-// Copyright:: Copyright 2022, Lacework Inc.
+// Author:: Jon Stewart (<jon.stewart@lacework.net>)
+// Copyright:: Copyright 2024, Lacework Inc.
 // License:: Apache License, Version 2.0
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,287 +20,208 @@ package integration
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"runtime"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/lacework/go-sdk/internal/file"
 )
 
-func TestComponentList(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("component", "list")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-	assert.Contains(t, out.String(),
-		"Loading components state...",
-		"STDOUT changed, please check")
+func TestCDKComponentList(t *testing.T) {
+	dir := setup()
 
-	assert.Contains(t, out.String(), "STATUS",
-		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "NAME",
-		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "VERSION",
-		"STDOUT table headers changed, please check")
-	assert.Contains(t, out.String(), "DESCRIPTION",
-		"STDOUT table headers changed, please check")
+	out := run(t, dir, "component", "list")
 
-	assert.Contains(t, out.String(), "Not Installed",
-		"STDOUT our first component is not found, why?")
-	assert.Contains(t, out.String(), "iac",
-		"STDOUT our first component is not found, why?")
+	found, err := regexp.Match("Not Installed\\s+component-example", []byte(out))
+	assert.True(t, found)
+	assert.Nil(t, err)
+
+	cleanup(dir)
 }
 
-func TestComponentListJSON(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("component", "list", "--json")
-	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+func TestCDKComponentListJSON(t *testing.T) {
+	dir := setup()
 
-	expectedJsonKeys := []string{
-		"\"components\"",
-		"\"artifacts\"",
-		"\"breadcrumbs\"",
-		"\"installationMessage\"",
-		"\"description\"",
-		"\"name\"",
-		"\"type\"",
-		"\"version\"",
-		"\"arch\"",
-		"\"os\"",
-		"\"url\"",
-		"\"signature\"",
+	out := run(t, dir, "component", "list", "--json")
+
+	expectedKeys := []string{
+		"description",
+		"latest_version",
+		"name",
+		"status",
+		"type",
+		"version",
 	}
-	t.Run("verify json keys", func(t *testing.T) {
-		for _, header := range expectedJsonKeys {
-			assert.Contains(t, out.String(), header,
-				"STDOUT json keys changed, please check")
-		}
-	})
 
-	assert.Contains(t, out.String(), "\"name\": \"iac\"",
-		"missing IaC component in JSON output")
-	assert.Contains(t, out.String(), "\"type\": \"CLI_COMMAND\"",
-		"missing IaC component in JSON output")
+	for _, key := range expectedKeys {
+		assert.Contains(t, out, fmt.Sprintf("\"%s\"", key),
+			"STDOUT json keys changed")
+	}
+
+	cleanup(dir)
 }
 
-func TestComponentDevModeGolangFromScratch(t *testing.T) {
-	cName := "go-component"
-	dir := createTOMLConfigFromCIvars()
-	defer os.RemoveAll(dir)
+func TestCDKComponentShow(t *testing.T) {
+	dir := setup()
 
-	t.Run("component not found", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, "component", "list")
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.NotContains(t, out.String(), cName,
-			"the test component should not be here already, check!")
+	out := run(t, dir, "component", "show", "component-example")
 
-		out, err, exitcode = LaceworkCLIWithHome(dir, cName)
-		assert.Empty(t, out.String(), "STDOUT should be empty")
-		assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
-		assert.NotContains(t, out.String(), cName,
-			fmt.Sprintf("ERROR unknown command \"%s\"", cName))
-	})
+	found, err := regexp.Match("Not Installed\\s+component-example", []byte(out))
+	assert.True(t, found)
+	assert.Nil(t, err)
 
-	t.Run("enter dev-mode", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(
-			dir, "component", "dev", cName, "--type", "CLI_COMMAND", "--nocolor",
-			"--description", "A Go component for testing", "--noninteractive",
-		)
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, out.String(),
-			fmt.Sprintf("Component '%s' in now in development mode.", cName),
-			"the test component should not be here already, check!")
-		assert.Contains(t, out.String(),
-			fmt.Sprintf("lacework/components/%s/.dev", cName),
-			"the test component should not be here already, check!")
-		assert.Contains(t, out.String(),
-			"Deploy your dev component at:",
-			"the test component should not be here already, check!")
-	})
+	assert.Contains(t, out, "The following versions of this component are available to install")
 
-	t.Run(fmt.Sprintf("deploy %s component", cName), func(t *testing.T) {
-		osBin := fmt.Sprintf("%s-%s-%s", cName, runtime.GOOS, runtime.GOARCH)
-		if runtime.GOOS == "windows" {
-			osBin += ".exe"
-		}
-		fromBin := filepath.Join(
-			"test_resources", "cdk", cName, "bin", osBin,
-		)
-		toBin := filepath.Join(
-			dir, ".config", "lacework", "components", cName, cName,
-		)
-		assert.Nil(t, file.Copy(fromBin, toBin))
-	})
-
-	t.Run("component should be found and installed", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, "component", "list")
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, out.String(), cName,
-			"the test component SHOULD be here already, check!")
-		assert.Contains(t, out.String(), "Installed",
-			"the test component SHOULD be installed, check!")
-		assert.Contains(t, out.String(), "0.0.0-dev",
-			"the test component SHOULD be installed, check!")
-		assert.Contains(t, out.String(), "(dev-mode) A Go component for testing",
-			"the test component SHOULD match descriptiohn, check!")
-	})
-
-	t.Run("execute component", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, cName)
-		assert.Empty(t, out.String(), "STDOUT should be empty")
-		assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, err.String(),
-			fmt.Sprintf("ERROR This is a dummy %s for testing", cName),
-			"go component changed? Or something is wrong, check!")
-
-		out, err, exitcode = LaceworkCLIWithHome(dir, cName, "run")
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, out.String(), "Running...",
-			"go component changed? Or something is wrong, check!")
-		assert.Contains(t, out.String(), "Highest Severity:",
-			"go component changed? Or something is wrong, check!")
-
-		out, err, exitcode = LaceworkCLIWithHome(dir, cName, "fail")
-		assert.Empty(t, out.String(), "STDOUT should be empty")
-		assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, err.String(), "ERROR Purposely failing...",
-			"go component changed? Or something is wrong, check!")
-	})
-
-	t.Run("global help should show component", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, "help")
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, out.String(), cName,
-			"the test component SHOULD be shown in help message, check!")
-		assert.Contains(t, out.String(), "(dev-mode) A Go component for testing",
-			"the test component SHOULD be shown in help message, check!")
-	})
-
-	t.Run("component should be displayed in version command", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, "version")
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, out.String(), fmt.Sprintf("> %s v0.0.0-dev", cName),
-			"the test component SHOULD be shown in version command, check!")
-	})
-
-	t.Run("execute component to test cache", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, cName, "writecache")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Empty(t, err.String(), "STDERR should be empty")
-
-		out, err, exitcode = LaceworkCLIWithHome(dir, cName, "readcache")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Contains(t, out.String(), "[\"data\",\"data\",\"data\"]")
-	})
+	cleanup(dir)
 }
 
-func TestComponentDevModeGolangScaffolding(t *testing.T) {
-	cName := "go-component"
-	dir := createTOMLConfigFromCIvars()
-	defer os.RemoveAll(dir)
+func TestCDKComponentShowJSON(t *testing.T) {
+	dir := setup()
 
-	t.Run("component not found", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, "component", "list")
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.NotContains(t, out.String(), cName,
-			"the test component should not be here already, check!")
+	out := run(t, dir, "component", "show", "component-example", "--json")
 
-		out, err, exitcode = LaceworkCLIWithHome(dir, cName)
-		assert.Empty(t, out.String(), "STDOUT should be empty")
-		assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
-		assert.NotContains(t, out.String(), cName,
-			fmt.Sprintf("ERROR unknown command \"%s\"", cName))
+	expectedKeys := []string{
+		"description",
+		"latest_version",
+		"name",
+		"status",
+		"type",
+		"version",
+	}
+
+	for _, key := range expectedKeys {
+		assert.Contains(t, out, fmt.Sprintf("\"%s\"", key), "STDOUT json keys changed")
+	}
+
+	cleanup(dir)
+}
+
+func TestCDKComponentInstall(t *testing.T) {
+	dir := setup()
+
+	run(t, dir, "component", "install", "component-example")
+
+	out := run(t, dir, "component", "list")
+
+	found, err := regexp.Match("Installed\\s+component-example", []byte(out))
+	assert.True(t, found)
+	assert.Nil(t, err)
+
+	out = run(t, dir, "component-example")
+	assert.Contains(t, out, "component")
+
+	cleanup(dir)
+}
+
+func TestCDKComponentUpdate(t *testing.T) {
+	dir := setup()
+
+	run(t, dir, "component", "install", "component-example", "--version", "0.9.0")
+
+	out := run(t, dir, "component-example")
+	assert.Contains(t, out, "component")
+
+	t.Run("upgrade", func(t *testing.T) {
+		run(t, dir, "component", "update", "component-example", "--version", "0.9.1")
+
+		out := run(t, dir, "component-example")
+		assert.Contains(t, out, "component")
 	})
 
-	t.Run("deploy new component using scaffolding", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(
-			dir, "component", "dev", cName, "--type", "CLI_COMMAND", "--nocolor",
-			"--description", "A Go component for testing", "--noninteractive",
-			"--scaffolding", "Golang",
-		)
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, out.String(),
-			fmt.Sprintf("Component '%s' in now in development mode.", cName),
-			"the test component should not be here already, check!")
-		assert.Contains(t, out.String(),
-			fmt.Sprintf("lacework/components/%s/.dev", cName),
-			"the test component should not be here already, check!")
+	t.Run("downgrade", func(t *testing.T) {
+		run(t, dir, "component", "update", "component-example", "--version", "0.8.0")
 
-		checklistOut := []string{
-			"Deploying Golang scaffolding",
-			"cmd/cdk.go deployed",
-			"cmd/root.go deployed",
-			"Makefile deployed",
-			"VERSION deployed",
-			"cmd/placeholder.go deployed",
-			".gitignore deployed",
-			"main.go deployed",
-			"LICENSE deployed",
-			"bin/.gitkeeper deployed",
-			"go.mod deployed",
-			"Git repository initialized",
-			"Deployment completed!",
-			"Go dependencies downloaded",
-			"Dev component built",
-			fmt.Sprintf("Your new component '%s' is ready!", cName),
-			"Component verified",
-		}
-		for _, expectedOutput := range checklistOut {
-			assert.Contains(t, out.String(), expectedOutput, "missing checklist output")
-		}
+		out := run(t, dir, "component-example")
+		assert.Contains(t, out, "component")
 	})
 
-	t.Run("execute component", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, cName)
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Contains(t, out.String(),
-			"A placeholder command",
-			"Golang scaffolding changed? Or something is wrong, check!")
-		assert.Contains(t, out.String(),
-			fmt.Sprintf("%s is a scaffolding for Lacework CDK components. It helps developers", cName),
-			"Golang scaffolding changed? Or something is wrong, check!")
+	cleanup(dir)
+}
 
-		out, err, exitcode = LaceworkCLIWithHome(dir, cName, "placeholder")
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, out.String(),
-			fmt.Sprintf("Your new component '%s' is ready!", cName),
-			"Golang scaffolding changed? Or something is wrong, check!")
+func TestCDKComponentUninstall(t *testing.T) {
+	dir := setup()
 
-		out, err, exitcode = LaceworkCLIWithHome(dir, cName, "should-fail")
-		assert.Empty(t, out.String(), "STDOUT should be empty")
-		assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, err.String(),
-			fmt.Sprintf("Error: unknown command \"should-fail\" for \"%s\"", cName),
-			"Golang scaffolding changed? Or something is wrong, check!")
-	})
+	run(t, dir, "component", "install", "component-example")
 
-	t.Run("global help should show component", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, "help")
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, out.String(), cName,
-			"the test component SHOULD be shown in help message, check!")
-		assert.Contains(t, out.String(), "(dev-mode) A Go component for testing",
-			"the test component SHOULD be shown in help message, check!")
-	})
+	out := run(t, dir, "component-example")
+	assert.Contains(t, out, "component")
 
-	t.Run("component should be displayed in version command", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, "version")
-		assert.Empty(t, err.String(), "STDERR should be empty")
-		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, out.String(), fmt.Sprintf("> %s v0.0.0-dev", cName),
-			"the test component SHOULD be shown in version command, check!")
-	})
+	run(t, dir, "component", "uninstall", "component-example")
+
+	_, err, _ := LaceworkCLIWithHome(dir, "component-example")
+	assert.NotNil(t, err)
+
+	out = run(t, dir, "component", "list")
+
+	found, err2 := regexp.Match("Not Installed\\s+component-example", []byte(out))
+	assert.True(t, found)
+	assert.Nil(t, err2)
+
+	cleanup(dir)
+}
+
+func TestCDKComponentDev(t *testing.T) {
+	dir := setup()
+
+	// GoLang scaffolding is too slow for the test
+	run(t, dir, "component", "dev", "dev-component", "--description", "dev-component", "--type", "CLI_COMMAND", "--scaffolding", "\"No. Start from scratch\"")
+
+	out := run(t, dir, "component", "list")
+
+	found, err := regexp.Match("Development\\s+dev-component\\s+0.0.0-dev", []byte(out))
+	assert.True(t, found)
+	assert.Nil(t, err)
+
+	run(t, dir, "component", "uninstall", "dev-component")
+
+	out = run(t, dir, "component", "list")
+	assert.NotContains(t, out, "dev-component")
+
+	cleanup(dir)
+}
+
+func TestCDKComponentDevEnter(t *testing.T) {
+	dir := setup()
+
+	run(t, dir, "component", "install", "component-example")
+
+	out := run(t, dir, "component", "list")
+
+	found, err := regexp.Match("Installed\\s+component-example", []byte(out))
+	assert.True(t, found)
+	assert.Nil(t, err)
+
+	out = run(t, dir, "component", "dev", "component-example", "--scaffolding", "\"No. Start from scratch\"")
+	assert.Contains(t, out, "now in development mode")
+
+	out = run(t, dir, "component", "list")
+
+	found, err = regexp.Match("Development\\s+component-example", []byte(out))
+	assert.True(t, found)
+	assert.Nil(t, err)
+
+	run(t, dir, "component", "uninstall", "component-example")
+
+	out = run(t, dir, "component", "list")
+
+	found, err = regexp.Match("Not Installed\\s+component-example", []byte(out))
+	assert.True(t, found)
+	assert.Nil(t, err)
+
+	cleanup(dir)
+}
+
+func setup() string {
+	return createTOMLConfigFromCIvars()
+}
+
+func run(t *testing.T, dir string, command ...string) string {
+	out, err, exitcode := LaceworkCLIWithHome(dir, command...)
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	return out.String()
+}
+
+func cleanup(dir string) {
+	os.RemoveAll(dir)
 }

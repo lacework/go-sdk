@@ -3,6 +3,7 @@ package lwcomponent_test
 import (
 	"archive/tar"
 	"compress/gzip"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"os"
@@ -75,6 +76,22 @@ func TestStagingTarGzSignature(t *testing.T) {
 		fileName := filepath.Join(stage.Directory(), lwcomponent.SignatureFile)
 
 		os.WriteFile(fileName, []byte(expectedSig), os.ModePerm)
+
+		result, err := stage.Signature()
+		assert.Nil(t, err)
+		assert.Equal(t, expectedSig, string(result))
+	})
+
+	t.Run("ok b64", func(t *testing.T) {
+		stage, err := lwcomponent.NewStageTarGz(name, "", 0)
+		assert.Nil(t, err)
+		defer stage.Close()
+
+		fileName := filepath.Join(stage.Directory(), lwcomponent.SignatureFile)
+
+		data := base64.StdEncoding.EncodeToString([]byte(expectedSig))
+
+		os.WriteFile(fileName, []byte(data), os.ModePerm)
 
 		result, err := stage.Signature()
 		assert.Nil(t, err)

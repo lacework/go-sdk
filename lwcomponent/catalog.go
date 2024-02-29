@@ -17,7 +17,7 @@ import (
 const (
 	componentCacheDir string = "components"
 	cdkCacheName      string = "cdk_cache"
-	featureFlag       string = "PUBLIC.cdk.v3"
+	featureFlag       string = "PUBLIC.cdk.v4"
 	operatingSystem   string = runtime.GOOS
 	architecture      string = runtime.GOARCH
 )
@@ -227,7 +227,7 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 		return
 	}
 
-	path := filepath.Join(component.stage.Directory(), component.Name)
+	path := filepath.Join(componentDir, component.Name)
 
 	if operatingSystem == "windows" {
 		path = fmt.Sprintf("%s.exe", path)
