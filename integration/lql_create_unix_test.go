@@ -48,13 +48,13 @@ func TestQueryCreateFromEditor(t *testing.T) {
 			c.Send(fmt.Sprintf("c$queryId: %s\x1b", queryID))
 			time.Sleep(time.Millisecond)
 			// Move to line number 5 and add source
-			c.Send("5GoCloudTrailRawEvents\x1b")
+			c.Send("5Gc$CloudTrailRawEvents\x1b")
 			time.Sleep(time.Millisecond)
-			// Move to line number 9 and add filter
-			c.Send("9GoEVENT_NAME like 'GetBucket%'\x1b")
+			// Move to line number 8 and add filter
+			c.Send("8Gc$EVENT_NAME like 'GetBucket%'\x1b")
 			time.Sleep(time.Millisecond)
-			// Move to line number 13 and add return
-			c.Send("13GoINSERT_ID\x1b")
+			// Move to line number 11 and add return
+			c.Send("11Gc$INSERT_ID\x1b")
 			time.Sleep(time.Millisecond)
 			c.SendLine(":wq!") // save and close
 			time.Sleep(time.Millisecond)
@@ -69,18 +69,6 @@ func TestQueryCreateFromEditor(t *testing.T) {
 		assert.Empty(t,
 			stderr.String(),
 			"STDERR should be empty")
-		assert.Contains(t,
-			stdout.String(),
-			"--- Select a datasource. To list all available datasources, use 'lacework query sources'.",
-			"STDOUT changed, please update")
-		assert.Contains(t,
-			stdout.String(),
-			"--- Add query filter(s), if any. If not, remove this block.",
-			"STDOUT changed, please update")
-		assert.Contains(t,
-			stdout.String(),
-			"--- List fields to return from the selected source. Use 'lacework query describe <datasource>'.",
-			"STDOUT changed, please update")
 		assert.Contains(t, stdout.String(), "CloudTrailRawEvents", "STDOUT changed, please update")
 		assert.Contains(t, stdout.String(), "EVENT_NAME like 'GetBucket%'", "STDOUT changed, please update")
 		assert.Contains(t, stdout.String(), "INSERT_ID", "STDOUT changed, please update")
