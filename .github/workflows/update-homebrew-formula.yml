@@ -24,22 +24,24 @@ jobs:
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
-      - name: Create local Homebrew tap
-        working-directory: homebrew-tap
-        run: |
-          brew tap-new lacework/lacework-cli --no-git
-          sudo cp -r . $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
+      # - name: Create local Homebrew tap
+      #   working-directory: homebrew-tap
+      #   run: |
+      #     brew tap-new lacework/lacework-cli --no-git
+      #     sudo cp -r . $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
 
       - name: Update CLI Version
+        working-directory: homebrew-tap
         env:
           GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
-          CI: true
+          # CI: true
         run: |
-          sudo chmod -R 777 $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/.git
-          cd $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
           echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
           make update-cli-version
+
+      # sudo chmod -R 777 $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/.git
+      # cd $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
 
       # - name: Notify Slack on Failure
       #   if: failure()
