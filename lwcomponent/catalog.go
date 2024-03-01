@@ -1,6 +1,7 @@
 package lwcomponent
 
 import (
+	"encoding/xml"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -152,6 +153,11 @@ func (c *Catalog) Stage(
 
 	if err = stage.Download(progressClosure); err != nil {
 		stage.Close()
+		return
+	}
+
+	err = parseAWSXMLError(filepath.Join(stage.Directory(), stage.Filename()))
+	if err != nil {
 		return
 	}
 
@@ -443,4 +449,27 @@ func componentDirectory(componentName string) (string, error) {
 	}
 
 	return filepath.Join(dir, componentName), nil
+}
+
+type awsXMLError struct {
+	xml.Name
+	Code    string `xml:"Code"`
+	Message string `xml:"Message"`
+}
+
+func parseAWSXMLError(path string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	xmlError := &awsXMLError{}
+	err = xml.Unmarshal(data, xmlError)
+	if err != nil {
+		return nil
+	}
+
+	log.Error(string(data))
+
+	return errors.Errorf("Code: %s.  Message: %s", xmlError.Code, xmlError.Message)
 }

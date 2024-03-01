@@ -549,13 +549,57 @@ func TestCatalogStage(t *testing.T) {
 		fmt.Fprint(w, generateComponentsResponse(prefix, apiComponentCount))
 	})
 
+	url := "s3-download"
+
+	fakeServer.MockAPI(url, func(w http.ResponseWriter, r *http.Request) {
+		dir, _ := os.MkdirTemp("", "cdk-component-stage-tar-gz-")
+
+		path := MakeGzip(name, MakeTar(name, "1.0.0", dir, "component", "sig"))
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			panic(err)
+		}
+
+		w.Write(data)
+	})
+
+	XMLUrl := "s3-error"
+
+	fakeServer.MockAPI(XMLUrl, func(w http.ResponseWriter, r *http.Request) {
+		data := []byte(`<?xml version="1.0" encoding="UTF-8"?>
+		<Error><Code>PermanentRedirect</Code>
+		<Message>The bucket you are attempting to access must be addressed using the specified endpoint.
+		Please send all future requests to this endpoint.</Message>
+		<Endpoint>lw-cdk-store.s3-us-west-2.amazonaws.com</Endpoint>
+		<Bucket>lw-cdk-store</Bucket><RequestId>VFXE02WRA7339CW6</RequestId><HostId></HostId></Error>`)
+		w.Write(data)
+	})
+
+	EOFUrl := "eof"
+
+	fakeServer.MockAPI(EOFUrl, func(w http.ResponseWriter, r *http.Request) {
+		data := []byte("")
+		w.Write(data)
+	})
+
 	fakeServer.MockAPI("Components/Artifact/1", func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "GET", r.Method, "Components API only accepts HTTP GET")
 
-		if r.URL.Query().Get("version") != version {
-			http.Error(w, "component version not found", http.StatusNotFound)
-		} else {
-			fmt.Fprint(w, generateFetchResponse(1, name, version, ""))
+		l := r.URL.Query().Get("version")
+		switch l {
+		case "1.0.0":
+			{
+				fmt.Fprint(w, generateFetchResponse(1, name, version, fmt.Sprintf("%s/api/v2/%s", fakeServer.URL(), url)))
+			}
+		case "3.0.1":
+			{
+				fmt.Fprint(w, generateFetchResponse(1, name, version, fmt.Sprintf("%s/api/v2/%s", fakeServer.URL(), EOFUrl)))
+			}
+		case "5.4.3":
+			{
+				fmt.Fprint(w, generateFetchResponse(1, name, version, fmt.Sprintf("%s/api/v2/%s", fakeServer.URL(), XMLUrl)))
+			}
 		}
 	})
 
@@ -575,7 +619,7 @@ func TestCatalogStage(t *testing.T) {
 		api.WithURL(fakeServer.URL()),
 	)
 
-	catalog, err := lwcomponent.NewCatalog(client, newTestStage)
+	catalog, err := lwcomponent.NewCatalog(client, lwcomponent.NewStageTarGz)
 	assert.NotNil(t, catalog)
 	assert.Nil(t, err)
 
@@ -586,6 +630,29 @@ func TestCatalogStage(t *testing.T) {
 
 		stageClose, err := catalog.Stage(component, version, ProgressClosure)
 		assert.Nil(t, err)
+		defer stageClose()
+	})
+
+	// @jon-stewart: TODO GROW-2765
+	// t.Run("EOF Error", func(t *testing.T) {
+	// 	component, err := catalog.GetComponent(name)
+	// 	assert.NotNil(t, component)
+	// 	assert.Nil(t, err)
+
+	// 	stageClose, err := catalog.Stage(component, "3.0.1", ProgressClosure)
+	// 	assert.NotNil(t, err)
+	// 	defer stageClose()
+	// })
+
+	t.Run("AWS XML Error", func(t *testing.T) {
+		component, err := catalog.GetComponent(name)
+		assert.NotNil(t, component)
+		assert.Nil(t, err)
+
+		stageClose, err := catalog.Stage(component, "5.4.3", ProgressClosure)
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "PermanentRedirect")
+
 		defer stageClose()
 	})
 
@@ -646,8 +713,19 @@ func (t *testStage) Directory() string {
 	return t.dir
 }
 
+// Filename implements lwcomponent.Stager.
+func (t *testStage) Filename() string {
+	return "newTestStageFile"
+}
+
 // Download implements lwcomponent.Stager.
-func (*testStage) Download(func(string, int64)) error {
+func (t *testStage) Download(func(string, int64)) error {
+	file, err := os.Create(filepath.Join(t.dir, t.Filename()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
 	return nil
 }
 
@@ -678,7 +756,12 @@ func (*testStage) Validate() error {
 }
 
 func newTestStage(name, artifactUrl string, size int64) (stage lwcomponent.Stager, err error) {
-	stage = &testStage{}
+	dir, err := os.MkdirTemp("", "newTestStage")
+	if err != nil {
+		panic(err)
+	}
+
+	stage = &testStage{dir: dir}
 
 	return
 }

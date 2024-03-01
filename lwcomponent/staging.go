@@ -28,6 +28,8 @@ type Stager interface {
 
 	Download(progressClosure func(filepath string, sizeB int64)) error
 
+	Filename() string
+
 	Signature() (sig []byte, err error)
 
 	Unpack() error
@@ -85,6 +87,10 @@ func (s *stageTarGz) Commit(targetDir string) (err error) {
 
 func (s *stageTarGz) Directory() string {
 	return s.dir
+}
+
+func (s *stageTarGz) Filename() string {
+	return filepath.Base(s.artifactUrl.Path)
 }
 
 func (s *stageTarGz) Download(progressClosure func(filepath string, sizeB int64)) (err error) {

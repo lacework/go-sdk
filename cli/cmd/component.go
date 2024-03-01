@@ -443,10 +443,11 @@ func installComponent(args []string) (err error) {
 	}
 
 	stageClose, err := catalog.Stage(component, versionArg, progressClosure)
+	defer stageClose()
 	if err != nil {
+		cli.StopProgress()
 		return
 	}
-	defer stageClose()
 
 	downloadComplete <- 0
 
@@ -631,10 +632,11 @@ func updateComponent(args []string) (err error) {
 	}
 
 	stageClose, err := catalog.Stage(component, versionArg, progressClosure)
+	defer stageClose()
 	if err != nil {
+		cli.StopProgress()
 		return
 	}
-	defer stageClose()
 
 	downloadComplete <- 0
 
@@ -879,7 +881,7 @@ func componentsToTable() [][]string {
 	return out
 }
 
-func prototypeRunComponentsInstall(cmd *cobra.Command, args []string) (err error) {
+func prototypeRunComponentsInstall(_ *cobra.Command, args []string) (err error) {
 	var (
 		componentName    string                 = args[0]
 		downloadComplete                        = make(chan int8)

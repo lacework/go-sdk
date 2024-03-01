@@ -103,12 +103,12 @@ func TestStagingTarGzUnpack(t *testing.T) {
 	assert.NotNil(t, stage)
 	defer stage.Close()
 
-	makeGzip(name, makeTar(name, "1.1.1", stage.Directory(), componentData, sigData))
+	MakeGzip(name, MakeTar(name, "1.1.1", stage.Directory(), componentData, sigData))
 
 	stage.Unpack()
 }
 
-func makeTar(name string, version string, dir string, data string, sig string) string {
+func MakeTar(name string, version string, dir string, data string, sig string) string {
 	tarname := fmt.Sprintf("%s.tar", name)
 	path := filepath.Join(dir, tarname)
 
@@ -147,7 +147,7 @@ func makeTar(name string, version string, dir string, data string, sig string) s
 	return path
 }
 
-func makeGzip(name, path string) string {
+func MakeGzip(name, path string) string {
 	reader, err := os.Open(path)
 	if err != nil {
 		panic(err)
