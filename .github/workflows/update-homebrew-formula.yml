@@ -33,12 +33,12 @@ jobs:
         env:
           GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          CI: true
         run: |
           cd $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
           echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
-          brew audit --formula lacework-cli --strict --fix
+          make update-cli-version
 
-      # make update-cli-version
       # - name: Notify Slack on Failure
       #   if: failure()
       #   uses: slackapi/slack-github-action@v1.25.0
