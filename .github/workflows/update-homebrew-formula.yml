@@ -23,17 +23,19 @@ jobs:
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
-      - name: Update CLI Version
+      - name: Create local Homebrew tap
         working-directory: homebrew-tap
+        run: |
+          brew tap-new lacework/lacework-cli --no-git
+          sudo cp -r . $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
+
+      - name: Update CLI Version
         env:
           GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
         run: |
+          cd $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
           echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
-          export TAP_DIR=$(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
-          brew tap-new lacework/lacework-cli --no-git
-          sudo cp -r . $TAP_DIR
-          cd $TAP_DIR
           brew audit --formula lacework-cli --strict --fix
 
       # make update-cli-version
