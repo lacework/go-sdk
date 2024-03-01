@@ -2,6 +2,7 @@ name: Update Homebrew Formula
 
 on:
   workflow_dispatch:
+  pull_request:
   workflow_run:
     workflows: [Release]
     types:
@@ -9,6 +10,7 @@ on:
 
 jobs:
   update-homefrew-formula:
+    # iif: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,40 +18,46 @@ jobs:
         with:
           repository: lacework/homebrew-tap
           path: homebrew-tap
+
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
+
       - name: Update CLI Version
         working-directory: homebrew-tap
         env:
           GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
         run: |
-          sudo apt-get update -y
-          sudo apt-get install gpg-agent -y
           echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
-          make update-cli-version
-      - name: Notify Slack on Failure
-        if: failure()
-        uses: slackapi/slack-github-action@v1.25.0
-        with:
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "#E92020",
-                  "blocks": [
-                    {
-                      "type": "section",
-                      "text": {
-                        "type": "mrkdwn",
-                        "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/update-homebrew-formula\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+          export TAP_DIR=$(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
+          brew tap-new lacework/lacework-cli --no-git
+          sudo cp -r . $TAP_DIR
+          cd $TAP_DIR
+          brew audit --formula lacework-cli --strict --fix
+
+      # make update-cli-version
+      # - name: Notify Slack on Failure
+      #   if: failure()
+      #   uses: slackapi/slack-github-action@v1.25.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "attachments": [
+      #           {
+      #             "color": "#E92020",
+      #             "blocks": [
+      #               {
+      #                 "type": "section",
+      #                 "text": {
+      #                   "type": "mrkdwn",
+      #                   "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/update-homebrew-formula\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
+      #                 }
+      #               }
+      #             ]
+      #           }
+      #         ]
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
+      #     SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
