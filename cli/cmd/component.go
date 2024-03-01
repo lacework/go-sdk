@@ -366,7 +366,7 @@ func listComponents() error {
 	}
 
 	if cli.JSONOutput() {
-		return cli.OutputJSON(catalog)
+		return CDKComponentsJSON(catalog)
 	}
 
 	if catalog.ComponentCount() == 0 {
@@ -529,7 +529,7 @@ func showComponent(args []string) error {
 	}
 
 	if cli.JSONOutput() {
-		return cli.OutputJSON(component)
+		return CDKComponentJSON(component)
 	}
 
 	printComponent(component.PrintSummary())
@@ -1224,18 +1224,15 @@ func LoadCatalog(componentName string, getAllVersions bool) (*lwcomponent.Catalo
 			return nil, err
 		}
 
-		vers, err := catalog.ListComponentVersions(component)
-		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("unable to fetch component '%s' versions", componentName))
-		}
+		if component.HostInfo == nil || (component.HostInfo != nil && !component.HostInfo.Development()) {
+			vers, err := catalog.ListComponentVersions(component)
+			if err != nil {
+				return nil, errors.Wrap(err, fmt.Sprintf("unable to fetch component '%s' versions", componentName))
+			}
 
-		component.ApiInfo.AllVersions = vers
-		catalog.Components[componentName] = lwcomponent.NewCDKComponent(
-			component.Name,
-			component.Description,
-			component.Type,
-			component.ApiInfo,
-			component.HostInfo)
+			component.ApiInfo.AllVersions = vers
+			catalog.Components[componentName] = lwcomponent.NewCDKComponent(component.ApiInfo, component.HostInfo)
+		}
 	}
 
 	componentsApiInfo = make(map[string]*lwcomponent.ApiInfo, len(catalog.Components))
@@ -1249,4 +1246,54 @@ func LoadCatalog(componentName string, getAllVersions bool) (*lwcomponent.Catalo
 	cli.WriteAssetToCache(componentsCacheKey, time.Now().Add(time.Hour*12), componentsApiInfo)
 
 	return catalog, nil
+}
+
+type componentJSON struct {
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	Version       string `json:"version"`
+	LatestVersion string `json:"latest_version"`
+	ComponentType string `json:"type"`
+	Status        string `json:"status"`
+}
+
+func newComponentJSON(component *lwcomponent.CDKComponent) *componentJSON {
+	semver := component.InstalledVersion()
+	version := ""
+
+	if semver != nil {
+		version = semver.String()
+	}
+
+	latestVersion := ""
+	if component.LatestVersion() != nil {
+		latestVersion = component.LatestVersion().String()
+	}
+
+	return &componentJSON{
+		Name:          component.Name,
+		Description:   component.Description,
+		Version:       version,
+		LatestVersion: latestVersion,
+		ComponentType: string(component.Type),
+		Status:        component.Status.String(),
+	}
+}
+
+func CDKComponentsJSON(catalog *lwcomponent.Catalog) error {
+	type catalogJSON struct {
+		Components []*componentJSON `json:"components"`
+	}
+
+	output := catalogJSON{}
+
+	for _, component := range catalog.Components {
+		output.Components = append(output.Components, newComponentJSON(&component))
+	}
+
+	return cli.OutputJSON(output)
+}
+
+func CDKComponentJSON(component *lwcomponent.CDKComponent) error {
+	return cli.OutputJSON(newComponentJSON(component))
 }

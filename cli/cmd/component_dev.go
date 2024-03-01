@@ -88,7 +88,11 @@ func runComponentsDevMode(_ *cobra.Command, args []string) error {
 }
 
 func devModeComponent(args []string) error {
-	var componentName string = args[0]
+	var (
+		componentName        string = args[0]
+		componentDescription string = ""
+		componentDir         string = ""
+	)
 
 	cli.StartProgress("Loading components Catalog...")
 
@@ -101,11 +105,9 @@ func devModeComponent(args []string) error {
 
 	component, _ := catalog.GetComponent(componentName)
 	if component == nil {
-		newComponent := lwcomponent.NewCDKComponent(componentName, "", lwcomponent.EmptyType, nil, nil)
-		component = &newComponent
 
 		cli.OutputHuman("Component '%s' not found. Defining a new component.\n",
-			color.HiYellowString(component.Name))
+			color.HiYellowString(componentName))
 
 		var (
 			helpMsg = fmt.Sprintf("What are these component types ?\n"+
@@ -128,26 +130,41 @@ func devModeComponent(args []string) error {
 			}
 		}
 
-		component.Type = lwcomponent.Type(cdkDevState.Type)
+		componentType := lwcomponent.Type(cdkDevState.Type)
 
 		if cdkDevState.Description == "" {
 			if err := survey.AskOne(&survey.Input{
 				Message: "What is this component about? (component description):",
-			}, &component.Description); err != nil {
+			}, &componentDescription); err != nil {
 				return err
 			}
 		} else {
-			component.Description = cdkDevState.Description
+			componentDescription = cdkDevState.Description
 		}
+
+		dir, err := lwcomponent.CatalogCacheDir()
+		if err != nil {
+			return err
+		}
+
+		componentDir = filepath.Join(dir, componentName)
+
+		if err := os.MkdirAll(componentDir, os.ModePerm); err != nil {
+			return err
+		}
+
+		hostInfo, err := lwcomponent.NewHostInfo(componentDir, componentDescription, componentType)
+		if err != nil {
+			return err
+		}
+
+		newComponent := lwcomponent.NewCDKComponent(nil, hostInfo)
+
+		component = &newComponent
 	}
 
 	if err := component.EnterDevMode(); err != nil {
 		return errors.Wrap(err, "unable to enter development mode")
-	}
-
-	componentDir, err := component.Dir()
-	if err != nil {
-		return errors.New("unable to detect RootPath")
 	}
 
 	cli.OutputHuman("Component '%s' in now in development mode.\n",

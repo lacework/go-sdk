@@ -21,12 +21,13 @@ var (
 )
 
 type HostInfo struct {
+	Name          string `json:"name"`
 	ComponentType Type   `json:"type"`
-	Description   string `json:"description"`
+	Desc          string `json:"description"`
 	Dir           string `json:"-"`
 }
 
-func NewHostInfo(dir string) (*HostInfo, error) {
+func LoadHostInfo(dir string) (*HostInfo, error) {
 	path := filepath.Join(dir, InfoFile)
 
 	data, err := os.ReadFile(path)
@@ -34,26 +35,31 @@ func NewHostInfo(dir string) (*HostInfo, error) {
 		return nil, errors.Errorf("unable to read %s file", path)
 	}
 
-	info := HostInfo{}
+	hostInfo := HostInfo{}
 
-	err = json.Unmarshal(data, &info)
+	err = json.Unmarshal(data, &hostInfo)
 	if err != nil {
 		return nil, errors.Errorf("unable to unmarshal %s file", path)
 	}
 
-	info.Dir = dir
+	hostInfo.Dir = dir
 
-	return &info, nil
+	if hostInfo.Name == "" {
+		hostInfo.Name = filepath.Base(dir)
+	}
+
+	return &hostInfo, nil
 }
 
-func CreateHostInfo(dir string, desc string, componentType Type) (*HostInfo, error) {
+func NewHostInfo(dir string, desc string, componentType Type) (*HostInfo, error) {
 	path := filepath.Join(dir, InfoFile)
 
 	if !file.FileExists(path) {
 		info := &HostInfo{
+			Name:          filepath.Base(dir),
 			Dir:           dir,
 			ComponentType: componentType,
-			Description:   desc,
+			Desc:          desc,
 		}
 
 		buf := new(bytes.Buffer)
@@ -64,7 +70,7 @@ func CreateHostInfo(dir string, desc string, componentType Type) (*HostInfo, err
 		return info, os.WriteFile(path, buf.Bytes(), 0644)
 	}
 
-	return NewHostInfo(dir)
+	return LoadHostInfo(dir)
 }
 
 func (h *HostInfo) Delete() error {
@@ -73,13 +79,6 @@ func (h *HostInfo) Delete() error {
 
 func (h *HostInfo) Development() bool {
 	return file.FileExists(filepath.Join(h.Dir, DevelopmentFile))
-}
-
-// Returns the Component name
-//
-// The Component name is the same as the name of the base directory
-func (h *HostInfo) Name() string {
-	return filepath.Base(h.Dir)
 }
 
 func (h *HostInfo) Signature() (sig []byte, err error) {
@@ -133,7 +132,7 @@ func (h *HostInfo) Validate() (err error) {
 		return
 	}
 
-	componentName := h.Name()
+	componentName := h.Name
 
 	if !file.FileExists(filepath.Join(h.Dir, SignatureFile)) {
 		return errors.New(fmt.Sprintf("missing file '%s'", componentName))
