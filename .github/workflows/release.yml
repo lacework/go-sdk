@@ -67,21 +67,6 @@ jobs:
         run: |
           scripts/release_containers.sh
 
-      - name: Trigger Homebrew formula update
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: update-homebrew-formula.yml
-
-      - name: Trigger Trigger CLI docs update
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: update-cli-docs.yml
-
-      - name: Trigger Chocolatey package update
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: chocolatey-release.yml
-
       - name: Notify Slack on Failure
         uses: slackapi/slack-github-action@v1.25.0
         if: failure()
