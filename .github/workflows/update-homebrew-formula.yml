@@ -27,7 +27,6 @@ jobs:
         working-directory: homebrew-tap
         run: |
           brew tap-new lacework/lacework-cli --no-git
-          sudo chmod -R 777 $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
           sudo cp -r . $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
 
       - name: Update CLI Version
@@ -36,6 +35,7 @@ jobs:
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
           CI: true
         run: |
+          sudo chmod -R 777 $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/.git
           cd $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
           echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
           make update-cli-version
