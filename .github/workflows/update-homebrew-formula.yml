@@ -27,6 +27,7 @@ jobs:
         working-directory: homebrew-tap
         run: |
           brew tap-new lacework/lacework-cli --no-git
+          sudo chmod 777 $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
           sudo cp -r . $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
 
       - name: Update CLI Version
