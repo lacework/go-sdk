@@ -245,7 +245,7 @@ func (c *cliState) NewClient() error {
 			api.WithTokenAndExpiration(c.Token, c.tokenCache.ExpiresAt))
 	} else if c.Token != "" {
 		apiOpts = append(apiOpts, api.WithToken(c.Token))
-	} else if os.Getenv("LW_CLI_INTEGRATION_MODE") != "" && os.Getenv("LW_API_TOKEN") != "" {
+	} else if os.Getenv("LW_API_TOKEN") != "" {
 		apiOpts = append(apiOpts, api.WithToken(os.Getenv("LW_API_TOKEN")))
 	}
 

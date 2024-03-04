@@ -54,6 +54,7 @@ var (
 	tfPath   string
 	tf       *tfexec.Terraform
 	execPath string
+	token    string
 )
 
 // Use this function to execute a real lacework CLI command, under the hood the function
@@ -119,6 +120,20 @@ func NewLaceworkCLI(workingDir string, stdin io.Reader, args ...string) *exec.Cm
 		// add unique environment variable to notify the CLI that
 		// it is being executed to run our integration test suite
 		env = append(env, "LW_CLI_INTEGRATION_MODE=true")
+
+		if token == "" {
+			fmt.Println("Generating access token")
+			lacework, err := laceworkIntegrationTestClient()
+			if err != nil {
+				log.Fatal(err)
+			}
+			response, err := lacework.GenerateToken()
+			if err != nil {
+				log.Fatal(err)
+			}
+			token = response.Token
+			env = append(env, fmt.Sprintf("LW_API_TOKEN=%s", response.Token))
+		}
 
 		cmd.Env = env
 	}
