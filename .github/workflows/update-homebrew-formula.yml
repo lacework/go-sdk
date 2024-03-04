@@ -18,7 +18,7 @@ jobs:
         with:
           repository: lacework/homebrew-tap
           path: homebrew-tap
-          token: ${{ github.token }}
+          token: ${{ secrets.token }}
 
       - name: Set up Homebrew
         id: set-up-homebrew
