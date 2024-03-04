@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"os"
 	"path"
 	"strings"
 	"time"
@@ -182,6 +183,9 @@ func (c *cliState) WriteCachedToken() error {
 		c.Token = response.Token
 		c.tokenCache.Token = response.Token
 		c.tokenCache.ExpiresAt = response.ExpiresAt
+		if os.Getenv("LW_CLI_INTEGRATION_MODE") != "" {
+			os.Setenv("LW_API_TOKEN", response.Token)
+		}
 	}
 	return nil
 }

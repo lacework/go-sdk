@@ -116,6 +116,10 @@ func NewLaceworkCLI(workingDir string, stdin io.Reader, args ...string) *exec.Cm
 		if os.Getenv(ciTestingUpdaterEnv) == "" {
 			env = append(env, fmt.Sprintf("%s=1", lwupdater.DisableEnv))
 		}
+		// add unique environment variable to notify the CLI that
+		// it is being executed to run our integration test suite
+		env = append(env, "LW_CLI_INTEGRATION_MODE=true")
+
 		cmd.Env = env
 	}
 	return cmd
@@ -149,10 +153,6 @@ func runLaceworkCLI(workingDir string, args ...string) (stdout bytes.Buffer, std
 	// set interactive mode by default for tests, since that's
 	// what they expect
 	cmd.Env = append(cmd.Env, "LW_NONINTERACTIVE=false")
-
-	// add unique environment variable to notify the CLI that
-	// it is being executed to run our integration test suite
-	cmd.Env = append(cmd.Env, "LW_CLI_INTEGRATION_MODE=true")
 
 	exitcode, err := runLaceworkCLIFromCmd(cmd)
 	if exitcode == 999 {
