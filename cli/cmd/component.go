@@ -444,12 +444,12 @@ func installComponent(args []string) (err error) {
 
 	stageClose, err := catalog.Stage(component, versionArg, progressClosure)
 	defer stageClose()
+	downloadComplete <- 0
+
 	if err != nil {
 		cli.StopProgress()
 		return
 	}
-
-	downloadComplete <- 0
 
 	params["stage_duration_ms"] = time.Since(start).Milliseconds()
 	cli.Event.FeatureData = params
@@ -633,12 +633,11 @@ func updateComponent(args []string) (err error) {
 
 	stageClose, err := catalog.Stage(component, versionArg, progressClosure)
 	defer stageClose()
+	downloadComplete <- 0
 	if err != nil {
 		cli.StopProgress()
 		return
 	}
-
-	downloadComplete <- 0
 
 	params["stage_duration_ms"] = time.Since(start).Milliseconds()
 	cli.Event.FeatureData = params
@@ -923,13 +922,12 @@ func prototypeRunComponentsInstall(_ *cobra.Command, args []string) (err error) 
 
 	cli.StartProgress(fmt.Sprintf("Installing component %s...", component.Name))
 	err = cli.LwComponents.Install(component, version, progressClosure)
+	downloadComplete <- 0
 	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to install component")
 		return
 	}
-
-	downloadComplete <- 0
 
 	cli.OutputChecklist(successIcon, "Component %s installed\n", color.HiYellowString(component.Name))
 
@@ -1025,13 +1023,12 @@ func prototypeRunComponentsUpdate(args []string) (err error) {
 
 	cli.StartProgress(fmt.Sprintf("Updating component %s to version %s...", component.Name, &updateTo))
 	err = cli.LwComponents.Install(component, updateTo.String(), progressClosure)
+	downloadComplete <- 0
 	cli.StopProgress()
 	if err != nil {
 		err = errors.Wrap(err, "unable to update component")
 		return
 	}
-
-	downloadComplete <- 0
 
 	cli.OutputChecklist(successIcon, "Component %s updated to %s\n",
 		color.HiYellowString(component.Name),
