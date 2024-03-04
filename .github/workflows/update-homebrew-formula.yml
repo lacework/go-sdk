@@ -9,6 +9,7 @@ on:
 
 jobs:
   update-homefrew-formula:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,19 +17,30 @@ jobs:
         with:
           repository: lacework/homebrew-tap
           path: homebrew-tap
+          token: ${{ secrets.token }}
+
       - name: Set up Homebrew
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Create local Homebrew tap
+        working-directory: homebrew-tap
+        run: |
+          brew tap-new lacework/lacework-cli --no-git
+          sudo cp -r . $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
+
       - name: Update CLI Version
         working-directory: homebrew-tap
         env:
           GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          CI: true
         run: |
-          sudo apt-get update -y
-          sudo apt-get install gpg-agent -y
+          sudo chmod -R 777 $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/.git
+          cd $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
           echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
           make update-cli-version
+
       - name: Notify Slack on Failure
         if: failure()
         uses: slackapi/slack-github-action@v1.25.0

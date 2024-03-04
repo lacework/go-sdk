@@ -9,6 +9,7 @@ on:
 
 jobs:
   update-cli-docs:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     outputs:
       git-sha: ${{ steps.update.outputs.git-sha }}
