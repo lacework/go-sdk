@@ -14,8 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # ref: ${{ github.ref }}
-          ref: release
+          ref: main
           fetch-depth: 0
 
       - name: Setup Go
@@ -25,6 +24,7 @@ jobs:
 
       - name: Verify release
         run: |
+          git checkout release
           scripts/release.sh verify
 
       - name: Notify Slack on Failure
