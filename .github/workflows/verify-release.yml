@@ -25,29 +25,30 @@ jobs:
       - name: Verify release
         run: |
           git checkout release
+          git pull
           scripts/release.sh verify
 
-      - name: Notify Slack on Failure
-        uses: slackapi/slack-github-action@v1.25.0
-        if: failure()
-        with:
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "#E92020",
-                  "blocks": [
-                    {
-                      "type": "section",
-                      "text": {
-                        "type": "mrkdwn",
-                        "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/verify-release\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      # - name: Notify Slack on Failure
+      #   uses: slackapi/slack-github-action@v1.25.0
+      #   if: failure()
+      #   with:
+      #     payload: |
+      #       {
+      #         "attachments": [
+      #           {
+      #             "color": "#E92020",
+      #             "blocks": [
+      #               {
+      #                 "type": "section",
+      #                 "text": {
+      #                   "type": "mrkdwn",
+      #                   "text": "@oncall-growth-eng! There has been a failure that needs your attention. :rotating_light:\n*GitHub Workflow Failure*\ngo-sdk/verify-release\n*Workflow Run*\n https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
+      #                 }
+      #               }
+      #             ]
+      #           }
+      #         ]
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
+      #     SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
