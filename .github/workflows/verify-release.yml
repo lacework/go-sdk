@@ -24,6 +24,7 @@ jobs:
 
       - name: Verify release
         run: |
+          git remote set-head origin main
           scripts/release.sh verify
 
       # git checkout release
