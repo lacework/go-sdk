@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: refs/remotes/origin/release
           fetch-depth: 0
 
       - name: Setup Go
@@ -24,10 +24,10 @@ jobs:
 
       - name: Verify release
         run: |
-          git checkout release
-          git pull
           scripts/release.sh verify
 
+      # git checkout release
+      # git pull
       # - name: Notify Slack on Failure
       #   uses: slackapi/slack-github-action@v1.25.0
       #   if: failure()
