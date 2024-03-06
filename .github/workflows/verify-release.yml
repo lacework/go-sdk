@@ -13,15 +13,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref }}
-
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.21.x
+          ref: release
+          fetch-depth: 0
 
       - name: Verify release
         run: |
+          git remote set-head origin main
           scripts/release.sh verify
 
       - name: Notify Slack on Failure
