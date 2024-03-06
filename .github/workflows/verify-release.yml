@@ -14,13 +14,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: refs/remotes/origin/release
+          ref: release
           fetch-depth: 0
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.21.x
+      # - name: Setup Go
+      #   uses: actions/setup-go@v4
+      #   with:
+      #     go-version: 1.21.x
 
       - name: Verify release
         run: |
