@@ -181,7 +181,7 @@ func dailyComponentUpdateAvailable(componentName string) (bool, error) {
 		err := versionCache.StoreCache(cacheFile)
 
 		if err != nil {
-			cli.Event.Error = err.Error()
+			cli.Event.FeatureData = map[string]interface{}{"silent_error": err.Error()}
 			return false, err
 		}
 
@@ -193,12 +193,40 @@ func dailyComponentUpdateAvailable(componentName string) (bool, error) {
 	}
 }
 
+func firstTimeVersionCheck(dir, file string) error {
+	var (
+		err            error
+		currentVersion *lwupdater.Version
+	)
+	defer func() {
+		cli.Event.Feature = featDailyVerCheck
+		if err != nil {
+			cli.Event.FeatureData = map[string]interface{}{"silent_error": err.Error()}
+		}
+		cli.SendHoneyvent()
+	}()
+
+	if err = os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	currentVersion, err = versionCheck()
+	if err != nil {
+		return err
+	}
+
+	cli.Log.Debugw("storing version cache", "content", currentVersion)
+	err = currentVersion.StoreCache(file)
+	return err
+}
+
 // dailyVersionCheck will execute a version check on a daily basis, the function uses
 // the file ~/.config/lacework/version_cache to track the last check time
 func dailyVersionCheck() error {
 	if cli.JSONOutput() || !isCheckEnabled() {
 		return nil
 	}
+
 	cacheDir, err := cache.CacheDir()
 	if err != nil {
 		return err
@@ -207,19 +235,7 @@ func dailyVersionCheck() error {
 	cacheFile := path.Join(cacheDir, VersionCacheFile)
 	if !file.FileExists(cacheFile) {
 		// first time running the daily version check, create directory
-		if err := os.MkdirAll(cacheDir, 0755); err != nil {
-			return err
-		}
-
-		currentVersion, err := versionCheck()
-		if err != nil {
-			return err
-		}
-
-		cli.Log.Debugw("storing version cache", "content", currentVersion)
-		if err := currentVersion.StoreCache(cacheFile); err != nil {
-			return err
-		}
+		return firstTimeVersionCheck(cacheDir, cacheFile)
 	}
 
 	cli.Log.Debugw("verifying cached version", "cache_file", cacheFile)
@@ -244,17 +260,17 @@ func dailyVersionCheck() error {
 		cli.Log.Debugw("storing new version cache", "content", versionCache)
 		err := versionCache.StoreCache(cacheFile)
 		if err != nil {
-			cli.Event.Error = err.Error()
+			cli.Event.FeatureData = map[string]interface{}{"silent_error": err.Error()}
 			return err
 		}
 
 		lwv, err := versionCheck()
+		cli.Event.DurationMs = time.Since(nowTime).Milliseconds()
 		if err != nil {
-			cli.Event.Error = err.Error()
+			cli.Event.FeatureData = map[string]interface{}{"silent_error": err.Error()}
 			return err
 		}
 
-		cli.Event.DurationMs = time.Since(nowTime).Milliseconds()
 		cli.Event.FeatureData = lwv
 		return nil
 	}
