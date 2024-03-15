@@ -58,8 +58,8 @@ var (
 		Short:   "Run and manage queries",
 		Long: `Run and manage Lacework Query Language (LQL) queries.
 
-LQL is a SQL-like query language for specifying the selection, filtering, and
-manipulation of data. Queries let you interactively request information from
+LQL is a SQL-like query language for specifying the selection, filtering, and 
+manipulation of data. Queries let you interactively request information from 
 specified curated datasources.
 
 Lacework ships a set of default LQL queries that are available in your account.
