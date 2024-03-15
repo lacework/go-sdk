@@ -58,8 +58,8 @@ var (
 		Short:   "Run and manage queries",
 		Long: `Run and manage Lacework Query Language (LQL) queries.
 
-LQL is a SQL-like query language for specifying the selection, filtering, and 
-manipulation of data. Queries let you interactively request information from 
+LQL is a SQL-like query language for specifying the selection, filtering, and
+manipulation of data. Queries let you interactively request information from
 specified curated datasources.
 
 Lacework ships a set of default LQL queries that are available in your account.
@@ -298,7 +298,8 @@ func inputQueryFromURL(url string) (query string, err error) {
 
 func inputQueryFromEditor(action string) (query string, err error) {
 	language := "LQL"
-	if action == "create" && !queryCmdState.EmptyTemplate && cli.LwApi.V2.Query.RegoQueryEnabled() {
+	regoQueryEnabled := os.Getenv("LW_CLI_INTEGRATION_MODE") != "" || cli.LwApi.V2.Query.RegoQueryEnabled()
+	if action == "create" && !queryCmdState.EmptyTemplate && regoQueryEnabled {
 		languageSelect := &survey.Select{
 			Message: "Choose query language: ",
 			Options: []string{
@@ -400,7 +401,7 @@ Verify that the JSON is formatted properly and adheres to the following schema:
 	}
 	// smells like plain text
 	return errors.New(`invalid query
-	
+
 It looks like you attempted to submit a query in YAML format.
 Verify that the text adheres to the following schema:
 
