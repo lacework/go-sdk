@@ -23,6 +23,9 @@ const (
 )
 
 func CatalogV1Enabled(client *api.Client) bool {
+	if os.Getenv("LW_CLI_INTEGRATION_MODE") != "" {
+		return true
+	}
 	response, err := client.V2.FeatureFlags.GetFeatureFlagsMatchingPrefix(featureFlag)
 	if err != nil {
 		return false
