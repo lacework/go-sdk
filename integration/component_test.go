@@ -199,7 +199,13 @@ func TestCDKComponentDevEnter(t *testing.T) {
 	assert.True(t, found)
 	assert.Nil(t, err)
 
-	run(t, dir, "component", "uninstall", "component-example")
+	t.Run("uninstall", func(t *testing.T) {
+		out, err, exitcode := LaceworkCLIWithHome(dir, "component", "uninstall", "component-example")
+		assert.Empty(t, err.String(), "STDERR should be empty")
+		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+		assert.Contains(t, out.String(), "- We will do better next time.\n\nDo you want to provide feedback?\n",
+			"STDOUT json keys changed")
+	})
 
 	out = run(t, dir, "component", "list")
 
