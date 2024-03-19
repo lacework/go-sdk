@@ -298,7 +298,8 @@ func inputQueryFromURL(url string) (query string, err error) {
 
 func inputQueryFromEditor(action string) (query string, err error) {
 	language := "LQL"
-	if action == "create" && !queryCmdState.EmptyTemplate && cli.LwApi.V2.Query.RegoQueryEnabled() {
+	regoQueryEnabled := os.Getenv("LW_CLI_INTEGRATION_MODE") != "" || cli.LwApi.V2.Query.RegoQueryEnabled()
+	if action == "create" && !queryCmdState.EmptyTemplate && regoQueryEnabled {
 		languageSelect := &survey.Select{
 			Message: "Choose query language: ",
 			Options: []string{
@@ -400,7 +401,7 @@ Verify that the JSON is formatted properly and adheres to the following schema:
 	}
 	// smells like plain text
 	return errors.New(`invalid query
-	
+
 It looks like you attempted to submit a query in YAML format.
 Verify that the text adheres to the following schema:
 
