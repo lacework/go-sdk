@@ -19,7 +19,6 @@
 package lwcomponent
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -32,12 +31,12 @@ const (
 	DefaultMaxRetry = 3
 )
 
-var log = lwlogger.New("INFO")
+var log = lwlogger.New("INFO").Sugar()
 
 // Retry 3 times (4 requests total)
 // Resty default RetryWaitTime is 100ms
 // Exponential backoff to a maximum of RetryWaitTime of 2s
-func DownloadFile(path string, url string) (err error) {
+func DownloadFile(path string, url string) error {
 	client := resty.New()
 
 	download_timeout := os.Getenv("CDK_DOWNLOAD_TIMEOUT_MINUTES")
@@ -52,14 +51,31 @@ func DownloadFile(path string, url string) (err error) {
 	client.SetRetryCount(DefaultMaxRetry)
 
 	client.OnError(func(req *resty.Request, err error) {
-		if v, ok := err.(*resty.ResponseError); ok {
-			log.Warn(fmt.Sprintf("Failed to download component: %s: %s", v.Response.Body(), v.Err))
+		fields := []interface{}{
+			"raw_error", err,
 		}
 
-		log.Warn(fmt.Sprintf("Failed to download component: %s", err.Error()))
+		if v, ok := err.(*resty.ResponseError); ok {
+
+			fields = append(fields, "response_body", string(v.Response.Body()))
+
+			if v.Response.Request != nil {
+				trace := v.Response.Request.TraceInfo()
+				fields = append(fields, "trace_info", trace)
+			}
+
+			if v.Err != nil {
+				fields = append(fields, "response_error", v.Err.Error())
+			}
+		}
+
+		log.Warnw("Failed to download component", fields...)
 	})
 
-	_, err = client.R().SetOutput(path).Get(url)
+	_, err := client.R().
+		EnableTrace().
+		SetOutput(path).
+		Get(url)
 
-	return
+	return err
 }

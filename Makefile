@@ -61,7 +61,10 @@ help:
 prepare: git-env install-tools go-vendor ## Initialize the go environment
 
 .PHONY: test
-test: prepare ## Run all go-sdk tests
+test: prepare test-only ## Run all go-sdk tests
+
+.PHONY: test-only
+test-only: ## Run all go-sdk tests only (without prepare)
 	$(eval PACKAGES := $(shell go list ./... | grep -v integration))
 	gotestsum -f testname --rerun-fails=3 --packages="$(PACKAGES)" \
 		-- -v -cover -run=$(regex) -coverprofile=$(COVERAGEOUT) $(PACKAGES)
