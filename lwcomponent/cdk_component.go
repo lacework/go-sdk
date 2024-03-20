@@ -124,34 +124,32 @@ func (c *CDKComponent) EnterDevMode() error {
 	return nil
 }
 
-func (c *CDKComponent) InstalledVersion() (version *semver.Version) {
-	var err error
-
+func (c *CDKComponent) InstalledVersion() *semver.Version {
 	if c.HostInfo != nil {
-		version, err = c.HostInfo.Version()
+		version, err := c.HostInfo.Version()
 		if err == nil {
-			return
+			return version
 		}
 
 		if componentDir, err := c.Dir(); err == nil {
 			if devInfo, err := newDevInfo(componentDir); err == nil {
 				version, err = semver.NewVersion(devInfo.Version)
 				if err == nil {
-					return
+					return version
 				}
 			}
 		}
 	}
 
-	return
+	return nil
 }
 
-func (c *CDKComponent) LatestVersion() (version *semver.Version) {
+func (c *CDKComponent) LatestVersion() *semver.Version {
 	if c.ApiInfo != nil {
-		version = c.ApiInfo.Version
+		return c.ApiInfo.Version
 	}
 
-	return
+	return nil
 }
 
 func (c *CDKComponent) PrintSummary() []string {

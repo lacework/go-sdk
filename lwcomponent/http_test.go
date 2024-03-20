@@ -67,7 +67,7 @@ func TestDownloadFile(t *testing.T) {
 		assert.Contains(t, logsCaptured, "Attempt 4") // the fifth attempt will error
 		assert.Contains(t, logsCaptured, "ERROR RESTY Get")
 		assert.Contains(t, logsCaptured, "Failed to download component")
-		assert.Contains(t, logsCaptured, "trace_infoo")
+		assert.Contains(t, logsCaptured, "trace_info")
 	})
 
 	t.Run("url error", func(t *testing.T) {
