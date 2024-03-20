@@ -432,6 +432,15 @@ func installComponent(args []string) (err error) {
 		return
 	}
 
+	installedVersion := component.InstalledVersion()
+	if installedVersion != nil {
+		return errors.Errorf(
+			"component %s is already installed. To upgrade run '%s'",
+			color.HiYellowString(componentName),
+			color.HiGreenString("lacework component upgrade %s", componentName),
+		)
+	}
+
 	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
 
 	cli.StartProgress(fmt.Sprintf("Staging component %s...", componentName))
@@ -1139,7 +1148,7 @@ func downloadProgress(complete chan int8, path string, sizeB int64) {
 		spinnerSuffix string  = ""
 	)
 
-	if !cli.nonInteractive {
+	if cli.spinner != nil {
 		spinnerSuffix = cli.spinner.Suffix
 	}
 
@@ -1163,24 +1172,18 @@ func downloadProgress(complete chan int8, path string, sizeB int64) {
 				mb := float64(size) / (1 << 20)
 
 				if mb > previous {
-					if !cli.nonInteractive {
-						cli.spinner.Suffix = fmt.Sprintf("%s Downloaded: %.0fmb", spinnerSuffix, mb)
-					} else {
-						cli.OutputHuman("..Downloaded: %.0fmb\n", mb)
-					}
-
+					sizeString := fmt.Sprintf("%.0fmb", mb)
+					cli.Log.Infow("downloading component", "size", sizeString)
+					cli.StartProgress(fmt.Sprintf("%s (%s downloaded)", spinnerSuffix, sizeString))
 					previous = mb
 				}
 			} else {
 				percent := float64(size) / float64(sizeB) * 100
 
 				if percent > previous {
-					if !cli.nonInteractive {
-						cli.spinner.Suffix = fmt.Sprintf("%s Downloaded: %.0f%s", spinnerSuffix, percent, "%")
-					} else {
-						cli.OutputHuman("..Downloaded: %.0f%s\n", percent, "%")
-					}
-
+					percentString := fmt.Sprintf("%.0f%%", percent)
+					cli.Log.Infow("downloading component", "percent", percentString)
+					cli.StartProgress(fmt.Sprintf("%s (%s downloaded)", spinnerSuffix, percentString))
 					previous = percent
 				}
 			}

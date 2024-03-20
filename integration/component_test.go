@@ -109,6 +109,11 @@ func TestCDKComponentInstall(t *testing.T) {
 	out = run(t, dir, "component-example")
 	assert.Contains(t, out, "component")
 
+	outBytes, errBytes, exitcode := LaceworkCLIWithHome(dir, "component", "install", "component-example")
+	assert.NotContains(t, outBytes.String(), "Installation completed.", "STDOUT should be empty")
+	assert.Contains(t, errBytes.String(), "already installed")
+	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+
 	cleanup(dir)
 }
 

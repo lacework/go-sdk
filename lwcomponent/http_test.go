@@ -1,4 +1,4 @@
-package lwcomponent_test
+package lwcomponent
 
 import (
 	"fmt"
@@ -7,8 +7,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/lacework/go-sdk/lwcomponent"
 	"github.com/stretchr/testify/assert"
+
+	capturer "github.com/lacework/go-sdk/internal/capturer"
+	"github.com/lacework/go-sdk/lwlogger"
 )
 
 func TestDownloadFile(t *testing.T) {
@@ -33,7 +35,7 @@ func TestDownloadFile(t *testing.T) {
 	})
 
 	t.Run("happy path", func(t *testing.T) {
-		err = lwcomponent.DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, urlPath))
+		err = DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, urlPath))
 		assert.Nil(t, err)
 
 		buf, err := os.ReadFile(file.Name())
@@ -53,14 +55,33 @@ func TestDownloadFile(t *testing.T) {
 			}
 		})
 
-		err = lwcomponent.DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, "/err"))
+		logsCaptured := capturer.CaptureOutput(func() {
+			log = lwlogger.New("INFO").Sugar()
+			err = DownloadFile(file.Name(), fmt.Sprintf("%s%s", server.URL, "/err"))
+		})
 		assert.NotNil(t, err)
-		assert.Equal(t, lwcomponent.DefaultMaxRetry+1, count)
+		assert.Equal(t, DefaultMaxRetry+1, count)
+
+		assert.Contains(t, logsCaptured, "WARN RESTY Get")
+		assert.Contains(t, logsCaptured, "/err\": EOF")
+		assert.Contains(t, logsCaptured, "Attempt 4") // the fifth attempt will error
+		assert.Contains(t, logsCaptured, "ERROR RESTY Get")
+		assert.Contains(t, logsCaptured, "Failed to download component")
+		assert.Contains(t, logsCaptured, "trace_info")
 	})
 
 	t.Run("url error", func(t *testing.T) {
-		err = lwcomponent.DownloadFile(file.Name(), "")
+		logsCaptured := capturer.CaptureOutput(func() {
+			log = lwlogger.New("INFO").Sugar()
+			err = DownloadFile(file.Name(), "")
+		})
 		assert.NotNil(t, err)
 		assert.False(t, os.IsTimeout(err))
+
+		assert.Contains(t, logsCaptured, "WARN RESTY Get")
+		assert.Contains(t, logsCaptured, "Attempt 4") // the fifth attempt will error
+		assert.Contains(t, logsCaptured, "ERROR RESTY Get")
+		assert.Contains(t, logsCaptured, "Failed to download component")
+		assert.Contains(t, logsCaptured, "trace_info")
 	})
 }

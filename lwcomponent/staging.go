@@ -93,53 +93,42 @@ func (s *stageTarGz) Filename() string {
 	return filepath.Base(s.artifactUrl.Path)
 }
 
-func (s *stageTarGz) Download(progressClosure func(filepath string, sizeB int64)) (err error) {
+func (s *stageTarGz) Download(progressClosure func(filepath string, sizeB int64)) error {
 	fileName := filepath.Base(s.artifactUrl.Path)
 
 	path := filepath.Join(s.dir, fileName)
 
-	_, err = os.Create(path)
-	if err != nil {
-		return
+	if _, err := os.Create(path); err != nil {
+		return err
 	}
 
 	go progressClosure(path, s.size*1024)
 
-	err = DownloadFile(path, s.artifactUrl.String())
-	if err != nil {
-		return
-	}
-
-	return
+	return DownloadFile(path, s.artifactUrl.String())
 }
 
-func (s *stageTarGz) Signature() (sig []byte, err error) {
-	_, err = os.Stat(s.dir)
+func (s *stageTarGz) Signature() ([]byte, error) {
+	_, err := os.Stat(s.dir)
 	if os.IsNotExist(err) {
-		err = errors.New("component not staged")
-		return
+		return nil, errors.New("component not staged")
 	}
 
 	path := filepath.Join(s.dir, SignatureFile)
 	if !file.FileExists(path) {
-		err = errors.New("missing .signature file")
-		return
+		return nil, errors.New("missing .signature file")
 	}
 
-	sig, err = os.ReadFile(path)
+	sig, err := os.ReadFile(path)
 	if err != nil {
-		return
+		return sig, err
 	}
 
 	// Artifact signature may or may not be b64encoded
 	decoded_sig, err := base64.StdEncoding.DecodeString(string(sig))
 	if err == nil {
-		sig = decoded_sig
+		return decoded_sig, nil
 	}
-
-	err = nil
-
-	return
+	return sig, nil
 }
 
 func (s *stageTarGz) Unpack() (err error) {
@@ -164,10 +153,10 @@ func (s *stageTarGz) Unpack() (err error) {
 	return nil
 }
 
-func (s *stageTarGz) Validate() (err error) {
+func (s *stageTarGz) Validate() error {
 	data, err := os.ReadFile(filepath.Join(s.dir, VersionFile))
 	if err != nil {
-		return
+		return err
 	}
 
 	version := string(data)
@@ -191,7 +180,7 @@ func (s *stageTarGz) Validate() (err error) {
 		return errors.Errorf("missing file '%s'", path)
 	}
 
-	return
+	return nil
 }
 
 // Inflate GZip file.
@@ -221,10 +210,10 @@ func gunzip(source string, target string) (err error) {
 	return
 }
 
-func unTar(tarball string, dir string) (err error) {
+func unTar(tarball string, dir string) error {
 	reader, err := os.Open(tarball)
 	if err != nil {
-		return
+		return err
 	}
 	defer reader.Close()
 
@@ -242,7 +231,7 @@ func unTar(tarball string, dir string) (err error) {
 
 		info := header.FileInfo()
 		if info.IsDir() {
-			if err = os.MkdirAll(path, info.Mode()); err != nil {
+			if err := os.MkdirAll(path, info.Mode()); err != nil {
 				return err
 			}
 			continue
@@ -260,5 +249,5 @@ func unTar(tarball string, dir string) (err error) {
 		}
 	}
 
-	return
+	return nil
 }

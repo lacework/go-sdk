@@ -73,15 +73,13 @@ func (c *Catalog) GetComponent(name string) (*CDKComponent, error) {
 	return &component, nil
 }
 
-func (c *Catalog) ListComponentVersions(component *CDKComponent) (versions []*semver.Version, err error) {
+func (c *Catalog) ListComponentVersions(component *CDKComponent) ([]*semver.Version, error) {
 	if component.ApiInfo == nil {
-		err = errors.Errorf("component '%s' api info not available", component.Name)
-		return
+		return nil, errors.Errorf("component '%s' api info not available", component.Name)
 	}
 
-	versions = component.ApiInfo.AllVersions
-	if versions != nil {
-		return
+	if component.ApiInfo.AllVersions != nil {
+		return component.ApiInfo.AllVersions, nil
 	}
 
 	return listComponentVersions(c.client, component.ApiInfo.Id)
@@ -180,7 +178,7 @@ func (c *Catalog) Stage(
 	return
 }
 
-func (c *Catalog) Verify(component *CDKComponent) (err error) {
+func (c *Catalog) Verify(component *CDKComponent) error {
 	path := filepath.Join(component.stage.Directory(), component.Name)
 
 	if operatingSystem == "windows" {
@@ -189,12 +187,12 @@ func (c *Catalog) Verify(component *CDKComponent) (err error) {
 
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return
+		return err
 	}
 
 	sig, err := component.stage.Signature()
 	if err != nil {
-		return
+		return err
 	}
 
 	rootPublicKey := minisign.PublicKey{}
@@ -205,29 +203,29 @@ func (c *Catalog) Verify(component *CDKComponent) (err error) {
 	return verifySignature(rootPublicKey, data, sig)
 }
 
-func (c *Catalog) Install(component *CDKComponent) (err error) {
+func (c *Catalog) Install(component *CDKComponent) error {
 	if component.stage == nil {
 		return errors.Errorf("component '%s' not staged", component.Name)
 	}
 
 	componentDir, err := componentDirectory(component.Name)
 	if err != nil {
-		return
+		return err
 	}
 
 	err = os.MkdirAll(componentDir, os.ModePerm)
 	if err != nil {
-		return
+		return err
 	}
 
 	err = component.stage.Commit(componentDir)
 	if err != nil {
-		return
+		return err
 	}
 
 	component.HostInfo, err = NewHostInfo(componentDir, component.Description, component.Type)
 	if err != nil {
-		return
+		return err
 	}
 
 	path := filepath.Join(componentDir, component.Name)
@@ -243,17 +241,17 @@ func (c *Catalog) Install(component *CDKComponent) (err error) {
 		}
 	}
 
-	return
+	return nil
 }
 
 // Delete a CDKComponent
 //
 // Remove the Component install directory and all sub-directory.  This function will not return an
 // error if the Component is not installed.
-func (c *Catalog) Delete(component *CDKComponent) (err error) {
+func (c *Catalog) Delete(component *CDKComponent) error {
 	componentDir, err := componentDirectory(component.Name)
 	if err != nil {
-		return
+		return err
 	}
 
 	_, err = os.Stat(componentDir)
@@ -261,9 +259,7 @@ func (c *Catalog) Delete(component *CDKComponent) (err error) {
 		return errors.Errorf("component not installed. Try running 'lacework component install %s'", component.Name)
 	}
 
-	os.RemoveAll(componentDir)
-
-	return
+	return os.RemoveAll(componentDir)
 }
 
 func NewCatalog(
@@ -412,7 +408,7 @@ func LoadLocalComponents() (components map[string]CDKComponent, err error) {
 	return
 }
 
-func listComponentVersions(client *api.Client, componentId int32) (versions []*semver.Version, err error) {
+func listComponentVersions(client *api.Client, componentId int32) ([]*semver.Version, error) {
 	response, err := client.V2.Components.ListComponentVersions(componentId, operatingSystem, architecture)
 	if err != nil {
 		return nil, err
@@ -424,7 +420,7 @@ func listComponentVersions(client *api.Client, componentId int32) (versions []*s
 		rawVersions = response.Data[0].Versions
 	}
 
-	versions = make([]*semver.Version, len(rawVersions))
+	versions := make([]*semver.Version, len(rawVersions))
 
 	for idx, v := range rawVersions {
 		ver, err := semver.NewVersion(v)
