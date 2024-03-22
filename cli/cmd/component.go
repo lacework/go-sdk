@@ -435,7 +435,7 @@ func installComponent(args []string) (err error) {
 
 	installedVersion := component.InstalledVersion()
 	if installedVersion != nil {
-		cli.OutputHuman("Component %s is already installed. To upgrade run '%s'",
+		cli.OutputHuman("Component %s is already installed. To upgrade run '%s'\n",
 			component.Name,
 			color.HiGreenString("lacework component update %s", component.Name))
 		return nil
