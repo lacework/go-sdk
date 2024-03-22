@@ -28,7 +28,6 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/lwcomponent"
 )
@@ -436,7 +435,9 @@ func installComponent(args []string) (err error) {
 
 	installedVersion := component.InstalledVersion()
 	if installedVersion != nil {
-		cli.OutputHuman("Component %s is already installed. To upgrade run 'lacework component update %s'\n", component.Name, component.Name)
+		cli.OutputHuman("Component %s is already installed. To upgrade run '%s'",
+			component.Name,
+			color.HiGreenString("lacework component update %s", component.Name))
 		return nil
 	}
 
@@ -627,7 +628,7 @@ func updateComponent(args []string) (err error) {
 	}
 
 	if installedVersion.Equal(targetVersion) {
-		cli.OutputHuman("Component %s is version %s.\n", component.Name, component.InstalledVersion())
+		cli.OutputHuman("Component %s is version %s.\n", component.Name, color.HiYellowString(installedVersion.String()))
 		return nil
 	}
 
@@ -873,7 +874,6 @@ func componentsToTable() [][]string {
 		// we display the current version instead
 		if currentVersion, err := cdata.CurrentVersion(); err == nil {
 			version = currentVersion.String()
-			assert.Contains(t, out, "component")
 		}
 
 		out = append(out, []string{
