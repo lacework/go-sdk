@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCDKComponentList(t *testing.T) {
+func TestComponentList(t *testing.T) {
 	dir := setup()
 
 	out := run(t, dir, "component", "list")
@@ -38,7 +38,7 @@ func TestCDKComponentList(t *testing.T) {
 	cleanup(dir)
 }
 
-func TestCDKComponentListJSON(t *testing.T) {
+func TestComponentListJSON(t *testing.T) {
 	dir := setup()
 
 	out := run(t, dir, "component", "list", "--json")
@@ -60,7 +60,7 @@ func TestCDKComponentListJSON(t *testing.T) {
 	cleanup(dir)
 }
 
-func TestCDKComponentShow(t *testing.T) {
+func TestComponentShow(t *testing.T) {
 	dir := setup()
 
 	out := run(t, dir, "component", "show", "component-example")
@@ -74,7 +74,7 @@ func TestCDKComponentShow(t *testing.T) {
 	cleanup(dir)
 }
 
-func TestCDKComponentShowJSON(t *testing.T) {
+func TestComponentShowJSON(t *testing.T) {
 	dir := setup()
 
 	out := run(t, dir, "component", "show", "component-example", "--json")
@@ -95,7 +95,7 @@ func TestCDKComponentShowJSON(t *testing.T) {
 	cleanup(dir)
 }
 
-func TestCDKComponentInstall(t *testing.T) {
+func TestComponentInstall(t *testing.T) {
 	dir := setup()
 
 	run(t, dir, "component", "install", "component-example")
@@ -109,15 +109,12 @@ func TestCDKComponentInstall(t *testing.T) {
 	out = run(t, dir, "component-example")
 	assert.Contains(t, out, "component")
 
-	outBytes, errBytes, exitcode := LaceworkCLIWithHome(dir, "component", "install", "component-example")
-	assert.NotContains(t, outBytes.String(), "Installation completed.", "STDOUT should be empty")
-	assert.Contains(t, errBytes.String(), "already installed")
-	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
+	run(t, dir, "component", "install", "component-example")
 
 	cleanup(dir)
 }
 
-func TestCDKComponentUpdate(t *testing.T) {
+func TestComponentUpdate(t *testing.T) {
 	dir := setup()
 
 	run(t, dir, "component", "install", "component-example", "--version", "0.9.0")
@@ -142,7 +139,7 @@ func TestCDKComponentUpdate(t *testing.T) {
 	cleanup(dir)
 }
 
-func TestCDKComponentUninstall(t *testing.T) {
+func TestComponentUninstall(t *testing.T) {
 	dir := setup()
 
 	run(t, dir, "component", "install", "component-example")
@@ -164,7 +161,7 @@ func TestCDKComponentUninstall(t *testing.T) {
 	cleanup(dir)
 }
 
-func TestCDKComponentDev(t *testing.T) {
+func TestComponentDev(t *testing.T) {
 	dir := setup()
 
 	// GoLang scaffolding is too slow for the test
@@ -184,7 +181,7 @@ func TestCDKComponentDev(t *testing.T) {
 	cleanup(dir)
 }
 
-func TestCDKComponentDevEnter(t *testing.T) {
+func TestComponentDevEnter(t *testing.T) {
 	dir := setup()
 
 	run(t, dir, "component", "install", "component-example")
