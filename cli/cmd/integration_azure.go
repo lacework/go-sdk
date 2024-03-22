@@ -140,3 +140,72 @@ func createAzureActivityLogIntegration() error {
 	cli.StopProgress()
 	return err
 }
+
+func createAzureAdAlIntegration() error {
+	questions := []*survey.Question{
+		{
+			Name:     "name",
+			Prompt:   &survey.Input{Message: "Name:"},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "client_id",
+			Prompt:   &survey.Input{Message: "Client ID:"},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "client_secret",
+			Prompt:   &survey.Input{Message: "Client Secret:"},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "tenant_id",
+			Prompt:   &survey.Input{Message: "Tenant ID:"},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "event_hub_namespace",
+			Prompt:   &survey.Input{Message: "Event Hub Fully Qualified Namespace:"},
+			Validate: survey.Required,
+		},
+		{
+			Name:     "event_hub_name",
+			Prompt:   &survey.Input{Message: "Event Hub Name:"},
+			Validate: survey.Required,
+		},
+	}
+
+	answers := struct {
+		Name              string
+		ClientID          string `survey:"client_id"`
+		ClientSecret      string `survey:"client_secret"`
+		TenantID          string `survey:"tenant_id"`
+		EventHubNamespace string `survey:"event_hub_namespace"`
+		EventHubName      string `survey:"event_hub_name"`
+	}{}
+
+	err := survey.Ask(questions, &answers,
+		survey.WithIcons(promptIconsFunc),
+	)
+	if err != nil {
+		return err
+	}
+
+	azure := api.NewCloudAccount(answers.Name,
+		api.AzureAdAlCloudAccount,
+		api.AzureAdAlData{
+			TenantID:          answers.TenantID,
+			EventHubNamespace: answers.EventHubNamespace,
+			EventHubName:      answers.EventHubName,
+			Credentials: api.AzureAdAlCredentials{
+				ClientID:     answers.ClientID,
+				ClientSecret: answers.ClientSecret,
+			},
+		},
+	)
+
+	cli.StartProgress(" Creating integration...")
+	_, err = cli.LwApi.V2.CloudAccounts.Create(azure)
+	cli.StopProgress()
+	return err
+}
