@@ -28,6 +28,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/lwcomponent"
 )
@@ -76,11 +77,12 @@ var (
 
 	// componentsUpdateCmd represents the update sub-command inside the components command
 	componentsUpdateCmd = &cobra.Command{
-		Use:   "update <component>",
-		Short: "Update an existing component",
-		Long:  `Update an existing component`,
-		Args:  cobra.ExactArgs(1),
-		RunE:  runComponentsUpdate,
+		Use:     "update <component>",
+		Aliases: []string{"upgrade"},
+		Short:   "Update an existing component",
+		Long:    `Update an existing component`,
+		Args:    cobra.ExactArgs(1),
+		RunE:    runComponentsUpdate,
 	}
 
 	// componentsUninstallCmd represents the uninstall sub-command inside the components command
@@ -434,7 +436,7 @@ func installComponent(args []string) (err error) {
 
 	installedVersion := component.InstalledVersion()
 	if installedVersion != nil {
-		cli.OutputHuman("Component %s is already installed\n", component.Name)
+		cli.OutputHuman("Component %s is already installed. To upgrade run 'lacework component update %s'\n", component.Name, component.Name)
 		return nil
 	}
 
@@ -871,6 +873,7 @@ func componentsToTable() [][]string {
 		// we display the current version instead
 		if currentVersion, err := cdata.CurrentVersion(); err == nil {
 			version = currentVersion.String()
+			assert.Contains(t, out, "component")
 		}
 
 		out = append(out, []string{
