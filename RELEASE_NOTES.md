@@ -1,17 +1,13 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.48.0`.
+Another day, another release. These are the release notes for the version `v1.49.0`.
 
 ## Features
-* feat(RAIN-92599): Add AzureAdAl integration support (#1590) (rubinder-lw)([9e12df97](https://github.com/lacework/go-sdk/commit/9e12df974f33d930203a85893040ba1f19c819bb))
+* feat: create AzureAD intg from CLI (manual) (#1601) (Manan Bhatia)([0a5ced9e](https://github.com/lacework/go-sdk/commit/0a5ced9e59b74e89ca23c59f2c76d4716a18eb5f))
+* feat(COD-2330): remove the Semgrep install step (#1574) (Jeremy Dubreil)([96d673a7](https://github.com/lacework/go-sdk/commit/96d673a71da2f9794c1454314b0b3b288ed61806))
 ## Bug Fixes
-* fix(cli): avoid panic while updating progress (#1597) (Salim Afiune)([570e5787](https://github.com/lacework/go-sdk/commit/570e578779afcb13b79410ef8684cf5f066da303))
+* fix: idempotent component install update (#1599) (jonathan stewart)([8fe68d3a](https://github.com/lacework/go-sdk/commit/8fe68d3a32e4ad2b76a20508186441367e9a9688))
 ## Other Changes
-* style(cli): fix component uninstall output (#1596) (Salim Afiune)([fc36cc21](https://github.com/lacework/go-sdk/commit/fc36cc21aa75501540b041fae39ece5509092d86))
-* chore(deps): bump google.golang.org/protobuf from 1.30.0 to 1.33.0 (#1593) (dependabot[bot])([df97387e](https://github.com/lacework/go-sdk/commit/df97387ecde43c276604fb2a59cfadbae1d72d8f))
-* chore(deps): bump github.com/cloudflare/circl from 1.3.3 to 1.3.7 (#1502) (dependabot[bot])([5465769d](https://github.com/lacework/go-sdk/commit/5465769d8618ed913795ce35ceadb5edf3bb4b3d))
-* ci: fix TestComplianceAwsGetReportRecommendationID (#1592) (Pengyuan Zhao)([e0768802](https://github.com/lacework/go-sdk/commit/e076880211b2b22159be9690c80523a7704824e0))
-* ci: version bump to v1.47.3-dev (Lacework)([f686add3](https://github.com/lacework/go-sdk/commit/f686add37882c8cc2f7b37e0e486f181789f9380))
-* test: fix TestQueryCreateFromEditor and TestComponent* (#1594) (Pengyuan Zhao)([a8efbac2](https://github.com/lacework/go-sdk/commit/a8efbac20b75d2e7d4356e6ae31649c5fe2dc8f8))
+* ci: version bump to v1.48.1-dev (Lacework)([5cc9e361](https://github.com/lacework/go-sdk/commit/5cc9e361da0fbdd8aaa92d641a4e3d5898fcf6e9))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
