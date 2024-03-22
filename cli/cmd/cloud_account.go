@@ -301,6 +301,7 @@ func promptCreateCloudAccount() error {
 				"GCP Audit Log PubSub",
 				"Azure Config",
 				"Azure Activity Log",
+				"Azure Active Directory Activity Log",
 				"OCI Config",
 			},
 		}
@@ -329,6 +330,8 @@ func promptCreateCloudAccount() error {
 		return createAzureConfigIntegration()
 	case "Azure Activity Log":
 		return createAzureActivityLogIntegration()
+	case "Azure Active Directory Activity Log":
+		return createAzureAdAlIntegration()
 	case "OCI Config":
 		return createOciConfigIntegration()
 	default:
