@@ -76,11 +76,12 @@ var (
 
 	// componentsUpdateCmd represents the update sub-command inside the components command
 	componentsUpdateCmd = &cobra.Command{
-		Use:   "update <component>",
-		Short: "Update an existing component",
-		Long:  `Update an existing component`,
-		Args:  cobra.ExactArgs(1),
-		RunE:  runComponentsUpdate,
+		Use:     "update <component>",
+		Aliases: []string{"upgrade"},
+		Short:   "Update an existing component",
+		Long:    `Update an existing component`,
+		Args:    cobra.ExactArgs(1),
+		RunE:    runComponentsUpdate,
 	}
 
 	// componentsUninstallCmd represents the uninstall sub-command inside the components command
@@ -434,11 +435,10 @@ func installComponent(args []string) (err error) {
 
 	installedVersion := component.InstalledVersion()
 	if installedVersion != nil {
-		return errors.Errorf(
-			"component %s is already installed. To upgrade run '%s'",
-			color.HiYellowString(componentName),
-			color.HiGreenString("lacework component upgrade %s", componentName),
-		)
+		cli.OutputHuman("Component %s is already installed. To upgrade run '%s'\n",
+			component.Name,
+			color.HiGreenString("lacework component update %s", component.Name))
+		return nil
 	}
 
 	cli.OutputChecklist(successIcon, fmt.Sprintf("Component %s found\n", component.Name))
@@ -628,8 +628,8 @@ func updateComponent(args []string) (err error) {
 	}
 
 	if installedVersion.Equal(targetVersion) {
-		return errors.Errorf("You are already running version %s of this component",
-			color.HiYellowString(installedVersion.String()))
+		cli.OutputHuman("Component %s is version %s.\n", component.Name, color.HiYellowString(installedVersion.String()))
+		return nil
 	}
 
 	cli.StartProgress(fmt.Sprintf("Staging component %s...", color.HiYellowString(componentName)))
