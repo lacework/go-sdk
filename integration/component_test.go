@@ -129,6 +129,13 @@ func TestComponentUpdate(t *testing.T) {
 		assert.Contains(t, out, "component")
 	})
 
+	t.Run("upgrade", func(t *testing.T) {
+		run(t, dir, "component", "update", "component-example", "--version", "0.9.1")
+
+		run(t, dir, "component-example")
+		assert.Contains(t, out, "component")
+	})
+
 	t.Run("downgrade", func(t *testing.T) {
 		run(t, dir, "component", "update", "component-example", "--version", "0.8.0")
 

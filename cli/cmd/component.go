@@ -625,8 +625,8 @@ func updateComponent(args []string) (err error) {
 	}
 
 	if installedVersion.Equal(targetVersion) {
-		return errors.Errorf("You are already running version %s of this component",
-			color.HiYellowString(installedVersion.String()))
+		cli.OutputHuman("Component %s is version %s.\n", component.Name, component.InstalledVersion())
+		return nil
 	}
 
 	cli.StartProgress(fmt.Sprintf("Staging component %s...", color.HiYellowString(componentName)))
