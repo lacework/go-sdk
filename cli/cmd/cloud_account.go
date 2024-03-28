@@ -329,6 +329,8 @@ func promptCreateCloudAccount() error {
 		return createAzureConfigIntegration()
 	case "Azure Activity Log":
 		return createAzureActivityLogIntegration()
+	case "Azure Active Directory Activity Log":
+		return createAzureAdAlIntegration()
 	case "OCI Config":
 		return createOciConfigIntegration()
 	default:
