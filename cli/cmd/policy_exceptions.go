@@ -323,7 +323,7 @@ func promptAddExceptionConstraints(policy api.Policy) ([]api.PolicyExceptionCons
 		answer, err := promptAskConstraintsQuestion(q)
 
 		if err != nil {
-			return []api.PolicyExceptionConstraint{}, nil
+			return []api.PolicyExceptionConstraint{}, err
 		}
 
 		if answer != nil {
