@@ -301,7 +301,6 @@ func promptCreateCloudAccount() error {
 				"GCP Audit Log PubSub",
 				"Azure Config",
 				"Azure Activity Log",
-				"Azure Active Directory Activity Log",
 				"OCI Config",
 			},
 		}
