@@ -323,7 +323,7 @@ func promptAddExceptionConstraints(policy api.Policy) ([]api.PolicyExceptionCons
 		answer, err := promptAskConstraintsQuestion(q)
 
 		if err != nil {
-			return []api.PolicyExceptionConstraint{}, nil
+			return []api.PolicyExceptionConstraint{}, err
 		}
 
 		if answer != nil {
@@ -361,10 +361,15 @@ func promptAskConstraintsQuestion(constraintQuestion PolicyExceptionSurveyQuesti
 		}
 	case "KVTagPair":
 		if constraintQuestion.constraint.MultiValue {
-			//prompt kv tag list
-			answer, err = promptAddExceptionConstraintMapList(
-				constraintQuestion.constraint.FieldKey, constraintQuestion.questions,
-			)
+			// workaround for the unique shape of resourceTags data, see GROW-2831
+			if constraintQuestion.constraint.FieldKey == "resourceTags" {
+				answer, err = promptAddExceptionConstraintResourceTags(constraintQuestion.constraint.FieldKey)
+			} else {
+				//prompt kv tag list
+				answer, err = promptAddExceptionConstraintMapList(
+					constraintQuestion.constraint.FieldKey, constraintQuestion.questions,
+				)
+			}
 		} else {
 			//prompt kv tag
 			mapAnswers, err := promptAddExceptionConstraintMap(constraintQuestion.questions)
@@ -548,9 +553,42 @@ func promptAddExceptionConstraintMap(mapQuestions []*survey.Question) (constrain
 	return mapAnswer, nil
 }
 
-type constraintMapAnswer struct {
+// resourceTags requires special handling, see GROW-2831
+type resourceTagsConstraintAnswer struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
+}
+
+// resourceTags requires special handling, see GROW-2831
+func promptAddExceptionConstraintResourceTags(key string) (*api.PolicyExceptionConstraint, error) {
+	questions := []*survey.Question{{
+		Name:     "key",
+		Prompt:   &survey.Input{Message: "tag name:"},
+		Validate: survey.Required,
+	}, {
+		Name:     "value",
+		Prompt:   &survey.Input{Message: "values:", Help: "Supply a comma seperated list for multiple"},
+		Validate: survey.Required,
+	}}
+
+	var answer resourceTagsConstraintAnswer
+	if err := survey.Ask(questions, &answer); err != nil {
+		return nil, err
+	}
+
+	finalAnswer := strings.Split(answer.Value, ",")
+	return &api.PolicyExceptionConstraint{
+		FieldKey: key,
+		FieldValues: []any{
+			map[string]interface{}{"key": answer.Key, "value": finalAnswer},
+		},
+	}, nil
+
+}
+
+type constraintMapAnswer struct {
+	Key   string   `json:"key"`
+	Value []string `json:"value"`
 }
 
 func promptAddExceptionConstraintMapList(
