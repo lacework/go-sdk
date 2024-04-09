@@ -175,6 +175,23 @@ func TestModuleBlockWithComplexAttributes(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestOutputBlockCreation(t *testing.T) {
+	t.Run("should generate correct block for simple output with no description", func(t *testing.T) {
+		o := lwgenerate.NewOutput("test", []string{"test", "one", "two"}, "")
+		b, err := o.ToBlock()
+		assert.NoError(t, err)
+		str := lwgenerate.CreateHclStringOutput([]*hclwrite.Block{b})
+		assert.Equal(t, "output \"test\" {\n  value = test.one.two\n}\n", str)
+	})
+	t.Run("should generate correct block for simple output with description", func(t *testing.T) {
+		o := lwgenerate.NewOutput("test", []string{"test", "one", "two"}, "test description")
+		b, err := o.ToBlock()
+		assert.NoError(t, err)
+		str := lwgenerate.CreateHclStringOutput([]*hclwrite.Block{b})
+		assert.Equal(t, "output \"test\" {\n  description = \"test description\"\n  value       = test.one.two\n}\n", str)
+	})
+}
+
 var testRequiredProvider = `terraform {
   required_providers {
     bar = {

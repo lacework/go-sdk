@@ -207,6 +207,9 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Config resource prefix
 	ConfigOrgCfResourcePrefix string
 
+	// Custom outputs
+	CustomOutputs []lwgenerate.HclOutput
+
 	// Supply an AWS region for where to find the cloudtrail resources
 	// TODO @ipcrm future: support split regions for resources (s3 one place, sns another, etc)
 	AwsRegion string
@@ -538,6 +541,13 @@ func WithConfigOrgUnits(orgUnits []string) AwsTerraformModifier {
 	}
 }
 
+// WithConfigOutputs Set Custom Terraform Outputs
+func WithCustomOutputs(outputs []lwgenerate.HclOutput) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.CustomOutputs = outputs
+	}
+}
+
 // WithConfigOrgCfResourcePrefix Set Config org resource prefix
 func WithConfigOrgCfResourcePrefix(resourcePrefix string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
@@ -750,6 +760,15 @@ func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate aws agentless global module")
 	}
 
+	outputBlocks := []*hclwrite.Block{}
+	for _, output := range args.CustomOutputs {
+		outputBlock, err := output.ToBlock()
+		if err != nil {
+			return "", errors.Wrap(err, "failed to add custom output")
+		}
+		outputBlocks = append(outputBlocks, outputBlock)
+	}
+
 	// Render
 	hclBlocks := lwgenerate.CreateHclStringOutput(
 		lwgenerate.CombineHclBlocks(
@@ -758,7 +777,8 @@ func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 			laceworkProvider,
 			configModule,
 			cloudTrailModule,
-			agentlessModule),
+			agentlessModule,
+			outputBlocks),
 	)
 	return hclBlocks, nil
 }

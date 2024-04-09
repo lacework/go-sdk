@@ -108,6 +108,48 @@ type ForEach struct {
 	value map[string]string
 }
 
+type HclOutput struct {
+	// required, name of the resultant output
+	name string
+
+	// required, converted into a traversal
+	// e.g. []string{"a", "b", "c"} as input results in traversal having value a.b.c
+	value []string
+
+	// optional
+	description string
+}
+
+func (m *HclOutput) ToBlock() (*hclwrite.Block, error) {
+	if m.value == nil {
+		return nil, errors.New("value must be supplied")
+	}
+
+	attributes := map[string]interface{}{
+		"value": CreateSimpleTraversal(m.value),
+	}
+
+	if m.description != "" {
+		attributes["description"] = m.description
+	}
+
+	block, err := HclCreateGenericBlock(
+		"output",
+		[]string{m.name},
+		attributes,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return block, nil
+}
+
+// NewOutput Create a provider statement in the HCL output
+func NewOutput(name string, value []string, description string) *HclOutput {
+	return &HclOutput{name: name, description: description, value: value}
+}
+
 type HclModule struct {
 	// Required, module name
 	name string

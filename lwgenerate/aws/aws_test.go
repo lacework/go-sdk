@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/lacework/go-sdk/lwgenerate"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -77,6 +78,17 @@ func TestGenerationConfig(t *testing.T) {
 	assert.Equal(t, reqProviderAndRegion(moduleImportConfig), hcl)
 }
 
+func TestGenerationConfigWithOutputs(t *testing.T) {
+	hcl, err := NewTerraform(
+		false, false, true, false, WithAwsRegion("us-east-2"),
+		WithCustomOutputs([]lwgenerate.HclOutput{
+			*lwgenerate.NewOutput("test", []string{"module", "aws_config", "lacework_integration_guid"}, "test description"),
+		})).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, reqProviderAndRegion(moduleImportConfig)+"\n"+customOutput, hcl)
+}
+
 func TestGenerationConfigWithMultipleAccounts(t *testing.T) {
 	hcl, err := NewTerraform(false, false, true, false,
 		WithAwsProfile("main"),
@@ -135,8 +147,7 @@ func TestGenerationCloudtrailConsolidated(t *testing.T) {
 		ConsolidatedCloudtrail: true,
 	})
 	assert.Nil(t, err)
-	assert.Equal(t,
-		"consolidated_trail=true\n",
+	assert.Equal(t, "consolidated_trail=true\n",
 		string(data.Body().GetAttribute("consolidated_trail").BuildTokens(nil).Bytes()))
 }
 
@@ -671,6 +682,12 @@ var moduleImportConfig = `module "aws_config" {
   providers = {
     aws = aws.main
   }
+}
+`
+
+var customOutput = `output "test" {
+  description = "test description"
+  value       = module.aws_config.lacework_integration_guid
 }
 `
 
