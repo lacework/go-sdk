@@ -207,7 +207,7 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Config resource prefix
 	ConfigOrgCfResourcePrefix string
 
-	// Config custom outputs
+	// Custom outputs
 	CustomOutputs []lwgenerate.HclOutput
 
 	// Supply an AWS region for where to find the cloudtrail resources
