@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	organizationId = "org-1"
+	organizationId = "1"
 	projectId      = "project-1"
 	gcpPath        = "/lacework/gcp/"
 )

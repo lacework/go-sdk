@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	gkeOrgId  = "org-1"
+	gkeOrgId  = "1"
 	gkeProjId = "project-1"
 	gkePath   = "/lacework/gke/"
 )

@@ -373,7 +373,7 @@ func runFakeTerminalTestFromDir(t *testing.T, dir string, conditions func(*expec
 	cmd.Stdout = console.Tty()
 	cmd.Stderr = console.Tty()
 	err = cmd.Start()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// read the remaining bytes
 	console.Tty().Close()
@@ -491,7 +491,7 @@ func TestMain(m *testing.M) {
 func terraformInstall() {
 	installer := &releases.ExactVersion{
 		Product: product.Terraform,
-		Version: version.Must(version.NewVersion("1.3.4")),
+		Version: version.Must(version.NewVersion("1.4.7")),
 	}
 
 	_execPath, err := installer.Install(context.Background())
