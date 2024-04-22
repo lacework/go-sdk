@@ -527,7 +527,9 @@ type VulnerabilityHostMachineTags struct {
 	InternalIP                            string `json:"InternalIp"`
 	LwTokenShort                          string `json:"LwTokenShort"`
 	Name                                  string `json:"Name"`
+	Owner                                 string `json:"Owner"`
 	SubnetID                              string `json:"SubnetId"`
+	Team                                  string `json:"Team"`
 	VMInstanceType                        string `json:"VmInstanceType"`
 	VMProvider                            string `json:"VmProvider"`
 	VpcID                                 string `json:"VpcId"`
