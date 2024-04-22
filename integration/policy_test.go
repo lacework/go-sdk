@@ -21,6 +21,7 @@ package integration
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -326,12 +327,31 @@ func TestPolicyBadSeverity(t *testing.T) {
 
 }
 
+type PolicyDetail struct {
+	Severity string `json:"severity"`
+	PolicyID string `json:"policyId"`
+}
+
 func TestPolicySeverityCritical(t *testing.T) {
-	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "list", "--severity", "critical")
-	assert.Contains(t, out.String(), "lacework-global-8")
-	assert.NotContains(t, out.String(), "high")
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("policy", "list", "--severity", "critical", "--json")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	var details []PolicyDetail
+	assert.NoError(t, json.Unmarshal(out.Bytes(), &details))
+
+	found := false
+	notCritical := false
+	for _, policy := range details {
+		if policy.PolicyID == "lacework-global-8" {
+			found = true
+		}
+		if policy.Severity != "critical" {
+			notCritical = true
+		}
+	}
+	assert.True(t, found, "lacework-global-8 should have been found in policy list of severity critical")
+	assert.False(t, notCritical, "only policies with severity critical should have been found")
 }
 
 func TestPolicyShowHelp(t *testing.T) {
