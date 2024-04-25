@@ -413,7 +413,7 @@ func runComponentsInstall(cmd *cobra.Command, args []string) (err error) {
 func installComponent(args []string) (err error) {
 	var (
 		componentName    string                 = args[0]
-		downloadComplete                        = make(chan int8)
+		downloadComplete                        = make(chan int8, 1)
 		params           map[string]interface{} = make(map[string]interface{})
 		start            time.Time
 	)
