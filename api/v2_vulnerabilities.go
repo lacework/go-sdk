@@ -517,6 +517,21 @@ func (v *VulnerabilityHost) GetMachineTags() (machineTags VulnerabilityHostMachi
 	return
 }
 
+func (v *VulnerabilityHost) GetMachineTagsRaw() (map[string]interface{}, error) {
+	jsonTags, err := json.Marshal(v.MachineTags)
+	if err != nil {
+		return nil, err
+	}
+
+	var rawTags map[string]interface{}
+
+	if err := json.Unmarshal(jsonTags, &rawTags); err != nil {
+		return nil, err
+	}
+
+	return rawTags, nil
+}
+
 type VulnerabilityHostMachineTags struct {
 	Account                               string `json:"Account"`
 	AmiID                                 string `json:"AmiId"`

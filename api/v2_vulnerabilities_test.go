@@ -437,6 +437,19 @@ func TestV2Vulnerabilities_Hosts_AllPages(t *testing.T) {
 	}
 }
 
+func TestV2Vulnerabilities_HostGetAwsMachineTagsRaw(t *testing.T) {
+	var mockHostResponse api.VulnerabilitiesHostResponse
+	err := json.Unmarshal([]byte(mockVulnerabilitiesHostsResponseSetTags(vulnerabilityHostAwsMachineTags)), &mockHostResponse)
+	assert.NoError(t, err)
+
+	tags, err := mockHostResponse.Data[0].GetMachineTagsRaw()
+	assert.NoError(t, err)
+	assert.Equal(t, tags["Account"], "123456789038")
+	assert.Equal(t, tags["AmiId"], "ami-1234567890540c038")
+	assert.Equal(t, tags["ExternalIp"], "1.5.8.9")
+	assert.Equal(t, tags["Hostname"], "ip-192-168-28-69.us-east-2.compute.internal")
+}
+
 func TestV2Vulnerabilities_HostGetAwsMachineTags(t *testing.T) {
 	var mockHostResponse api.VulnerabilitiesHostResponse
 	err := json.Unmarshal([]byte(mockVulnerabilitiesHostsResponseSetTags(vulnerabilityHostAwsMachineTags)), &mockHostResponse)
