@@ -293,6 +293,9 @@ type GenerateAwsTfConfigurationArgs struct {
 
 	// Lacework Organization
 	LaceworkOrganizationLevel bool
+
+	// Default AWS Provider Tags
+	ProviderDefaultTags map[string]interface{}
 }
 
 func (args *GenerateAwsTfConfigurationArgs) IsEmpty() bool {
@@ -427,6 +430,13 @@ func NewTerraform(
 		m(config)
 	}
 	return config
+}
+
+// WithProviderDefaultTags adds default_tags to the provider configuration for AWS (if tags are present)
+func WithProviderDefaultTags(tags map[string]interface{}) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ProviderDefaultTags = tags
+	}
 }
 
 // WithAwsProfile Set the AWS Profile to utilize for the main AWS provider
@@ -804,6 +814,18 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 
 	modifiers := []lwgenerate.HclProviderModifier{
 		lwgenerate.HclProviderWithAttributes(attributes),
+	}
+
+	if len(args.ProviderDefaultTags) != 0 {
+		defaultTagsBlock, err := lwgenerate.HclCreateGenericBlock(
+			"default_tags",
+			nil,
+			map[string]interface{}{"tags": args.ProviderDefaultTags},
+		)
+		if err != nil {
+			return nil, err
+		}
+		modifiers = append(modifiers, lwgenerate.HclProviderWithGenericBlocks(defaultTagsBlock))
 	}
 
 	if args.AwsAssumeRole != "" {

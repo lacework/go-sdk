@@ -40,6 +40,19 @@ func TestGenerationAgentless(t *testing.T) {
 	assert.NotNil(t, hcl)
 	assert.Equal(t, moduleImportAgentless, hcl)
 }
+func TestGenerationWithProviderTags(t *testing.T) {
+	hcl, err := NewTerraform(
+		false,
+		false,
+		true,
+		false,
+		WithAwsRegion("us-east-2"),
+		WithProviderDefaultTags(map[string]interface{}{"TAG_TEST": "foo", "TAG_TEST1": "bar"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, moduleImportConfigWithProviderTags, hcl)
+}
 
 func TestGenerationAgentlessOrganization(t *testing.T) {
 	hcl, err := NewTerraform(
@@ -668,6 +681,37 @@ resource "aws_cloudformation_stack_set_instance" "snapshot_role" {
 var moduleImportCloudtrail = `module "main_cloudtrail" {
   source  = "lacework/cloudtrail/aws"
   version = "~> 2.7"
+
+  providers = {
+    aws = aws.main
+  }
+}
+`
+
+var moduleImportConfigWithProviderTags = `terraform {
+  required_providers {
+    lacework = {
+      source  = "lacework/lacework"
+      version = "~> 1.0"
+    }
+  }
+}
+
+provider "aws" {
+  alias  = "main"
+  region = "us-east-2"
+
+  default_tags {
+    tags = {
+      TAG_TEST  = "foo"
+      TAG_TEST1 = "bar"
+    }
+  }
+}
+
+module "aws_config" {
+  source  = "lacework/config/aws"
+  version = "~> 0.5"
 
   providers = {
     aws = aws.main
