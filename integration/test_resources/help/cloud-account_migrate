@@ -1,4 +1,4 @@
-Mark a cloud account integration for migration
+Mark a GCPv1 (storage-based) cloud account integration for migration
 
 Usage:
   lacework cloud-account migrate [flags]

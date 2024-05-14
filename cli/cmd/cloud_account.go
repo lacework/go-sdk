@@ -66,7 +66,7 @@ var (
 	// cloudAccountMigrateCmd represents the migrate sub-command inside the cloud accounts command
 	cloudAccountMigrateCmd = &cobra.Command{
 		Use:   "migrate",
-		Short: "Mark a cloud account integration for migration",
+		Short: "Mark a GCPv1 (storage-based) cloud account integration for migration",
 		Args:  cobra.ExactArgs(1),
 		RunE:  cloudAccountMigrate,
 	}
