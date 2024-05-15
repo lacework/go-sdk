@@ -556,13 +556,13 @@ func CreateHclStringOutput(blocks []*hclwrite.Block) string {
 	return string(file.Bytes())
 }
 
-// CreateRequiredProviders Create required providers block
-func CreateRequiredProviders(providers ...*HclRequiredProvider) (*hclwrite.Block, error) {
-	block, err := HclCreateGenericBlock("terraform", nil, nil)
-	if err != nil {
-		return nil, err
-	}
+// rootTerraformBlock is a helper that creates the literal `terraform{}` hcl block
+func rootTerraformBlock() (*hclwrite.Block, error) {
+	return HclCreateGenericBlock("terraform", nil, nil)
+}
 
+// createRequiredProviders is a helper that creates the `required_providers` hcl block
+func createRequiredProviders(providers ...*HclRequiredProvider) (*hclwrite.Block, error) {
 	providerDetails := map[string]interface{}{}
 	for _, provider := range providers {
 		details := map[string]interface{}{}
@@ -579,7 +579,45 @@ func CreateRequiredProviders(providers ...*HclRequiredProvider) (*hclwrite.Block
 	if err != nil {
 		return nil, err
 	}
+
+	return requiredProviders, nil
+}
+
+// CreateRequiredProviders Create required providers block
+func CreateRequiredProviders(providers ...*HclRequiredProvider) (*hclwrite.Block, error) {
+	block, err := rootTerraformBlock()
+	if err != nil {
+		return nil, err
+	}
+
+	requiredProviders, err := createRequiredProviders(providers...)
+	if err != nil {
+		return nil, err
+	}
+
 	block.Body().AppendBlock(requiredProviders)
+	return block, nil
+}
+
+// CreateRequiredProviders Create required providers block
+func CreateRequiredProvidersWithCustomBlocks(
+	blocks []*hclwrite.Block,
+	providers ...*HclRequiredProvider,
+) (*hclwrite.Block, error) {
+	block, err := rootTerraformBlock()
+	if err != nil {
+		return nil, err
+	}
+
+	requiredProviders, err := createRequiredProviders(providers...)
+	if err != nil {
+		return nil, err
+	}
+
+	block.Body().AppendBlock(requiredProviders)
+	for _, customBlock := range blocks {
+		block.Body().AppendBlock(customBlock)
+	}
 
 	return block, nil
 }

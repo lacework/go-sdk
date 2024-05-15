@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/lacework/go-sdk/lwgenerate"
 	"github.com/stretchr/testify/assert"
 )
@@ -89,6 +90,16 @@ func TestGenerationConfig(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, reqProviderAndRegion(moduleImportConfig), hcl)
+}
+
+func TestGenerationConfigWithCustomBackendBlock(t *testing.T) {
+	customBlock, err := lwgenerate.HclCreateGenericBlock("backend", []string{"s3"}, nil)
+	assert.NoError(t, err)
+	hcl, err := NewTerraform(false, false, true, false, WithAwsRegion("us-east-2"),
+		WithExtraRootBlocks([]*hclwrite.Block{customBlock})).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, requiredProvidersWithCustomBlock+"\n"+awsProvider+"\n"+moduleImportConfig, hcl)
 }
 
 func TestGenerationConfigWithOutputs(t *testing.T) {
@@ -389,6 +400,18 @@ func TestGenerationCloudTrailS3BucketNotification(t *testing.T) {
 		hcl,
 	)
 }
+
+var requiredProvidersWithCustomBlock = `terraform {
+  required_providers {
+    lacework = {
+      source  = "lacework/lacework"
+      version = "~> 1.0"
+    }
+  }
+  backend "s3" {
+  }
+}
+`
 
 var requiredProviders = `terraform {
   required_providers {

@@ -296,6 +296,9 @@ type GenerateAwsTfConfigurationArgs struct {
 
 	// Default AWS Provider Tags
 	ProviderDefaultTags map[string]interface{}
+
+	// Add custom blocks to the root `terraform{}` block. Can be used for advanced configuration. Things like backend, etc
+	ExtraBlocksRootTerraform []*hclwrite.Block
 }
 
 func (args *GenerateAwsTfConfigurationArgs) IsEmpty() bool {
@@ -732,6 +735,12 @@ func WithS3BucketNotification(s3BucketNotifiaction bool) AwsTerraformModifier {
 	}
 }
 
+func WithExtraRootBlocks(blocks []*hclwrite.Block) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ExtraBlocksRootTerraform = blocks
+	}
+}
+
 // Generate new Terraform code based on the supplied args.
 func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 	// Validate inputs
@@ -740,7 +749,7 @@ func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 	}
 
 	// Create blocks
-	requiredProviders, err := createRequiredProviders()
+	requiredProviders, err := createRequiredProviders(args.ExtraBlocksRootTerraform)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate required providers")
 	}
@@ -793,8 +802,9 @@ func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 	return hclBlocks, nil
 }
 
-func createRequiredProviders() (*hclwrite.Block, error) {
-	return lwgenerate.CreateRequiredProviders(
+func createRequiredProviders(extraBlocks []*hclwrite.Block) (*hclwrite.Block, error) {
+	return lwgenerate.CreateRequiredProvidersWithCustomBlocks(
+		extraBlocks,
 		lwgenerate.NewRequiredProvider("lacework",
 			lwgenerate.HclRequiredProviderWithSource(lwgenerate.LaceworkProviderSource),
 			lwgenerate.HclRequiredProviderWithVersion(lwgenerate.LaceworkProviderVersion)))
