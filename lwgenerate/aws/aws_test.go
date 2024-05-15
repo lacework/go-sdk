@@ -102,6 +102,14 @@ func TestGenerationConfigWithCustomBackendBlock(t *testing.T) {
 	assert.Equal(t, requiredProvidersWithCustomBlock+"\n"+awsProvider+"\n"+moduleImportConfig, hcl)
 }
 
+func TestGenerationConfigWithCustomProviderAttributes(t *testing.T) {
+	hcl, err := NewTerraform(false, false, true, false, WithAwsRegion("us-east-2"),
+		WithExtraProviderArguments(map[string]interface{}{"foo": "bar"})).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, requiredProviders+"\n"+awsProviderExtraArguments+"\n"+moduleImportConfig, hcl)
+}
+
 func TestGenerationConfigWithOutputs(t *testing.T) {
 	hcl, err := NewTerraform(
 		false, false, true, false, WithAwsRegion("us-east-2"),
@@ -420,6 +428,12 @@ var requiredProviders = `terraform {
       version = "~> 1.0"
     }
   }
+}
+`
+var awsProviderExtraArguments = `provider "aws" {
+  alias  = "main"
+  foo    = "bar"
+  region = "us-east-2"
 }
 `
 

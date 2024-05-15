@@ -299,6 +299,9 @@ type GenerateAwsTfConfigurationArgs struct {
 
 	// Add custom blocks to the root `terraform{}` block. Can be used for advanced configuration. Things like backend, etc
 	ExtraBlocksRootTerraform []*hclwrite.Block
+
+	// ExtraProviderArguments  allows adding more arguments to the provider block as needed (custom use cases)
+	ExtraProviderArguments map[string]interface{}
 }
 
 func (args *GenerateAwsTfConfigurationArgs) IsEmpty() bool {
@@ -735,9 +738,19 @@ func WithS3BucketNotification(s3BucketNotifiaction bool) AwsTerraformModifier {
 	}
 }
 
+// WithExtraRootBlocks allows adding generic hcl blocks to the root `terraform{}` block
+// this enables custom use cases
 func WithExtraRootBlocks(blocks []*hclwrite.Block) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ExtraBlocksRootTerraform = blocks
+	}
+}
+
+// WithExtraProviderArguments enables adding additional arguments into the `aws` provider block
+// this enables custom use cases
+func WithExtraProviderArguments(arguments map[string]interface{}) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ExtraProviderArguments = arguments
 	}
 }
 
@@ -813,11 +826,16 @@ func createRequiredProviders(extraBlocks []*hclwrite.Block) (*hclwrite.Block, er
 func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
 
-	attributes := map[string]interface{}{
-		"alias":  "main",
-		"region": args.AwsRegion,
+	attributes := map[string]interface{}{}
+
+	// set custom args before the required ones below to ensure expected behavior (i.e., no overrides)
+	for k, v := range args.ExtraProviderArguments {
+		attributes[k] = v
 	}
 
+	// required defaults
+	attributes["alias"] = "main"
+	attributes["region"] = args.AwsRegion
 	if args.AwsProfile != "" {
 		attributes["profile"] = args.AwsProfile
 	}
