@@ -92,6 +92,17 @@ func TestGenerationConfig(t *testing.T) {
 	assert.Equal(t, reqProviderAndRegion(moduleImportConfig), hcl)
 }
 
+func TestGenerationConfigWithExtraBlocks(t *testing.T) {
+	extraBlock, err := lwgenerate.HclCreateGenericBlock("variable", []string{"var_name"}, nil)
+	assert.NoError(t, err)
+
+	hcl, err := NewTerraform(false, false, true, false,
+		WithAwsRegion("us-east-2"), WithExtraBlocks([]*hclwrite.Block{extraBlock})).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, requiredProviders+"\n"+awsProvider+"\n"+moduleImportConfig+"\n"+testVariable, hcl)
+}
+
 func TestGenerationConfigWithCustomBackendBlock(t *testing.T) {
 	customBlock, err := lwgenerate.HclCreateGenericBlock("backend", []string{"s3"}, nil)
 	assert.NoError(t, err)
@@ -861,5 +872,9 @@ var moduleImportCtWithS3BucketNotification = `module "main_cloudtrail" {
   providers = {
     aws = aws.main
   }
+}
+`
+
+var testVariable = `variable "var_name" {
 }
 `

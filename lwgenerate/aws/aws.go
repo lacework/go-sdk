@@ -300,8 +300,11 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Add custom blocks to the root `terraform{}` block. Can be used for advanced configuration. Things like backend, etc
 	ExtraBlocksRootTerraform []*hclwrite.Block
 
-	// ExtraProviderArguments  allows adding more arguments to the provider block as needed (custom use cases)
+	// ExtraProviderArguments allows adding more arguments to the provider block as needed (custom use cases)
 	ExtraProviderArguments map[string]interface{}
+
+	// ExtraBlocks allows adding more hclwrite.Block to the root terraform document (advanced use cases)
+	ExtraBlocks []*hclwrite.Block
 }
 
 func (args *GenerateAwsTfConfigurationArgs) IsEmpty() bool {
@@ -754,6 +757,13 @@ func WithExtraProviderArguments(arguments map[string]interface{}) AwsTerraformMo
 	}
 }
 
+// WithExtraBlocks enables adding additional arbitrary blocks to the root hcl document
+func WithExtraBlocks(blocks []*hclwrite.Block) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ExtraBlocks = blocks
+	}
+}
+
 // Generate new Terraform code based on the supplied args.
 func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 	// Validate inputs
@@ -810,7 +820,9 @@ func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 			configModule,
 			cloudTrailModule,
 			agentlessModule,
-			outputBlocks),
+			outputBlocks,
+			args.ExtraBlocks,
+		),
 	)
 	return hclBlocks, nil
 }
