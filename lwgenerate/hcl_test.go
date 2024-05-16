@@ -149,6 +149,22 @@ func TestRequiredProvidersBlock(t *testing.T) {
 	assert.Equal(t, testRequiredProvider, lwgenerate.CreateHclStringOutput([]*hclwrite.Block{data}))
 }
 
+func TestRequiredProvidersBlockWithCustomBlocks(t *testing.T) {
+	provider1 := lwgenerate.NewRequiredProvider("foo",
+		lwgenerate.HclRequiredProviderWithSource("test/test"))
+	provider2 := lwgenerate.NewRequiredProvider("bar",
+		lwgenerate.HclRequiredProviderWithVersion("~> 0.1"))
+	provider3 := lwgenerate.NewRequiredProvider("lacework",
+		lwgenerate.HclRequiredProviderWithSource("lacework/lacework"),
+		lwgenerate.HclRequiredProviderWithVersion("~> 0.1"))
+
+	customBlock, err := lwgenerate.HclCreateGenericBlock("backend", []string{"s3"}, nil)
+	assert.NoError(t, err)
+	data, err := lwgenerate.CreateRequiredProvidersWithCustomBlocks([]*hclwrite.Block{customBlock}, provider1, provider2, provider3)
+	assert.Nil(t, err)
+	assert.Equal(t, testRequiredProviderWithCustomBlocks, lwgenerate.CreateHclStringOutput([]*hclwrite.Block{data}))
+}
+
 func TestModuleBlockWithComplexAttributes(t *testing.T) {
 	data, err := lwgenerate.NewModule("foo",
 		"mycorp/mycloud",
@@ -191,6 +207,24 @@ func TestOutputBlockCreation(t *testing.T) {
 		assert.Equal(t, "output \"test\" {\n  description = \"test description\"\n  value       = test.one.two\n}\n", str)
 	})
 }
+
+var testRequiredProviderWithCustomBlocks = `terraform {
+  required_providers {
+    bar = {
+      version = "~> 0.1"
+    }
+    foo = {
+      source = "test/test"
+    }
+    lacework = {
+      source  = "lacework/lacework"
+      version = "~> 0.1"
+    }
+  }
+  backend "s3" {
+  }
+}
+`
 
 var testRequiredProvider = `terraform {
   required_providers {

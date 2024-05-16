@@ -296,6 +296,15 @@ type GenerateAwsTfConfigurationArgs struct {
 
 	// Default AWS Provider Tags
 	ProviderDefaultTags map[string]interface{}
+
+	// Add custom blocks to the root `terraform{}` block. Can be used for advanced configuration. Things like backend, etc
+	ExtraBlocksRootTerraform []*hclwrite.Block
+
+	// ExtraProviderArguments allows adding more arguments to the provider block as needed (custom use cases)
+	ExtraProviderArguments map[string]interface{}
+
+	// ExtraBlocks allows adding more hclwrite.Block to the root terraform document (advanced use cases)
+	ExtraBlocks []*hclwrite.Block
 }
 
 func (args *GenerateAwsTfConfigurationArgs) IsEmpty() bool {
@@ -732,6 +741,29 @@ func WithS3BucketNotification(s3BucketNotifiaction bool) AwsTerraformModifier {
 	}
 }
 
+// WithExtraRootBlocks allows adding generic hcl blocks to the root `terraform{}` block
+// this enables custom use cases
+func WithExtraRootBlocks(blocks []*hclwrite.Block) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ExtraBlocksRootTerraform = blocks
+	}
+}
+
+// WithExtraProviderArguments enables adding additional arguments into the `aws` provider block
+// this enables custom use cases
+func WithExtraProviderArguments(arguments map[string]interface{}) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ExtraProviderArguments = arguments
+	}
+}
+
+// WithExtraBlocks enables adding additional arbitrary blocks to the root hcl document
+func WithExtraBlocks(blocks []*hclwrite.Block) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.ExtraBlocks = blocks
+	}
+}
+
 // Generate new Terraform code based on the supplied args.
 func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 	// Validate inputs
@@ -740,7 +772,7 @@ func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 	}
 
 	// Create blocks
-	requiredProviders, err := createRequiredProviders()
+	requiredProviders, err := createRequiredProviders(args.ExtraBlocksRootTerraform)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate required providers")
 	}
@@ -788,13 +820,16 @@ func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 			configModule,
 			cloudTrailModule,
 			agentlessModule,
-			outputBlocks),
+			outputBlocks,
+			args.ExtraBlocks,
+		),
 	)
 	return hclBlocks, nil
 }
 
-func createRequiredProviders() (*hclwrite.Block, error) {
-	return lwgenerate.CreateRequiredProviders(
+func createRequiredProviders(extraBlocks []*hclwrite.Block) (*hclwrite.Block, error) {
+	return lwgenerate.CreateRequiredProvidersWithCustomBlocks(
+		extraBlocks,
 		lwgenerate.NewRequiredProvider("lacework",
 			lwgenerate.HclRequiredProviderWithSource(lwgenerate.LaceworkProviderSource),
 			lwgenerate.HclRequiredProviderWithVersion(lwgenerate.LaceworkProviderVersion)))
@@ -803,11 +838,16 @@ func createRequiredProviders() (*hclwrite.Block, error) {
 func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
 
-	attributes := map[string]interface{}{
-		"alias":  "main",
-		"region": args.AwsRegion,
+	attributes := map[string]interface{}{}
+
+	// set custom args before the required ones below to ensure expected behavior (i.e., no overrides)
+	for k, v := range args.ExtraProviderArguments {
+		attributes[k] = v
 	}
 
+	// required defaults
+	attributes["alias"] = "main"
+	attributes["region"] = args.AwsRegion
 	if args.AwsProfile != "" {
 		attributes["profile"] = args.AwsProfile
 	}
