@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,17 +15,25 @@ import (
 
 var (
 	// Define question text here so they can be reused in testing
-	QuestionAzureEnableConfig      = "Enable Azure configuration integration?"
-	QuestionAzureConfigName        = "Specify custom configuration integration name: (optional)"
-	QuestionEnableActivityLog      = "Enable Azure Activity Log Integration?"
-	QuestionActivityLogName        = "Specify custom Activity Log integration name: (optional)"
-	QuestionAddAzureSubscriptionID = "Set Azure Subscription ID?"
-	QuestionAzureSubscriptionID    = "Specify the Azure Subscription ID to be used to provision " +
+	QuestionAzureEnableConfig        = "Enable Azure configuration integration?"
+	QuestionAzureConfigName          = "Specify custom configuration integration name: (optional)"
+	QuestionEnableActivityLog        = "Enable Azure Activity Log Integration?"
+	QuestionActivityLogName          = "Specify custom Activity Log integration name: (optional)"
+	QuestionEnableEntraIdActivityLog = "Enable Azure Entra ID Activity Log Integration?"
+	QuestionEntraIdActivityLogName   = "Specify custom EntraID Activity Log integration name: (optional)"
+	QuestionAddAzureSubscriptionID   = "Set Azure Subscription ID?"
+	QuestionAzureSubscriptionID      = "Specify the Azure Subscription ID to be used to provision " +
 		"Lacework resources: (optional)"
 
 	QuestionAzureAnotherAdvancedOpt      = "Configure another advanced integration option"
 	QuestionAzureConfigAdvanced          = "Configure advanced integration options?"
 	QuestionAzureCustomizeOutputLocation = "Provide the location for the output to be written:"
+
+	// EntraID Activity Log
+	QuestionUseExistingEventHubNamespace = "Use an existing Event Hub Namespace?"
+	QuestionEventHubNamespaceName        = "Specify existing Event Hub Namespace name"
+	QuestionEventHubLocation             = "Specify Azure region where the event hub for logging will reside"
+	QuestionEventHubPartitionCount       = "Specify the number of partitions in the event hub for logging"
 
 	// Active Directory
 	QuestionEnableAdIntegration = "Create Active Directory Integration?"
@@ -58,6 +67,7 @@ var (
 	AzureUserIntegrationNames  = "Customize integration name(s)"
 	AzureAdvancedOptLocation   = "Customize output location (optional)"
 	AzureRegionStorage         = "Customize Azure region for Storage Account (optional)"
+	AzureEntraIdAdvancedOpt    = "Configure Entra ID activity log integration advanced options"
 
 	GenerateAzureCommandState      = &azure.GenerateAzureTfConfigurationArgs{}
 	GenerateAzureCommandExtraState = &AzureGenerateCommandExtraState{}
@@ -65,7 +75,7 @@ var (
 	CachedAzureAssetExtraState     = "iac-azure-extra-state"
 
 	// List of valid Azure Storage locations
-	validStorageLocations = map[string]bool{
+	validAzureLocations = map[string]bool{
 		"East US":                  true,
 		"East US 2":                true,
 		"South Central US":         true,
@@ -183,6 +193,11 @@ the new cloud account. In interactive mode, this command will:
 				azure.WithStorageLocation(GenerateAzureCommandState.StorageLocation),
 				azure.WithActivityLogIntegrationName(GenerateAzureCommandState.ActivityLogIntegrationName),
 				azure.WithConfigIntegrationName(GenerateAzureCommandState.ConfigIntegrationName),
+				azure.WithEntraIdActivityLogIntegrationName(GenerateAzureCommandState.EntraIdIntegrationName),
+				azure.WithExistingEventHubNamespace(GenerateAzureCommandState.ExistingEventHubNamespace),
+				azure.WithEventHubNamespaceName(GenerateAzureCommandState.EventHubNamespaceName),
+				azure.WithEventHubLocation(GenerateAzureCommandState.EventHubLocation),
+				azure.WithEventHubPartitionCount(GenerateAzureCommandState.EventHubPartitionCount),
 			}
 
 			// Check if AD Creation is required, need to set values for current integration
@@ -214,6 +229,7 @@ the new cloud account. In interactive mode, this command will:
 			data := azure.NewTerraform(
 				GenerateAzureCommandState.Config,
 				GenerateAzureCommandState.ActivityLog,
+				GenerateAzureCommandState.EntraIdActivityLog,
 				GenerateAzureCommandState.CreateAdIntegration,
 				mods...)
 
@@ -275,7 +291,7 @@ the new cloud account. In interactive mode, this command will:
 			if err != nil {
 				return errors.Wrap(err, "failed to load command flags")
 			}
-			if err := validateStorageLocation(storageLocation); storageLocation != "" && err != nil {
+			if err := validateAzureLocation(storageLocation); storageLocation != "" && err != nil {
 				return err
 			}
 
@@ -346,9 +362,9 @@ func (a *AzureGenerateCommandExtraState) writeCache() {
 	}
 }
 
-func validateStorageLocation(location string) error {
-	if !validStorageLocations[location] {
-		return errors.New("invalid storage location supplied")
+func validateAzureLocation(location string) error {
+	if !validAzureLocations[location] {
+		return errors.New("invalid Azure region prvovided")
 	}
 	return nil
 }
@@ -359,13 +375,25 @@ func initGenerateAzureTfCommandFlags() {
 		&GenerateAzureCommandState.ActivityLog,
 		"activity_log",
 		false,
-		"enable active log integration")
+		"enable activity log integration")
 
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.ActivityLogIntegrationName,
 		"activity_log_integration_name",
 		"",
 		"specify a custom activity log integration name")
+
+	generateAzureTfCommand.PersistentFlags().BoolVar(
+		&GenerateAzureCommandState.EntraIdActivityLog,
+		"entra_id_activity_log",
+		false,
+		"enable Entra ID activity log integration")
+
+	generateAzureTfCommand.PersistentFlags().StringVar(
+		&GenerateAzureCommandState.EntraIdIntegrationName,
+		"entra_id_activity_log_integration_name",
+		"",
+		"specify a custom Entra ID activity log integration name")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.Config,
@@ -408,6 +436,30 @@ func initGenerateAzureTfCommandFlags() {
 		"existing_storage",
 		false,
 		"use existing storage account")
+
+	generateAzureTfCommand.PersistentFlags().BoolVar(
+		&GenerateAzureCommandState.ExistingEventHubNamespace,
+		"existing_event_hub_namespace",
+		false,
+		"use existing Event Hub Namespace")
+
+	generateAzureTfCommand.PersistentFlags().StringVar(
+		&GenerateAzureCommandState.EventHubNamespaceName,
+		"event_hub_namespace",
+		"",
+		"specify the name of the Event Hub Namespace")
+
+	generateAzureTfCommand.PersistentFlags().StringVar(
+		&GenerateAzureCommandState.EventHubLocation,
+		"event_hub_location",
+		"",
+		"specify the location where the Event Hub for logging will reside")
+
+	generateAzureTfCommand.PersistentFlags().IntVar(
+		&GenerateAzureCommandState.EventHubPartitionCount,
+		"event_hub_partition_count",
+		1,
+		"specify the number of partitions for the Event Hub")
 
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.StorageAccountName,
@@ -492,6 +544,11 @@ func promptAzureIntegrationNameQuestions(config *azure.GenerateAzureTfConfigurat
 			Checks:   []*bool{&config.ActivityLog},
 			Response: &config.ActivityLogIntegrationName,
 		},
+		{
+			Prompt:   &survey.Input{Message: QuestionEntraIdActivityLogName, Default: config.EntraIdIntegrationName},
+			Checks:   []*bool{&config.EntraIdActivityLog},
+			Response: &config.EntraIdIntegrationName,
+		},
 	}); err != nil {
 		return err
 	}
@@ -518,6 +575,51 @@ func promptAzureStorageAccountQuestions(config *azure.GenerateAzureTfConfigurati
 			Checks:   []*bool{&config.ExistingStorageAccount},
 			Required: true,
 			Response: &config.StorageAccountResourceGroup,
+		},
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Similar to the above, prompt for event hub questions starting by asking for existing event hub namespace, if answer is no, then ask for event hub location. If answer is yes, then ask for namespace name.
+func promptAzureEntraIdActivityLogQuestions(config *azure.GenerateAzureTfConfigurationArgs) error {
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Confirm{Message: QuestionUseExistingEventHubNamespace, Default: config.ExistingEventHubNamespace},
+			Response: &config.ExistingEventHubNamespace,
+		},
+	}); err != nil {
+		return err
+	}
+
+	if !config.ExistingEventHubNamespace {
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Prompt:   &survey.Input{Message: QuestionEventHubLocation, Default: config.EventHubLocation},
+				Required: true,
+				Response: &config.EventHubLocation,
+			},
+		}); err != nil {
+			return err
+		}
+	} else {
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Prompt:   &survey.Input{Message: QuestionEventHubNamespaceName, Default: config.EventHubNamespaceName},
+				Required: true,
+				Response: &config.EventHubNamespaceName,
+			},
+		}); err != nil {
+			return err
+		}
+	}
+
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Input{Message: QuestionEventHubPartitionCount, Default: strconv.Itoa(config.EventHubPartitionCount)},
+			Response: &config.EventHubPartitionCount,
 		},
 	}); err != nil {
 		return err
@@ -609,7 +711,7 @@ func promptCustomizeAzureOutputLocation(extraState *AzureGenerateCommandExtraSta
 	return nil
 }
 
-func promptCustomizeAzureLoggingRegion(config *azure.GenerateAzureTfConfigurationArgs) error {
+func promptCustomizeAzureStorageLoggingRegion(config *azure.GenerateAzureTfConfigurationArgs) error {
 	var region string
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
@@ -619,10 +721,27 @@ func promptCustomizeAzureLoggingRegion(config *azure.GenerateAzureTfConfiguratio
 	}); err != nil {
 		return err
 	}
-	if err := validateStorageLocation(region); err != nil {
+	if err := validateAzureLocation(region); err != nil {
 		return err
 	}
 	config.StorageLocation = region
+	return nil
+}
+
+func promptCustomizeAzureEventHubLoggingRegion(config *azure.GenerateAzureTfConfigurationArgs) error {
+	var region string
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Input{Message: QuestionEventHubLocation, Default: config.EventHubLocation},
+			Response: &region,
+		},
+	}); err != nil {
+		return err
+	}
+	if err := validateAzureLocation(region); err != nil {
+		return err
+	}
+	config.EventHubLocation = region
 	return nil
 }
 
@@ -678,6 +797,11 @@ func askAdvancedAzureOptions(
 			options = append(options, AzureManagmentGroup)
 		}
 
+		// Only show Entra ID options in the case of Entra ID integration
+		if config.EntraIdActivityLog {
+			options = append(options, AzureEntraIdAdvancedOpt)
+		}
+
 		options = append(options, AzureAdvancedOptLocation, AzureAdvancedOptDone)
 		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
 			Prompt: &survey.Select{
@@ -699,6 +823,10 @@ func askAdvancedAzureOptions(
 			if err := promptAzureStorageAccountQuestions(config); err != nil {
 				return err
 			}
+		case AzureEntraIdAdvancedOpt:
+			if err := promptAzureEntraIdActivityLogQuestions(config); err != nil {
+				return err
+			}
 		case AzureSubscriptions:
 			if err := promptAzureSubscriptionQuestions(config); err != nil {
 				return err
@@ -712,7 +840,7 @@ func askAdvancedAzureOptions(
 				return err
 			}
 		case AzureRegionStorage:
-			if err := promptCustomizeAzureLoggingRegion(config); err != nil {
+			if err := promptCustomizeAzureStorageLoggingRegion(config); err != nil {
 				return err
 			}
 		case AzureAdvancedOptLocation:
@@ -784,12 +912,16 @@ func promptAzureGenerate(
 				Prompt:   &survey.Confirm{Message: QuestionEnableAdIntegration, Default: config.CreateAdIntegration},
 				Response: &config.CreateAdIntegration,
 			},
+			{
+				Prompt:   &survey.Confirm{Message: QuestionEnableEntraIdActivityLog, Default: config.EntraIdActivityLog},
+				Response: &config.EntraIdActivityLog,
+			},
 		}); err != nil {
 		return err
 	}
 
 	// Validate one of config or activity log was enabled; otherwise error out
-	if !config.Config && !config.ActivityLog {
+	if !config.Config && !config.ActivityLog && !config.EntraIdActivityLog {
 		return errors.New("must enable activity log or config")
 	}
 

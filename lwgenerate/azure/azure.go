@@ -14,6 +14,9 @@ type GenerateAzureTfConfigurationArgs struct {
 	// Should we add Config integration in LW?
 	Config bool
 
+	// Should we create an Entra ID integration in LW?
+	EntraIdActivityLog bool
+
 	// Should we create an Active Directory integration
 	CreateAdIntegration bool
 
@@ -22,6 +25,9 @@ type GenerateAzureTfConfigurationArgs struct {
 
 	// If ActivityLog is true, give the user the opportunity to name their integration. Defaults to "TF activity log"
 	ActivityLogIntegrationName string
+
+	// if EntraIdIntegration is true, give the user the opportunity to name their integration. Defaults to "TF activity log"
+	EntraIdIntegrationName string
 
 	// Active Directory application Id
 	AdApplicationId string
@@ -60,12 +66,24 @@ type GenerateAzureTfConfigurationArgs struct {
 	StorageLocation string
 
 	LaceworkProfile string
+
+	// Existing Event Hub Namespace
+	ExistingEventHubNamespace bool
+
+	// Event Hub Namespace Name
+	EventHubNamespaceName string
+
+	// Azure region where the event hub for logging will reside
+	EventHubLocation string
+
+	// Number of partitions in the Event Hub for logging
+	EventHubPartitionCount int
 }
 
 // Ensure all combinations of inputs are valid for supported spec
 func (args *GenerateAzureTfConfigurationArgs) validate() error {
 	// Validate one of config or activity log was enabled; otherwise error out
-	if !args.ActivityLog && !args.Config {
+	if !args.ActivityLog && !args.Config && !args.EntraIdActivityLog {
 		return errors.New("audit log or config integration must be enabled")
 	}
 
@@ -95,11 +113,12 @@ type AzureTerraformModifier func(c *GenerateAzureTfConfigurationArgs)
 //
 // Note: Additional configuration details may be set using modifiers of the AzureTerraformModifier type
 func NewTerraform(
-	enableConfig bool, enableActivityLog bool, createAdIntegration bool, mods ...AzureTerraformModifier,
+	enableConfig bool, enableActivityLog bool, enableEntraIdActivityLog, createAdIntegration bool, mods ...AzureTerraformModifier,
 ) *GenerateAzureTfConfigurationArgs {
 	config := &GenerateAzureTfConfigurationArgs{
 		ActivityLog:         enableActivityLog,
 		Config:              enableConfig,
+		EntraIdActivityLog:  enableEntraIdActivityLog,
 		CreateAdIntegration: createAdIntegration,
 	}
 	for _, m := range mods {
@@ -119,6 +138,13 @@ func WithConfigIntegrationName(name string) AzureTerraformModifier {
 func WithActivityLogIntegrationName(name string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.ActivityLogIntegrationName = name
+	}
+}
+
+// WithEntraIdActivityLogIntegrationName Set the Entra ID Activity Log Integration name to be displayed on the Lacework UI
+func WithEntraIdActivityLogIntegrationName(name string) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.EntraIdIntegrationName = name
 	}
 }
 
@@ -201,6 +227,34 @@ func WithStorageLocation(location string) AzureTerraformModifier {
 	}
 }
 
+// WithExisitngEventHubNamespace Use an existing Event Hub Namespace
+func WithExistingEventHubNamespace(existingEventHubNamespace bool) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.ExistingEventHubNamespace = existingEventHubNamespace
+	}
+}
+
+// WithEventHubNamespaceName The name of the Event Hub Namespace
+func WithEventHubNamespaceName(eventHubNamespaceName string) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.EventHubNamespaceName = eventHubNamespaceName
+	}
+}
+
+// WithEventHubLocation The Azure region where the event hub for logging resides
+func WithEventHubLocation(location string) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.EventHubLocation = location
+	}
+}
+
+// WitthEventHubPartitionCount The number of partitions in the Event Hub for logging
+func WithEventHubPartitionCount(partitionCount int) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.EventHubPartitionCount = partitionCount
+	}
+}
+
 func WithLaceworkProfile(name string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.LaceworkProfile = name
@@ -256,6 +310,11 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate azure activity log module")
 	}
 
+	entraIdActivityLogModule, err := createEntraIdActivityLog(args)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to generate azure Entra ID activity log module")
+	}
+
 	// Render
 	hclBlocks := lwgenerate.CreateHclStringOutput(
 		lwgenerate.CombineHclBlocks(
@@ -265,7 +324,8 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 			azureRMProvider,
 			laceworkADProvider,
 			configModule,
-			activityLogModule),
+			activityLogModule,
+			entraIdActivityLogModule),
 	)
 	return hclBlocks, nil
 }
@@ -494,6 +554,62 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 		}
 		blocks = append(blocks, moduleBlock)
 
+	}
+	return blocks, nil
+}
+
+func createEntraIdActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, error) {
+	blocks := []*hclwrite.Block{}
+	if args.EntraIdActivityLog {
+		attributes := map[string]interface{}{}
+		moduleDetails := []lwgenerate.HclModuleModifier{}
+
+		if args.EntraIdIntegrationName != "" {
+			attributes["lacework_integration_name"] = args.EntraIdIntegrationName
+		}
+
+		// Check if we have created an Active Directory integration
+		if args.CreateAdIntegration {
+			attributes["use_existing_ad_application"] = false
+			attributes["application_id"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "az_ad_application", "application_id"})
+			attributes["application_password"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "az_ad_application", "application_password"})
+			attributes["service_principal_id"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "az_ad_application", "service_principal_id"})
+		} else {
+			attributes["use_existing_ad_application"] = true
+			attributes["application_id"] = args.AdApplicationId
+			attributes["application_password"] = args.AdApplicationPassword
+			attributes["service_principal_id"] = args.AdServicePrincipalId
+		}
+
+		attributes["use_existing_eventhub_namespace"] = args.ExistingEventHubNamespace
+		if args.ExistingEventHubNamespace {
+			attributes["eventhub_namespace_name"] = args.EventHubNamespaceName
+		} else {
+			if args.EventHubLocation != "" {
+				attributes["location"] = args.EventHubLocation
+			}
+		}
+		if args.EventHubPartitionCount > 0 {
+			attributes["num_partitions"] = args.EventHubPartitionCount
+		}
+
+		moduleDetails = append(moduleDetails,
+			lwgenerate.HclModuleWithAttributes(attributes),
+		)
+
+		moduleBlock, err := lwgenerate.NewModule(
+			"azure-microsoft-entra-id-activity-log",
+			lwgenerate.LWAzureEntraIdActivityLogSource,
+			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.LWAzureEntraIdActivityLogVersion))...,
+		).ToBlock()
+
+		if err != nil {
+			return nil, err
+		}
+		blocks = append(blocks, moduleBlock)
 	}
 	return blocks, nil
 }
