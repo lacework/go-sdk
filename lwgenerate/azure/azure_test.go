@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/lacework/go-sdk/lwgenerate"
 	"github.com/lacework/go-sdk/lwgenerate/azure"
 	"github.com/stretchr/testify/assert"
 )
@@ -30,6 +32,38 @@ func TestGenerationActivityLogWithConfig(t *testing.T) {
 	var ActivityLogWithConfig, fileErr = getFileContent("test-data/activity_log_with_config.tf")
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(true, true, true).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, ActivityLogWithConfig, hcl)
+
+}
+
+func TestGenerationActivityLogWithConfigAndExtraBlocks(t *testing.T) {
+	var ActivityLogWithConfig, fileErr = getFileContent("test-data/activity_log_with_config_extra.tf")
+	assert.Nil(t, fileErr)
+	extraBlock, err := lwgenerate.HclCreateGenericBlock("variable", []string{"var_name"}, nil)
+	assert.NoError(t, err)
+	hcl, err := azure.NewTerraform(true, true, true, azure.WithExtraBlocks([]*hclwrite.Block{extraBlock})).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, ActivityLogWithConfig, hcl)
+}
+
+func TestGenerationActivityLogWithConfigAndExtraProviderBlocks(t *testing.T) {
+	var ActivityLogWithConfig, fileErr = getFileContent("test-data/activity_log_with_config_provider_args.tf")
+	assert.Nil(t, fileErr)
+	hcl, err := azure.NewTerraform(true, true, true, azure.WithExtraProviderArguments(map[string]interface{}{"foo": "bar"})).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, ActivityLogWithConfig, hcl)
+}
+
+func TestGenerationActivityLogWithConfigAndCustomBackendBlock(t *testing.T) {
+	customBlock, err := lwgenerate.HclCreateGenericBlock("backend", []string{"s3"}, nil)
+	assert.NoError(t, err)
+	var ActivityLogWithConfig, fileErr = getFileContent("test-data/activity_log_with_config_root_blocks.tf")
+	assert.Nil(t, fileErr)
+	hcl, err := azure.NewTerraform(true, true, true, azure.WithExtraRootBlocks([]*hclwrite.Block{customBlock})).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogWithConfig, hcl)

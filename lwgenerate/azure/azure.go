@@ -60,6 +60,15 @@ type GenerateAzureTfConfigurationArgs struct {
 	StorageLocation string
 
 	LaceworkProfile string
+
+	// Add custom blocks to the root `terraform{}` block. Can be used for advanced configuration. Things like backend, etc
+	ExtraBlocksRootTerraform []*hclwrite.Block
+
+	// ExtraProviderArguments allows adding more arguments to the provider block as needed (custom use cases)
+	ExtraProviderArguments map[string]interface{}
+
+	// ExtraBlocks allows adding more hclwrite.Block to the root terraform document (advanced use cases)
+	ExtraBlocks []*hclwrite.Block
 }
 
 // Ensure all combinations of inputs are valid for supported spec
@@ -112,6 +121,29 @@ func NewTerraform(
 func WithConfigIntegrationName(name string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.ConfigIntegrationName = name
+	}
+}
+
+// WithExtraRootBlocks allows adding generic hcl blocks to the root `terraform{}` block
+// this enables custom use cases
+func WithExtraRootBlocks(blocks []*hclwrite.Block) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.ExtraBlocksRootTerraform = blocks
+	}
+}
+
+// WithExtraProviderArguments enables adding additional arguments into the `aws` provider block
+// this enables custom use cases
+func WithExtraProviderArguments(arguments map[string]interface{}) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.ExtraProviderArguments = arguments
+	}
+}
+
+// WithExtraBlocks enables adding additional arbitrary blocks to the root hcl document
+func WithExtraBlocks(blocks []*hclwrite.Block) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.ExtraBlocks = blocks
 	}
 }
 
@@ -221,7 +253,7 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 	}
 
 	// Create blocks
-	requiredProviders, err := createRequiredProviders()
+	requiredProviders, err := createRequiredProviders(args.ExtraBlocksRootTerraform)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate required providers")
 	}
@@ -231,12 +263,12 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate lacework provider")
 	}
 
-	azureADProvider, err := createAzureADProvider()
+	azureADProvider, err := createAzureADProvider(args)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate AD provider")
 	}
 
-	azureRMProvider, err := createAzureRMProvider(args.SubscriptionID)
+	azureRMProvider, err := createAzureRMProvider(args)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate AM provider")
 	}
@@ -265,13 +297,15 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 			azureRMProvider,
 			laceworkADProvider,
 			configModule,
-			activityLogModule),
+			activityLogModule,
+			args.ExtraBlocks),
 	)
 	return hclBlocks, nil
 }
 
-func createRequiredProviders() (*hclwrite.Block, error) {
-	return lwgenerate.CreateRequiredProviders(
+func createRequiredProviders(extraBlocks []*hclwrite.Block) (*hclwrite.Block, error) {
+	return lwgenerate.CreateRequiredProvidersWithCustomBlocks(
+		extraBlocks,
 		lwgenerate.NewRequiredProvider(
 			"lacework",
 			lwgenerate.HclRequiredProviderWithSource(lwgenerate.LaceworkProviderSource),
@@ -290,11 +324,18 @@ func createLaceworkProvider(args *GenerateAzureTfConfigurationArgs) (*hclwrite.B
 	return nil, nil
 }
 
-func createAzureADProvider() ([]*hclwrite.Block, error) {
+func createAzureADProvider(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
-	//attrs := map[string]interface{}{}
+	attrs := map[string]interface{}{}
+
+	// set custom args before the required ones below to ensure expected behavior (i.e., no overrides)
+	for k, v := range args.ExtraProviderArguments {
+		attrs[k] = v
+	}
+
 	provider, err := lwgenerate.NewProvider(
 		"azuread",
+		lwgenerate.HclProviderWithAttributes(attrs),
 	).ToBlock()
 
 	if err != nil {
@@ -312,13 +353,18 @@ func createAzureADProvider() ([]*hclwrite.Block, error) {
 //	provider "azurerm" {
 //	   features = {}
 //	}
-func createAzureRMProvider(subscriptionID string) ([]*hclwrite.Block, error) {
+func createAzureRMProvider(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
 	attrs := map[string]interface{}{}
 	featureAttrs := map[string]interface{}{}
 
-	if subscriptionID != "" {
-		attrs["subscription_id"] = subscriptionID
+	// set custom args before the required ones below to ensure expected behavior (i.e., no overrides)
+	for k, v := range args.ExtraProviderArguments {
+		attrs[k] = v
+	}
+
+	if args.SubscriptionID != "" {
+		attrs["subscription_id"] = args.SubscriptionID
 	}
 
 	provider, err := lwgenerate.NewProvider(
