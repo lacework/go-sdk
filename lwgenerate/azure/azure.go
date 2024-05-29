@@ -69,6 +69,9 @@ type GenerateAzureTfConfigurationArgs struct {
 
 	// ExtraBlocks allows adding more hclwrite.Block to the root terraform document (advanced use cases)
 	ExtraBlocks []*hclwrite.Block
+
+	// Custom outputs
+	CustomOutputs []lwgenerate.HclOutput
 }
 
 // Ensure all combinations of inputs are valid for supported spec
@@ -121,6 +124,13 @@ func NewTerraform(
 func WithConfigIntegrationName(name string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.ConfigIntegrationName = name
+	}
+}
+
+// WithConfigOutputs Set Custom Terraform Outputs
+func WithCustomOutputs(outputs []lwgenerate.HclOutput) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.CustomOutputs = outputs
 	}
 }
 
@@ -288,6 +298,15 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate azure activity log module")
 	}
 
+	outputBlocks := []*hclwrite.Block{}
+	for _, output := range args.CustomOutputs {
+		outputBlock, err := output.ToBlock()
+		if err != nil {
+			return "", errors.Wrap(err, "failed to add custom output")
+		}
+		outputBlocks = append(outputBlocks, outputBlock)
+	}
+
 	// Render
 	hclBlocks := lwgenerate.CreateHclStringOutput(
 		lwgenerate.CombineHclBlocks(
@@ -298,6 +317,7 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 			laceworkADProvider,
 			configModule,
 			activityLogModule,
+			outputBlocks,
 			args.ExtraBlocks),
 	)
 	return hclBlocks, nil
