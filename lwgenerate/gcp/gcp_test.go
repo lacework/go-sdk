@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/lacework/go-sdk/lwgenerate"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/lwgenerate/gcp"
@@ -795,6 +798,70 @@ var RequiredProviders = `terraform {
 }
 `
 
+var requiredProvidersWithCustomBlock = `terraform {
+  required_providers {
+    lacework = {
+      source  = "lacework/lacework"
+      version = "~> 1.0"
+    }
+  }
+  backend "s3" {
+  }
+}
+`
+
+func TestGenerationConfigWithExtraBlocks(t *testing.T) {
+	extraBlock, err := lwgenerate.HclCreateGenericBlock("variable", []string{"var_name"}, nil)
+	assert.NoError(t, err)
+
+	hcl, err := gcp.NewTerraform(false, false, true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId(projectName),
+		gcp.WithExtraBlocks([]*hclwrite.Block{extraBlock}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, RequiredProviders+"\n"+gcpProvider+"\n"+moduleImportProjectLevelAuditLogWithoutConfiguration+"\n"+testVariable, hcl)
+}
+
+func TestGenerationConfigWithCustomBackendBlock(t *testing.T) {
+	customBlock, err := lwgenerate.HclCreateGenericBlock("backend", []string{"s3"}, nil)
+	assert.NoError(t, err)
+	hcl, err := gcp.NewTerraform(false, false, true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId(projectName),
+		gcp.WithExtraRootBlocks([]*hclwrite.Block{customBlock}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, requiredProvidersWithCustomBlock+"\n"+gcpProvider+"\n"+moduleImportProjectLevelAuditLogWithoutConfiguration, hcl)
+}
+
+func TestGenerationConfigWithCustomProviderAttributes(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, false, true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId(projectName),
+		gcp.WithRegions([]string{"us-east1"}),
+		gcp.WithExtraProviderArguments(map[string]interface{}{"foo": "bar"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, RequiredProviders+"\n"+gcpProviderWithExtraArguments+"\n"+moduleImportProjectLevelAuditLogWithoutConfiguration, hcl)
+}
+
+func TestGenerationConfigWithOutputs(t *testing.T) {
+	hcl, err := gcp.NewTerraform(
+		false, false, true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId(projectName),
+		gcp.WithCustomOutputs([]lwgenerate.HclOutput{
+			*lwgenerate.NewOutput("test", []string{"module", "gcp_config", "lacework_integration_guid"}, "test description"),
+		})).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, RequiredProviders+"\n"+gcpProvider+"\n"+moduleImportProjectLevelAuditLogWithoutConfiguration+"\n"+customOutput, hcl)
+}
+
 func ProviderWithCredentials(projectName string) string {
 	return fmt.Sprintf(`provider "google" {
   credentials = "/path/to/credentials"
@@ -820,6 +887,31 @@ func ReqProvider(projectName string, extraInputs ...string) string {
 }
 
 var gcpProviderWithoutCredentialsAndProject = `provider "google" {
+}
+`
+
+var gcpProvider = `provider "google" {
+  credentials = "/path/to/credentials"
+  project     = "project1"
+}
+`
+
+var gcpProviderWithExtraArguments = `provider "google" {
+  alias       = "us-east1"
+  credentials = "/path/to/credentials"
+  foo         = "bar"
+  project     = "project1"
+  region      = "us-east1"
+}
+`
+
+var testVariable = `variable "var_name" {
+}
+`
+
+var customOutput = `output "test" {
+  description = "test description"
+  value       = module.gcp_config.lacework_integration_guid
 }
 `
 
