@@ -64,8 +64,11 @@ type GenerateAzureTfConfigurationArgs struct {
 	// Add custom blocks to the root `terraform{}` block. Can be used for advanced configuration. Things like backend, etc
 	ExtraBlocksRootTerraform []*hclwrite.Block
 
-	// ExtraProviderArguments allows adding more arguments to the provider block as needed (custom use cases)
-	ExtraProviderArguments map[string]interface{}
+	// ExtraAZRMArguments allows adding more arguments to the provider block as needed (custom use cases)
+	ExtraAZRMArguments map[string]interface{}
+
+	// ExtraAZReadArguments allows adding more arguments to the provider block as needed (custom use cases)
+	ExtraAZReadArguments map[string]interface{}
 
 	// ExtraBlocks allows adding more hclwrite.Block to the root terraform document (advanced use cases)
 	ExtraBlocks []*hclwrite.Block
@@ -142,11 +145,19 @@ func WithExtraRootBlocks(blocks []*hclwrite.Block) AzureTerraformModifier {
 	}
 }
 
-// WithExtraProviderArguments enables adding additional arguments into the `aws` provider block
+// WithExtraAZRMArguments enables adding additional arguments into the `azurerm` provider block
 // this enables custom use cases
-func WithExtraProviderArguments(arguments map[string]interface{}) AzureTerraformModifier {
+func WithExtraAZRMArguments(arguments map[string]interface{}) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
-		c.ExtraProviderArguments = arguments
+		c.ExtraAZRMArguments = arguments
+	}
+}
+
+// WithExtraAZReadArguments enables adding additional arguments into the `azuread` provider block
+// this enables custom use cases
+func WithExtraAZReadArguments(arguments map[string]interface{}) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.ExtraAZReadArguments = arguments
 	}
 }
 
@@ -349,7 +360,7 @@ func createAzureADProvider(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.
 	attrs := map[string]interface{}{}
 
 	// set custom args before the required ones below to ensure expected behavior (i.e., no overrides)
-	for k, v := range args.ExtraProviderArguments {
+	for k, v := range args.ExtraAZReadArguments {
 		attrs[k] = v
 	}
 
@@ -379,7 +390,7 @@ func createAzureRMProvider(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.
 	featureAttrs := map[string]interface{}{}
 
 	// set custom args before the required ones below to ensure expected behavior (i.e., no overrides)
-	for k, v := range args.ExtraProviderArguments {
+	for k, v := range args.ExtraAZRMArguments {
 		attrs[k] = v
 	}
 
