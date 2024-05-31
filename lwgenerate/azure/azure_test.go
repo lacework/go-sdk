@@ -49,10 +49,19 @@ func TestGenerationActivityLogWithConfigAndExtraBlocks(t *testing.T) {
 	assert.Equal(t, ActivityLogWithConfig, hcl)
 }
 
-func TestGenerationActivityLogWithConfigAndExtraProviderBlocks(t *testing.T) {
+func TestGenerationActivityLogWithConfigAndExtraAzureRMProviderBlocks(t *testing.T) {
 	var ActivityLogWithConfig, fileErr = getFileContent("test-data/activity_log_with_config_provider_args.tf")
 	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(true, true, true, azure.WithExtraProviderArguments(map[string]interface{}{"foo": "bar"})).Generate()
+	hcl, err := azure.NewTerraform(true, true, true, azure.WithExtraAZRMArguments(map[string]interface{}{"foo": "bar"})).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, ActivityLogWithConfig, hcl)
+}
+
+func TestGenerationActivityLogWithConfigAndExtraAZUReadProviderBlocks(t *testing.T) {
+	var ActivityLogWithConfig, fileErr = getFileContent("test-data/activity_log_with_config_azureadprovider_args.tf")
+	assert.Nil(t, fileErr)
+	hcl, err := azure.NewTerraform(true, true, true, azure.WithExtraAZReadArguments(map[string]interface{}{"foo": "bar"})).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogWithConfig, hcl)

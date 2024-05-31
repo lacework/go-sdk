@@ -8,10 +8,10 @@ terraform {
 }
 
 provider "azuread" {
+  foo = "bar"
 }
 
 provider "azurerm" {
-  foo = "bar"
   features {
   }
 }
