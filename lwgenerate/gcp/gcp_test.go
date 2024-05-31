@@ -862,6 +862,19 @@ func TestGenerationConfigWithOutputs(t *testing.T) {
 	assert.Equal(t, RequiredProviders+"\n"+gcpProvider+"\n"+moduleImportProjectLevelAuditLogWithoutConfiguration+"\n"+customOutput, hcl)
 }
 
+func TestGenerationConfigWithDefaultProviderLabels(t *testing.T) {
+	hcl, err := gcp.NewTerraform(
+		false, false, true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId(projectName),
+		gcp.WithRegions([]string{"us-east1"}),
+		gcp.WithProviderDefaultLabels(map[string]interface{}{"LABEL_TEST": "foo", "LABEL_TEST1": "bar"})).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, RequiredProviders+"\n"+gcpProviderWithDefaultLabels+"\n"+moduleImportProjectLevelAuditLogWithoutConfiguration, hcl)
+
+}
+
 func ProviderWithCredentials(projectName string) string {
 	return fmt.Sprintf(`provider "google" {
   credentials = "/path/to/credentials"
@@ -902,6 +915,19 @@ var gcpProviderWithExtraArguments = `provider "google" {
   foo         = "bar"
   project     = "project1"
   region      = "us-east1"
+}
+`
+
+var gcpProviderWithDefaultLabels = `provider "google" {
+  alias       = "us-east1"
+  credentials = "/path/to/credentials"
+  project     = "project1"
+  region      = "us-east1"
+
+  default_labels {
+    LABEL_TEST  = "foo"
+    LABEL_TEST1 = "bar"
+  }
 }
 `
 

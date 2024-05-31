@@ -24,6 +24,8 @@ type GenerateGkeTfConfigurationArgs struct {
 	PubSubTopicLabels            map[string]string
 	ServiceAccountCredentials    string
 	WaitTime                     string
+	// Default GCP Provider labels
+	ProviderDefaultLabels map[string]interface{}
 	// Add custom blocks to the root `terraform{}` block. Can be used for advanced configuration. Things like backend, etc
 	ExtraBlocksRootTerraform []*hclwrite.Block
 	// ExtraProviderArguments allows adding more arguments to the provider block as needed (custom use cases)
@@ -48,6 +50,7 @@ func (args *GenerateGkeTfConfigurationArgs) Generate() (string, error) {
 		args.ProjectId,
 		[]string{},
 		args.GcpProviderAlias,
+		args.ProviderDefaultLabels,
 	)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate gcp provider")

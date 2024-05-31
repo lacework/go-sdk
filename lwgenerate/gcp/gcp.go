@@ -141,6 +141,9 @@ type GenerateGcpTfConfigurationArgs struct {
 
 	Projects []string
 
+	// Default GCP Provider labels
+	ProviderDefaultLabels map[string]interface{}
+
 	// Add custom blocks to the root `terraform{}` block. Can be used for advanced configuration. Things like backend, etc
 	ExtraBlocksRootTerraform []*hclwrite.Block
 
@@ -232,6 +235,13 @@ func WithUsePubSubAudit(usePubSub bool) GcpTerraformModifier {
 func WithGcpServiceAccountCredentials(path string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.ServiceAccountCredentials = path
+	}
+}
+
+// WithProviderDefaultLabels adds default_labels to the provider configuration for GCP (if labels are present)
+func WithProviderDefaultLabels(labels map[string]interface{}) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.ProviderDefaultLabels = labels
 	}
 }
 
@@ -465,7 +475,7 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 	}
 
 	gcpProvider, err := createGcpProvider(args.ExtraProviderArguments,
-		args.ServiceAccountCredentials, args.GcpProjectId, args.Regions, "")
+		args.ServiceAccountCredentials, args.GcpProjectId, args.Regions, "", args.ProviderDefaultLabels)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate gcp provider")
 	}
@@ -546,6 +556,7 @@ func createGcpProvider(
 	projectId string,
 	regionsArg []string,
 	alias string,
+	providerDefaultLabels map[string]interface{},
 ) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
 
@@ -578,10 +589,25 @@ func createGcpProvider(
 			attrs["region"] = region
 		}
 
+		modifiers := []lwgenerate.HclProviderModifier{
+			lwgenerate.HclProviderWithAttributes(attrs),
+		}
+
+		if len(providerDefaultLabels) != 0 {
+			defaultLabelsBlock, err := lwgenerate.HclCreateGenericBlock(
+				"default_labels",
+				nil,
+				providerDefaultLabels,
+			)
+			if err != nil {
+				return nil, err
+			}
+			modifiers = append(modifiers, lwgenerate.HclProviderWithGenericBlocks(defaultLabelsBlock))
+		}
+
 		provider, err := lwgenerate.NewProvider(
 			"google",
-			lwgenerate.HclProviderWithAttributes(attrs),
-		).ToBlock()
+			modifiers...).ToBlock()
 		if err != nil {
 			return nil, err
 		}
