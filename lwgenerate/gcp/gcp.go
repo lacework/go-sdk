@@ -589,20 +589,12 @@ func createGcpProvider(
 			attrs["region"] = region
 		}
 
-		modifiers := []lwgenerate.HclProviderModifier{
-			lwgenerate.HclProviderWithAttributes(attrs),
+		if len(providerDefaultLabels) != 0 {
+			attrs["default_labels"] = providerDefaultLabels
 		}
 
-		if len(providerDefaultLabels) != 0 {
-			defaultLabelsBlock, err := lwgenerate.HclCreateGenericBlock(
-				"default_labels",
-				nil,
-				providerDefaultLabels,
-			)
-			if err != nil {
-				return nil, err
-			}
-			modifiers = append(modifiers, lwgenerate.HclProviderWithGenericBlocks(defaultLabelsBlock))
+		modifiers := []lwgenerate.HclProviderModifier{
+			lwgenerate.HclProviderWithAttributes(attrs),
 		}
 
 		provider, err := lwgenerate.NewProvider(

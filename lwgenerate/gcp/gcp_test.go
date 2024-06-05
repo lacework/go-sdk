@@ -921,13 +921,12 @@ var gcpProviderWithExtraArguments = `provider "google" {
 var gcpProviderWithDefaultLabels = `provider "google" {
   alias       = "us-east1"
   credentials = "/path/to/credentials"
-  project     = "project1"
-  region      = "us-east1"
-
-  default_labels {
+  default_labels = {
     LABEL_TEST  = "foo"
     LABEL_TEST1 = "bar"
   }
+  project = "project1"
+  region  = "us-east1"
 }
 `
 
