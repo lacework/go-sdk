@@ -565,7 +565,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_config" {
   source             = "lacework/config/gcp"
-  version            = "~> 2.3"
+  version            = "~> 3.0"
   folders_to_include = ["abc", "def"]
   org_integration    = true
   organization_id    = "123456789"
@@ -583,7 +583,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_config" {
   source             = "lacework/config/gcp"
-  version            = "~> 2.3"
+  version            = "~> 3.0"
   folders_to_exclude = ["abc", "def"]
   org_integration    = true
   organization_id    = "123456789"
@@ -601,7 +601,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_config" {
   source          = "lacework/config/gcp"
-  version         = "~> 2.3"
+  version         = "~> 3.0"
   org_integration = true
   organization_id = "123456789"
 }
@@ -619,7 +619,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_config" {
   source                = "lacework/config/gcp"
-  version               = "~> 2.3"
+  version               = "~> 3.0"
   folders_to_exclude    = ["abc"]
   include_root_projects = false
   org_integration       = true
@@ -639,7 +639,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_config" {
   source             = "lacework/config/gcp"
-  version            = "~> 2.3"
+  version            = "~> 3.0"
   folders_to_exclude = ["abc"]
   org_integration    = true
   organization_id    = "123456789"
@@ -655,7 +655,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_level_config" {
   source  = "lacework/config/gcp"
-  version = "~> 2.3"
+  version = "~> 3.0"
   prefix  = "rar"
 }
 `),
@@ -669,7 +669,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_level_config" {
   source    = "lacework/config/gcp"
-  version   = "~> 2.3"
+  version   = "~> 3.0"
   wait_time = "30s"
 }
 `),
@@ -683,7 +683,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_level_config" {
   source  = "lacework/config/gcp"
-  version = "~> 2.3"
+  version = "~> 3.0"
 
   for_each = {
     project1 = "project1"
@@ -1126,13 +1126,13 @@ var moduleImportOrganizationLevelPubSubAuditLogCustomIntegrationName = `module "
 
 var moduleImportProjectLevelConfiguration = `module "gcp_project_level_config" {
   source  = "lacework/config/gcp"
-  version = "~> 2.3"
+  version = "~> 3.0"
 }
 `
 
 var moduleImportProjectLevelConfigurationExistingSA = `module "gcp_project_level_config" {
   source                       = "lacework/config/gcp"
-  version                      = "~> 2.3"
+  version                      = "~> 3.0"
   service_account_name         = "foo"
   service_account_private_key  = "123456789"
   use_existing_service_account = true
@@ -1141,14 +1141,14 @@ var moduleImportProjectLevelConfigurationExistingSA = `module "gcp_project_level
 
 var moduleImportProjectLevelConfigurationCustomIntegrationName = `module "gcp_project_level_config" {
   source                    = "lacework/config/gcp"
-  version                   = "~> 2.3"
+  version                   = "~> 3.0"
   lacework_integration_name = "custom_integration_name"
 }
 `
 
 var moduleImportOrganizationLevelConfiguration = `module "gcp_organization_level_config" {
   source          = "lacework/config/gcp"
-  version         = "~> 2.3"
+  version         = "~> 3.0"
   org_integration = true
   organization_id = "123456789"
 }
@@ -1156,7 +1156,7 @@ var moduleImportOrganizationLevelConfiguration = `module "gcp_organization_level
 
 var moduleImportOrganizationLevelConfigurationExistingSA = `module "gcp_organization_level_config" {
   source                       = "lacework/config/gcp"
-  version                      = "~> 2.3"
+  version                      = "~> 3.0"
   org_integration              = true
   organization_id              = "123456789"
   service_account_name         = "foo"
@@ -1167,7 +1167,7 @@ var moduleImportOrganizationLevelConfigurationExistingSA = `module "gcp_organiza
 
 var moduleImportOrganizationLevelConfigurationCustomIntegrationName = `module "gcp_organization_level_config" {
   source                    = "lacework/config/gcp"
-  version                   = "~> 2.3"
+  version                   = "~> 3.0"
   lacework_integration_name = "custom_integration_name"
   org_integration           = true
   organization_id           = "123456789"
@@ -1182,7 +1182,7 @@ var moduleImportProjectLevelAgentless = `provider "google" {
 
 module "lacework_gcp_agentless_scanning_global" {
   source   = "lacework/agentless-scanning/gcp"
-  version  = "~> 0.1"
+  version  = "~> 2.0"
   global   = true
   regional = true
 
@@ -1200,7 +1200,7 @@ var moduleImportProjectLevelAgentlessWithProjectFilterList = `provider "google" 
 
 module "lacework_gcp_agentless_scanning_global" {
   source              = "lacework/agentless-scanning/gcp"
-  version             = "~> 0.1"
+  version             = "~> 2.0"
   global              = true
   project_filter_list = ["p1", "p2"]
   regional            = true
@@ -1219,7 +1219,7 @@ var moduleImportOrgLevelAgentless = `provider "google" {
 
 module "lacework_gcp_agentless_scanning_global" {
   source           = "lacework/agentless-scanning/gcp"
-  version          = "~> 0.1"
+  version          = "~> 2.0"
   global           = true
   integration_type = "ORGANIZATION"
   organization_id  = "123456789"
