@@ -30,11 +30,11 @@ const (
 	GcpConfigSource          = "lacework/config/gcp"
 	GcpConfigVersion         = "~> 3.0"
 	GcpAuditLogSource        = "lacework/audit-log/gcp"
-	GcpAuditLogVersion       = "~> 4.0"
+	GcpAuditLogVersion       = "~> 3.4"
 	GcpGKEAuditLogSource     = "lacework/gke-audit-log/gcp"
 	GcpGKEAuditLogVersion    = "~> 0.3"
 	GcpPubSubAuditLog        = "lacework/pub-sub-audit-log/gcp"
-	GcpPubSubAuditLogVersion = "~> 0.6"
+	GcpPubSubAuditLogVersion = "~> 0.2"
 
 	OciConfigSource  = "lacework/config/oci"
 	OciConfigVersion = "~> 0.2"
