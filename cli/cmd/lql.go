@@ -297,26 +297,13 @@ func inputQueryFromURL(url string) (query string, err error) {
 }
 
 func inputQueryFromEditor(action string) (query string, err error) {
-	language := "LQL"
-	regoQueryEnabled := os.Getenv("LW_CLI_INTEGRATION_MODE") != "" || cli.LwApi.V2.Query.RegoQueryEnabled()
-	if action == "create" && !queryCmdState.EmptyTemplate && regoQueryEnabled {
-		languageSelect := &survey.Select{
-			Message: "Choose query language: ",
-			Options: []string{
-				"LQL",
-				"Rego",
-			},
-		}
-		err = survey.AskOne(languageSelect, &language)
-		if err != nil {
-			return
-		}
+	prompt := &survey.Editor{
+		Message:  fmt.Sprintf("Type a query to %s", action),
+		FileName: "query*.yaml",
 	}
 
-	var queryTextTemplate string
-	switch language {
-	case "LQL":
-		queryTextTemplate = `queryId: YourQueryID
+	if (action == "create" || action == "run") && !queryCmdState.EmptyTemplate {
+		prompt.Default = `queryId: YourQueryID
 queryText: |-
     {
         source {
@@ -329,27 +316,6 @@ queryText: |-
             --- List fields to return from the selected source. Use 'lacework query describe <datasource>'.
         }
     }`
-	case "Rego":
-		queryTextTemplate = `queryId: YourQueryID
-queryLanguage: Rego
-queryText: |-
-  package your.package
-  import your.dependency
-  import data.lacework
-  source := lacework.your.data.source.provider.function("servce", "apiKey")
-  assess := your.assess.rule`
-	default:
-		err = errors.New("Invalid query language: " + language)
-		return
-	}
-
-	prompt := &survey.Editor{
-		Message:  fmt.Sprintf("Type a query to %s", action),
-		FileName: "query*.yaml",
-	}
-
-	if (action == "create" || action == "run") && !queryCmdState.EmptyTemplate {
-		prompt.Default = queryTextTemplate
 		prompt.HideDefault = true
 		prompt.AppendDefault = true
 	} else if (action == "create" || action == "run") && queryCmdState.EmptyTemplate {
