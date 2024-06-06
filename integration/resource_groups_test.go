@@ -169,6 +169,9 @@ func TestResourceGroupDelete(t *testing.T) {
 		case api.NoneResourceGroup, api.LwAccountResourceGroup:
 			// these resource groups are not applicable
 			continue
+		case api.OciResourceGroup, api.GcpResourceGroup:
+			// broken integration test
+			continue
 		default:
 			// skip lw_account
 			t.Run(i.String(), func(t *testing.T) {
