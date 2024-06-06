@@ -102,6 +102,36 @@ func TestSastTablesUrlType(t *testing.T) {
 	assert.Equal(t, "SOME-GUID", guid)
 }
 
+func TestProSastUrlType(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+	fakeServer.MockAPI("ComponentData/requestUpload", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "POST", r.Method)
+		assert.NotNil(t, r.Body)
+		body := httpBodySniffer(r)
+		assert.Contains(t, body, api.URL_TYPE_PROSAST)
+		_, err := fmt.Fprint(w, generateInitialResponse())
+		assert.Nil(t, err)
+	})
+	fakeServer.MockAPI("ComponentData/completeUpload", func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "POST", r.Method)
+		assert.NotNil(t, r.Body)
+		body := httpBodySniffer(r)
+		assert.Contains(t, body, api.URL_TYPE_PROSAST)
+		_, err := fmt.Fprint(w, generateCompleteResponse())
+		assert.Nil(t, err)
+	})
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+	guid, err := c.V2.ComponentData.UploadProSast("doc-set", []string{})
+	assert.Nil(t, err)
+	assert.Equal(t, "SOME-GUID", guid)
+}
+
 func TestDoWithExponentialBackoffAlwaysFailing(t *testing.T) {
 	waited := 0
 	err := api.DoWithExponentialBackoff(func() error {

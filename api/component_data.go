@@ -17,8 +17,9 @@ type ComponentDataService struct {
 
 const URL_TYPE_DEFAULT = "Default"
 const URL_TYPE_SAST_TABLES = "SastTables"
+const URL_TYPE_PROSAST = "ProSast"
 
-var URL_TYPES = []string{URL_TYPE_DEFAULT, URL_TYPE_SAST_TABLES}
+var URL_TYPES = []string{URL_TYPE_DEFAULT, URL_TYPE_SAST_TABLES, URL_TYPE_PROSAST}
 
 type ComponentDataInitialRequest struct {
 	Name             string          `json:"name"`
@@ -68,6 +69,10 @@ func (svc *ComponentDataService) UploadFiles(
 func (svc *ComponentDataService) UploadSastTables(
 	name string, paths []string) (string, error) {
 	return svc.doUploadFiles(name, []string{"sast"}, paths, URL_TYPE_SAST_TABLES)
+}
+
+func (svc *ComponentDataService) UploadProSast(name string, paths []string) (string, error) {
+	return svc.doUploadFiles(name, []string{"sast"}, paths, URL_TYPE_PROSAST)
 }
 
 func (svc *ComponentDataService) doUploadFiles(
