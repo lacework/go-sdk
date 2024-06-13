@@ -512,10 +512,6 @@ func promptGcpAuditLogQuestions(
 	return err
 }
 
-func usePubSubActivityDisabled(config *gcp.GenerateGcpTfConfigurationArgs) *bool {
-	usePubSubActivityDisabled := !config.UsePubSubAudit
-	return &usePubSubActivityDisabled
-}
 func promptGcpExistingServiceAccountQuestions(config *gcp.GenerateGcpTfConfigurationArgs) error {
 	// ensure struct is initialized
 	if config.ExistingServiceAccount == nil {
