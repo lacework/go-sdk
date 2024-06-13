@@ -206,7 +206,6 @@ func TestGenerationGcpAuditLogPubSub(t *testing.T) {
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
 				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
 				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
-				MsgRsp{cmd.QuestionUsePubSubAudit, "y"},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
 				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
@@ -245,7 +244,6 @@ func TestGenerationGcpAuditLogPubSubOrg(t *testing.T) {
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
 				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
 				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
-				MsgRsp{cmd.QuestionUsePubSubAudit, "y"},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
 				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
@@ -472,139 +470,6 @@ func TestGenerationGcpSACreds(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
-// Test Audit Log with existing Bucket
-func TestGenerationGcpAuditLogExistingBucket(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-
-	tfResult := runGcpGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
-				MsgRsp{cmd.QuestionUsePubSubAudit, "n"},
-				MsgRsp{cmd.QuestionGcpUseExistingBucket, "y"},
-				MsgRsp{cmd.QuestionGcpExistingBucketName, "bucketMcBucketFace"},
-				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
-				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-
-			final, _ = c.ExpectEOF()
-
-		},
-		"generate",
-		"cloud-account",
-		"gcp",
-	)
-
-	assertTerraformSaved(t, final)
-
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
-		gcp.WithProjectId(projectId),
-		gcp.WithExistingLogBucketName("bucketMcBucketFace"),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test Audit Log with new Bucket
-func TestGenerationGcpAuditLogNewBucket(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-
-	tfResult := runGcpGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
-				MsgRsp{cmd.QuestionUsePubSubAudit, "n"},
-				MsgRsp{cmd.QuestionGcpUseExistingBucket, "n"},
-				MsgRsp{cmd.QuestionGcpConfigureNewBucket, "n"},
-				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
-				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"gcp",
-	)
-
-	assertTerraformSaved(t, final)
-
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
-		gcp.WithProjectId(projectId),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test Audit Log with custom new Bucket
-func TestGenerationGcpAuditLogCustomNewBucket(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	bucketName := "my-new-bucket"
-
-	tfResult := runGcpGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
-				MsgRsp{cmd.QuestionUsePubSubAudit, "n"},
-				MsgRsp{cmd.QuestionGcpUseExistingBucket, "n"},
-				MsgRsp{cmd.QuestionGcpConfigureNewBucket, "y"},
-				MsgRsp{cmd.QuestionGcpBucketRegion, "us-west1"},
-				MsgRsp{cmd.QuestionGcpCustomBucketName, bucketName},
-				MsgRsp{cmd.QuestionGcpBucketLifecycle, "420"},
-				MsgRsp{cmd.QuestionGcpEnableUBLA, "y"},
-				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
-				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"gcp",
-	)
-
-	assertTerraformSaved(t, final)
-
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
-		gcp.WithProjectId(projectId),
-		gcp.WithBucketRegion("us-west1"),
-		gcp.WithCustomBucketName(bucketName),
-		gcp.WithLogBucketLifecycleRuleAge(420),
-		gcp.WithEnableUBLA(true),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
 // Test Audit Log with existing sink.
 func TestGenerationGcpAuditLogWithExistingSink(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
@@ -622,13 +487,6 @@ func TestGenerationGcpAuditLogWithExistingSink(t *testing.T) {
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
 				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
 				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
-				MsgRsp{cmd.QuestionUsePubSubAudit, "n"},
-				MsgRsp{cmd.QuestionGcpUseExistingBucket, "n"},
-				MsgRsp{cmd.QuestionGcpConfigureNewBucket, "y"},
-				MsgRsp{cmd.QuestionGcpBucketRegion, "us-west1"},
-				MsgRsp{cmd.QuestionGcpCustomBucketName, ""},
-				MsgRsp{cmd.QuestionGcpBucketLifecycle, "420"},
-				MsgRsp{cmd.QuestionGcpEnableUBLA, "y"},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "y"},
 				MsgRsp{cmd.QuestionGcpExistingSinkName, "sink"},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
@@ -646,53 +504,7 @@ func TestGenerationGcpAuditLogWithExistingSink(t *testing.T) {
 
 	buildTf, _ := gcp.NewTerraform(false, true, true, false,
 		gcp.WithProjectId(projectId),
-		gcp.WithBucketRegion("us-west1"),
-		gcp.WithLogBucketLifecycleRuleAge(420),
-		gcp.WithEnableUBLA(true),
 		gcp.WithExistingLogSinkName("sink"),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test Audit Log with existing bucket
-func TestGenerationGcpAuditLogWithExistingBucket(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-	filter := "filter"
-
-	tfResult := runGcpGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
-				MsgRsp{cmd.QuestionUsePubSubAudit, "n"},
-				MsgRsp{cmd.QuestionGcpUseExistingBucket, "y"},
-				MsgRsp{cmd.QuestionGcpExistingBucketName, "bucketMcBucketFace"},
-				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
-				MsgRsp{cmd.QuestionGcpCustomFilter, filter},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"gcp",
-	)
-
-	assertTerraformSaved(t, final)
-
-	buildTf, _ := gcp.NewTerraform(false, false, true, false,
-		gcp.WithProjectId(projectId),
-		gcp.WithExistingLogBucketName("bucketMcBucketFace"),
-		gcp.WithCustomFilter(filter),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
@@ -756,7 +568,6 @@ func TestGenerationGcpPubSubUseExistingSA(t *testing.T) {
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
 				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
 				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
-				MsgRsp{cmd.QuestionUsePubSubAudit, "y"},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
 				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "y"},

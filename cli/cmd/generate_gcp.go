@@ -34,16 +34,9 @@ var (
 		"you want to monitor: (optional)"
 	QuestionGcpRegions = "Specify a comma separated list of regions to deploy Agentless:"
 
-	GcpAdvancedOptAuditLog        = "Configure additional Audit Log options"
-	QuestionGcpUseExistingBucket  = "Use an existing bucket?"
-	QuestionGcpExistingBucketName = "Specify an existing bucket name:"
-	QuestionGcpConfigureNewBucket = "Configure settings for new bucket?"
-	QuestionGcpBucketRegion       = "Specify the bucket region: (optional)"
-	QuestionGcpCustomBucketName   = "Specify a custom bucket name: (optional)"
-	QuestionGcpBucketLifecycle    = "Specify the bucket lifecycle rule age: (optional)"
-	QuestionGcpEnableUBLA         = "Enable uniform bucket level access(UBLA)?"
-	QuestionGcpUseExistingSink    = "Use an existing sink?"
-	QuestionGcpExistingSinkName   = "Specify the existing sink name"
+	GcpAdvancedOptAuditLog      = "Configure additional Audit Log options"
+	QuestionGcpUseExistingSink  = "Use an existing sink?"
+	QuestionGcpExistingSinkName = "Specify the existing sink name"
 
 	GcpAdvancedOptIntegrationName           = "Customize integration name(s)"
 	QuestionGcpConfigurationIntegrationName = "Specify a custom configuration integration name: (optional)"
@@ -110,16 +103,11 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithExistingServiceAccount(GenerateGcpCommandState.ExistingServiceAccount),
 				gcp.WithConfigurationIntegrationName(GenerateGcpCommandState.ConfigurationIntegrationName),
 				gcp.WithAuditLogLabels(GenerateGcpCommandState.AuditLogLabels),
-				gcp.WithBucketLabels(GenerateGcpCommandState.BucketLabels),
 				gcp.WithPubSubSubscriptionLabels(GenerateGcpCommandState.PubSubSubscriptionLabels),
 				gcp.WithPubSubTopicLabels(GenerateGcpCommandState.PubSubTopicLabels),
-				gcp.WithCustomBucketName(GenerateGcpCommandState.CustomBucketName),
-				gcp.WithBucketRegion(GenerateGcpCommandState.BucketRegion),
-				gcp.WithExistingLogBucketName(GenerateGcpCommandState.ExistingLogBucketName),
 				gcp.WithExistingLogSinkName(GenerateGcpCommandState.ExistingLogSinkName),
 				gcp.WithAuditLogIntegrationName(GenerateGcpCommandState.AuditLogIntegrationName),
 				gcp.WithLaceworkProfile(GenerateGcpCommandState.LaceworkProfile),
-				gcp.WithLogBucketLifecycleRuleAge(GenerateGcpCommandState.LogBucketLifecycleRuleAge),
 				gcp.WithFoldersToInclude(GenerateGcpCommandState.FoldersToInclude),
 				gcp.WithFoldersToExclude(GenerateGcpCommandState.FoldersToExclude),
 				gcp.WithCustomFilter(GenerateGcpCommandState.CustomFilter),
@@ -283,20 +271,17 @@ See help output for more details on the parameter value(s) required for Terrafor
 )
 
 type GcpGenerateCommandExtraState struct {
-	AskAdvanced                bool
-	Output                     string
-	ConfigureNewBucketSettings bool
-	UseExistingServiceAccount  bool
-	UseExistingBucket          bool
-	UseExistingSink            bool
-	TerraformApply             bool
+	AskAdvanced               bool
+	Output                    string
+	UseExistingServiceAccount bool
+	UseExistingSink           bool
+	TerraformApply            bool
 }
 
 func (gcp *GcpGenerateCommandExtraState) isEmpty() bool {
 	return gcp.Output == "" &&
 		!gcp.AskAdvanced &&
 		!gcp.UseExistingServiceAccount &&
-		!gcp.UseExistingBucket &&
 		!gcp.UseExistingSink &&
 		!gcp.TerraformApply
 }
@@ -362,22 +347,6 @@ func initGenerateGcpTfCommandFlags() {
 		"",
 		"specify a custom configuration integration name")
 	generateGcpTfCommand.PersistentFlags().StringVar(
-		&GenerateGcpCommandState.CustomBucketName,
-		"custom_bucket_name",
-		"",
-		"override prefix based storage bucket name generation with a custom name")
-	// TODO: Implement AuditLogLabels, BucketLabels, PubSubSubscriptionLabels & PubSubTopicLabels
-	generateGcpTfCommand.PersistentFlags().StringVar(
-		&GenerateGcpCommandState.BucketRegion,
-		"bucket_region",
-		"",
-		"specify bucket region")
-	generateGcpTfCommand.PersistentFlags().StringVar(
-		&GenerateGcpCommandState.ExistingLogBucketName,
-		"existing_bucket_name",
-		"",
-		"specify existing bucket name")
-	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.ExistingLogSinkName,
 		"existing_sink_name",
 		"",
@@ -393,15 +362,6 @@ func initGenerateGcpTfCommandFlags() {
 		[]string{},
 		"List of GCP regions to deploy for Agentless integration")
 
-	// DEPRECATED
-	generateGcpTfCommand.PersistentFlags().BoolVar(
-		&GenerateGcpCommandState.EnableForceDestroyBucket,
-		"enable_force_destroy_bucket",
-		true,
-		"enable force bucket destroy")
-	errcheckWARN(generateGcpTfCommand.PersistentFlags().MarkDeprecated(
-		"enable_force_destroy_bucket", "by default, force destroy is enabled.",
-	))
 	// ---
 
 	generateGcpTfCommand.PersistentFlags().BoolVar(
@@ -409,11 +369,6 @@ func initGenerateGcpTfCommandFlags() {
 		"enable_ubla",
 		true,
 		"enable universal bucket level access(ubla)")
-	generateGcpTfCommand.PersistentFlags().IntVar(
-		&GenerateGcpCommandState.LogBucketLifecycleRuleAge,
-		"bucket_lifecycle_rule_age",
-		-1,
-		"specify the lifecycle rule age")
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.CustomFilter,
 		"custom_filter",
@@ -534,10 +489,6 @@ func promptGcpAuditLogQuestions(
 	extraState *GcpGenerateCommandExtraState,
 ) error {
 
-	// Present the user with Bucket Configuration options, if required
-	if err := promptGcpBucketConfiguration(config, extraState); err != nil {
-		return err
-	}
 	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Prompt:   &survey.Confirm{Message: QuestionGcpUseExistingSink, Default: extraState.UseExistingSink},
@@ -555,73 +506,6 @@ func promptGcpAuditLogQuestions(
 			Prompt:   &survey.Input{Message: QuestionGcpCustomFilter, Default: config.CustomFilter},
 			Checks:   []*bool{&config.AuditLog},
 			Response: &config.CustomFilter,
-		},
-	}, config.AuditLog)
-
-	return err
-}
-
-func promptGcpBucketConfiguration(
-	config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState,
-) error {
-	// Prompt to configure bucket information (not required when using the Pub Sub Audit Log)
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpUseExistingBucket, Default: extraState.UseExistingBucket},
-			Checks:   []*bool{&config.AuditLog, usePubSubActivityDisabled(config)},
-			Response: &extraState.UseExistingBucket,
-		},
-		{
-			Prompt:   &survey.Input{Message: QuestionGcpExistingBucketName, Default: config.ExistingLogBucketName},
-			Checks:   []*bool{&config.AuditLog, &extraState.UseExistingBucket, usePubSubActivityDisabled(config)},
-			Required: true,
-			Response: &config.ExistingLogBucketName,
-		},
-	}, config.AuditLog); err != nil {
-		return err
-	}
-
-	newBucket := !extraState.UseExistingBucket
-	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpConfigureNewBucket, Default: extraState.ConfigureNewBucketSettings},
-			Checks:   []*bool{&config.AuditLog, &newBucket, usePubSubActivityDisabled(config)},
-			Required: true,
-			Response: &extraState.ConfigureNewBucketSettings,
-		},
-		{
-			Prompt: &survey.Input{Message: QuestionGcpBucketRegion, Default: config.BucketRegion},
-			Checks: []*bool{&config.AuditLog,
-				&newBucket,
-				&extraState.ConfigureNewBucketSettings,
-				usePubSubActivityDisabled(config)},
-			Opts:     []survey.AskOpt{survey.WithValidator(validateGcpRegion)},
-			Response: &config.BucketRegion,
-		},
-		{
-			Prompt: &survey.Input{Message: QuestionGcpCustomBucketName, Default: config.CustomBucketName},
-			Checks: []*bool{&config.AuditLog,
-				&newBucket,
-				&extraState.ConfigureNewBucketSettings,
-				usePubSubActivityDisabled(config)},
-			Response: &config.CustomBucketName,
-		},
-		{
-			Prompt: &survey.Input{Message: QuestionGcpBucketLifecycle, Default: "-1"},
-			Checks: []*bool{&config.AuditLog,
-				&newBucket,
-				&extraState.ConfigureNewBucketSettings,
-				usePubSubActivityDisabled(config)},
-			Response: &config.LogBucketLifecycleRuleAge,
-		},
-		{
-			Prompt: &survey.Confirm{Message: QuestionGcpEnableUBLA, Default: config.EnableUBLA},
-			Checks: []*bool{&config.AuditLog,
-				&newBucket,
-				&extraState.ConfigureNewBucketSettings,
-				usePubSubActivityDisabled(config)},
-			Required: true,
-			Response: &config.EnableUBLA,
 		},
 	}, config.AuditLog)
 
