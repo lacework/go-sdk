@@ -73,7 +73,7 @@ func TestGenerationGcpSimple(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -111,7 +111,7 @@ func TestGenerationGcpAgentless(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, false, false, false,
+	buildTf, _ := gcp.NewTerraform(true, false, false, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId(organizationId),
@@ -149,7 +149,7 @@ func TestGenerationGcpConfig(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, false, false,
+	buildTf, _ := gcp.NewTerraform(false, true, false, true,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -183,7 +183,7 @@ func TestGenerationGcpAuditLog(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, false, true, false,
+	buildTf, _ := gcp.NewTerraform(false, false, true, true,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -1304,7 +1304,7 @@ func TestGenerationGcpMultipleProjects(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithMultipleProject(gcpProjects),
 	).Generate()
