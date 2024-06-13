@@ -19,7 +19,6 @@ var (
 	QuestionGcpEnableAgentless         = "Enable Agentless integration?"
 	QuestionGcpEnableConfiguration     = "Enable Configuration integration?"
 	QuestionGcpEnableAuditLog          = "Enable Audit Log integration?"
-	QuestionUsePubSubAudit             = "Use Pub Sub Audit Log?"
 	QuestionGcpOrganizationIntegration = "Organization integration?"
 	QuestionGcpOrganizationID          = "Specify the GCP organization ID:"
 	QuestionGcpProjectID               = "Specify the project ID to be used to provision Lacework resources:"
@@ -132,6 +131,7 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithMultipleProject(GenerateGcpCommandState.Projects),
 				gcp.WithProjectFilterList(GenerateGcpCommandState.ProjectFilterList),
 				gcp.WithRegions(GenerateGcpCommandState.Regions),
+				gcp.WithUsePubSubAudit(true), // always set to true, storage based integration deprecated
 			}
 
 			if GenerateGcpCommandState.OrganizationIntegration {
@@ -476,8 +476,8 @@ func initGenerateGcpTfCommandFlags() {
 	generateGcpTfCommand.PersistentFlags().BoolVar(
 		&GenerateGcpCommandState.UsePubSubAudit,
 		"use_pub_sub",
-		false,
-		"use pub/sub for the audit log data rather than bucket")
+		true,
+		"deprecated: pub/sub audit log integration is always used and only supported type")
 	generateGcpTfCommand.PersistentFlags().StringSliceVar(
 		&GenerateGcpCommandState.Projects,
 		"projects",
@@ -534,16 +534,6 @@ func promptGcpAuditLogQuestions(
 	extraState *GcpGenerateCommandExtraState,
 ) error {
 
-	// Only ask these questions if configure audit log is true
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt:   &survey.Confirm{Message: QuestionUsePubSubAudit, Default: config.UsePubSubAudit},
-			Checks:   []*bool{&config.AuditLog},
-			Response: &config.UsePubSubAudit,
-		},
-	}, config.AuditLog); err != nil {
-		return err
-	}
 	// Present the user with Bucket Configuration options, if required
 	if err := promptGcpBucketConfiguration(config, extraState); err != nil {
 		return err
