@@ -199,15 +199,6 @@ See help output for more details on the parameter value(s) required for Terrafor
 				}
 			}
 
-			// Validate gcp region, if passed
-			region, err := cmd.Flags().GetString("bucket_region")
-			if err != nil {
-				return errors.Wrap(err, "failed to load command flags")
-			}
-			if err := validateGcpRegion(region); err != nil {
-				return err
-			}
-
 			projectId, err := cmd.Flags().GetString("project_id")
 			if err != nil {
 				return errors.Wrap(err, "failed to load command flags")
