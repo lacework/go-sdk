@@ -115,7 +115,6 @@ See help output for more details on the parameter value(s) required for Terrafor
 				gcp.WithK8sFilter(GenerateGcpCommandState.K8sFilter),
 				gcp.WithPrefix(GenerateGcpCommandState.Prefix),
 				gcp.WithWaitTime(GenerateGcpCommandState.WaitTime),
-				gcp.WithEnableUBLA(GenerateGcpCommandState.EnableUBLA),
 				gcp.WithMultipleProject(GenerateGcpCommandState.Projects),
 				gcp.WithProjectFilterList(GenerateGcpCommandState.ProjectFilterList),
 				gcp.WithRegions(GenerateGcpCommandState.Regions),
@@ -364,11 +363,6 @@ func initGenerateGcpTfCommandFlags() {
 
 	// ---
 
-	generateGcpTfCommand.PersistentFlags().BoolVar(
-		&GenerateGcpCommandState.EnableUBLA,
-		"enable_ubla",
-		true,
-		"enable universal bucket level access(ubla)")
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.CustomFilter,
 		"custom_filter",
