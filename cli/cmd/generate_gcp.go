@@ -425,30 +425,6 @@ func initGenerateGcpTfCommandFlags() {
 		"list of project IDs to integrate with (project-level integrations)")
 }
 
-// survey.Validator for gcp region
-func validateGcpRegion(val interface{}) error {
-	switch value := val.(type) {
-	case string:
-		// as this field is optional, it is valid for this field to be empty
-		if value != "" {
-			// if value doesn't match regex, return invalid arn
-			ok, err := regexp.MatchString(GcpRegionRegex, value)
-			if err != nil {
-				return errors.Wrap(err, "failed to validate input")
-			}
-
-			if !ok {
-				return errors.New("invalid region name supplied")
-			}
-		}
-	default:
-		// if the value passed is not a string
-		return errors.New("value must be a string")
-	}
-
-	return nil
-}
-
 func promptGcpAgentlessQuestions(
 	config *gcp.GenerateGcpTfConfigurationArgs,
 	extraState *GcpGenerateCommandExtraState,
