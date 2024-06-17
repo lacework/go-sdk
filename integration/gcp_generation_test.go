@@ -300,7 +300,7 @@ func TestGenerationGcpAllIntegrationsOrg(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(true, true, true, false,
+	buildTf, _ := gcp.NewTerraform(true, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId(organizationId),
@@ -342,7 +342,7 @@ func TestGenerationGcpPrefixAndWait(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithPrefix(prefix),
 		gcp.WithWaitTime(waitTime),
@@ -394,7 +394,7 @@ func TestGenerationGcpSACreds(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithGcpServiceAccountCredentials(serviceAccountFilePath),
 	).Generate()
@@ -433,7 +433,7 @@ func TestGenerationGcpAuditLogWithExistingSink(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithExistingLogSinkName("sink"),
 	).Generate()
@@ -475,7 +475,7 @@ func TestGenerationGcpExistingSA(t *testing.T) {
 	serviceAccountDetails.Name = "SA_1"
 	serviceAccountDetails.PrivateKey = "cGFzc3dvcmRNY1Bhc3N3b3JkRmFjZQ=="
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithExistingServiceAccount(serviceAccountDetails),
 	).Generate()
@@ -561,7 +561,7 @@ func TestGenerationGcpConfigurationWithCustomIntegrationName(t *testing.T) {
 	assertTerraformSaved(t, final)
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithConfigurationIntegrationName("customConfigurationIntegrationName"),
 	).Generate()
@@ -600,7 +600,7 @@ func TestGenerationGcpAuditLogWithCustomIntegrationName(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithAuditLogIntegrationName("customAuditLogIntegrationName"),
 	).Generate()
@@ -645,7 +645,7 @@ func TestGenerationGcpCustomizedOutputLocation(t *testing.T) {
 
 	result, _ := os.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, string(result))
@@ -679,7 +679,7 @@ func TestGenerationGcpAdvancedOptsDone(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -713,7 +713,7 @@ func TestGenerationGcpAdvancedOptsDoneConfigurationOnly(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, false, false,
+	buildTf, _ := gcp.NewTerraform(false, true, false, true,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -799,7 +799,7 @@ func TestGenerationGcpFolders(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId(organizationId),
@@ -842,7 +842,7 @@ func TestGenerationGcpFoldersShorthand(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId(organizationId),
@@ -883,7 +883,7 @@ func TestGenerationGcpIncludeRootProjects(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId(organizationId),
@@ -924,7 +924,7 @@ func TestGenerationGcpIncludeRootProjectsFalse(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithOrganizationIntegration(true),
 		gcp.WithOrganizationId(organizationId),
@@ -963,7 +963,7 @@ func TestGenerationGcpAuditLogFiltersTrue(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, false, true, false,
+	buildTf, _ := gcp.NewTerraform(false, false, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithGoogleWorkspaceFilter(true),
 		gcp.WithK8sFilter(true),
@@ -1000,7 +1000,7 @@ func TestGenerationGcpAuditLogFiltersFalse(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, false, true, false,
+	buildTf, _ := gcp.NewTerraform(false, false, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithGoogleWorkspaceFilter(false),
 		gcp.WithK8sFilter(false),
@@ -1037,7 +1037,7 @@ func TestGenerationGcpInvalidProjectId(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, false, true, false,
+	buildTf, _ := gcp.NewTerraform(false, false, true, true,
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -1191,7 +1191,7 @@ func TestGenerationGcpLaceworkProfile(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithLaceworkProfile(gcpProfile),
 	).Generate()
@@ -1274,7 +1274,7 @@ func TestGenerationGcpMultipleProjectsInteractive(t *testing.T) {
 
 	assertTerraformSaved(t, final)
 
-	buildTf, _ := gcp.NewTerraform(false, true, true, false,
+	buildTf, _ := gcp.NewTerraform(false, true, true, true,
 		gcp.WithProjectId(projectId),
 		gcp.WithMultipleProject(gcpProjects),
 	).Generate()
