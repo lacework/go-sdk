@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	cdk "github.com/lacework/go-sdk/cli/cdk/go/proto/v1"
+	cdk "github.com/circleci/fork-lacework-go-sdk/cli/cdk/go/proto/v1"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

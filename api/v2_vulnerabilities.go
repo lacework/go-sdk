@@ -25,8 +25,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lacework/go-sdk/internal/array"
-	"github.com/lacework/go-sdk/lwseverity"
+	"github.com/circleci/fork-lacework-go-sdk/internal/array"
+	"github.com/circleci/fork-lacework-go-sdk/lwseverity"
 )
 
 // v2VulnerabilitiesService is a service that interacts with the Vulnerabilities

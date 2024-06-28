@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lacework/go-sdk/lwgenerate/aws_eks_audit"
+	"github.com/circleci/fork-lacework-go-sdk/lwgenerate/aws_eks_audit"
 
 	"github.com/imdario/mergo"
 	"github.com/spf13/cobra"

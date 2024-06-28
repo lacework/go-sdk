@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lacework/go-sdk/lwconfig"
+	"github.com/circleci/fork-lacework-go-sdk/lwconfig"
 )
 
 func main() {

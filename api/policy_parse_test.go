@@ -25,7 +25,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/api"
 )
 
 var (

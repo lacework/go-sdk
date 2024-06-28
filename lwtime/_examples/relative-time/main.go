@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lacework/go-sdk/lwtime"
+	"github.com/circleci/fork-lacework-go-sdk/lwtime"
 )
 
 func main() {

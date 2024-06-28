@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/lacework/go-sdk/lwgenerate/aws_eks_audit"
+	"github.com/circleci/fork-lacework-go-sdk/lwgenerate/aws_eks_audit"
 
 	"github.com/Netflix/go-expect"
-	"github.com/lacework/go-sdk/cli/cmd"
+	"github.com/circleci/fork-lacework-go-sdk/cli/cmd"
 	"github.com/stretchr/testify/assert"
 )
 

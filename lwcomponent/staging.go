@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver"
-	"github.com/lacework/go-sdk/internal/file"
+	"github.com/circleci/fork-lacework-go-sdk/internal/file"
 	dircopy "github.com/otiai10/copy"
 	"github.com/pkg/errors"
 )

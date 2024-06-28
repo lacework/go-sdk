@@ -32,8 +32,8 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/databox"
+	"github.com/circleci/fork-lacework-go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/internal/databox"
 )
 
 const (

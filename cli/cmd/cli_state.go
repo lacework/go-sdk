@@ -39,12 +39,12 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/lacework/go-sdk/api"
-	cdk "github.com/lacework/go-sdk/cli/cdk/go/proto/v1"
-	"github.com/lacework/go-sdk/internal/format"
-	"github.com/lacework/go-sdk/lwcomponent"
-	"github.com/lacework/go-sdk/lwconfig"
-	"github.com/lacework/go-sdk/lwlogger"
+	"github.com/circleci/fork-lacework-go-sdk/api"
+	cdk "github.com/circleci/fork-lacework-go-sdk/cli/cdk/go/proto/v1"
+	"github.com/circleci/fork-lacework-go-sdk/internal/format"
+	"github.com/circleci/fork-lacework-go-sdk/lwcomponent"
+	"github.com/circleci/fork-lacework-go-sdk/lwconfig"
+	"github.com/circleci/fork-lacework-go-sdk/lwlogger"
 )
 
 // cliState holds the state of the entire Lacework CLI

@@ -24,7 +24,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/lacework/go-sdk/lwtime"
+	"github.com/circleci/fork-lacework-go-sdk/lwtime"
 )
 
 // CloudAccountsService is the service that interacts with

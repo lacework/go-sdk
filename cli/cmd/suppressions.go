@@ -22,7 +22,7 @@ import (
 	"github.com/fatih/color"
 
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
-	"github.com/lacework/go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/api"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
 )

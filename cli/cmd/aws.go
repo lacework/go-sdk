@@ -26,8 +26,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/circleci/fork-lacework-go-sdk/lwrunner"
 	"github.com/gammazero/workerpool"
-	"github.com/lacework/go-sdk/lwrunner"
 )
 
 func awsDescribeInstances(filterSSH bool) ([]*lwrunner.AWSRunner, error) {

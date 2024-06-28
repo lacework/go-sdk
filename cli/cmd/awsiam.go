@@ -25,8 +25,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/circleci/fork-lacework-go-sdk/lwrunner"
 	"github.com/google/uuid"
-	"github.com/lacework/go-sdk/lwrunner"
 )
 
 // setupSSMAccess sets up an IAM role for SSM and attaches it to

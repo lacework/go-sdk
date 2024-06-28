@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/lacework/go-sdk/lwcomponent"
+	"github.com/circleci/fork-lacework-go-sdk/lwcomponent"
 	"github.com/stretchr/testify/assert"
 )
 

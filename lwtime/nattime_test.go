@@ -21,7 +21,7 @@ package lwtime_test
 import (
 	"testing"
 
-	"github.com/lacework/go-sdk/lwtime"
+	"github.com/circleci/fork-lacework-go-sdk/lwtime"
 	"github.com/stretchr/testify/assert"
 )
 

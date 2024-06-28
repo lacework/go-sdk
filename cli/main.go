@@ -27,7 +27,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lacework/go-sdk/cli/cmd"
+	"github.com/circleci/fork-lacework-go-sdk/cli/cmd"
 )
 
 func main() {

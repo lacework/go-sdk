@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/pkg/errors"
 
-	"github.com/lacework/go-sdk/lwgenerate"
+	"github.com/circleci/fork-lacework-go-sdk/lwgenerate"
 )
 
 type ExistingIamRoleDetails struct {

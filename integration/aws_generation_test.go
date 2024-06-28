@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/Netflix/go-expect"
-	"github.com/lacework/go-sdk/cli/cmd"
-	"github.com/lacework/go-sdk/lwgenerate/aws"
+	"github.com/circleci/fork-lacework-go-sdk/cli/cmd"
+	"github.com/circleci/fork-lacework-go-sdk/lwgenerate/aws"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lacework/go-sdk/lwgenerate/azure"
+	"github.com/circleci/fork-lacework-go-sdk/lwgenerate/azure"
 )
 
 func ActivityLogWithoutConfig() {

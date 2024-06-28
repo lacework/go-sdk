@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lacework/go-sdk/lwgenerate/aws_controltower"
+	"github.com/circleci/fork-lacework-go-sdk/lwgenerate/aws_controltower"
 )
 
 func controlTowerWithCloudtrail() {

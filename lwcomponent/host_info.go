@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/semver"
-	"github.com/lacework/go-sdk/internal/file"
+	"github.com/circleci/fork-lacework-go-sdk/internal/file"
 	"github.com/pkg/errors"
 )
 

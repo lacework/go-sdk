@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/circleci/fork-lacework-go-sdk/api"
 	"github.com/fatih/structs"
-	"github.com/lacework/go-sdk/api"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

@@ -9,8 +9,8 @@ import (
 
 	"aead.dev/minisign"
 	"github.com/Masterminds/semver"
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/cache"
+	"github.com/circleci/fork-lacework-go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/internal/cache"
 	"github.com/pkg/errors"
 )
 

@@ -31,9 +31,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/lacework/go-sdk/internal/format"
-	"github.com/lacework/go-sdk/lwconfig"
-	"github.com/lacework/go-sdk/lwdomain"
+	"github.com/circleci/fork-lacework-go-sdk/internal/format"
+	"github.com/circleci/fork-lacework-go-sdk/lwconfig"
+	"github.com/circleci/fork-lacework-go-sdk/lwdomain"
 )
 
 var (

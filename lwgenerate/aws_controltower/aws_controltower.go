@@ -3,8 +3,8 @@ package aws_controltower
 import (
 	"encoding/json"
 
+	"github.com/circleci/fork-lacework-go-sdk/lwgenerate"
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/lacework/go-sdk/lwgenerate"
 	"github.com/pkg/errors"
 )
 

@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/lacework/go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )

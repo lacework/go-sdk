@@ -27,10 +27,10 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/lwseverity"
+	"github.com/circleci/fork-lacework-go-sdk/lwseverity"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/lacework"
+	"github.com/circleci/fork-lacework-go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/internal/lacework"
 )
 
 var (

@@ -25,9 +25,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/circleci/fork-lacework-go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/lwdomain"
 	"github.com/honeycombio/libhoney-go"
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/lwdomain"
 )
 
 var (

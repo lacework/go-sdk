@@ -30,7 +30,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	"github.com/lacework/go-sdk/lwlogger"
+	"github.com/circleci/fork-lacework-go-sdk/lwlogger"
 	"github.com/pkg/errors"
 )
 

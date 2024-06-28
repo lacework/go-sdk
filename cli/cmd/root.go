@@ -30,8 +30,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/lacework/go-sdk/lwcomponent"
-	"github.com/lacework/go-sdk/lwlogger"
+	"github.com/circleci/fork-lacework-go-sdk/lwcomponent"
+	"github.com/circleci/fork-lacework-go-sdk/lwlogger"
 )
 
 var (

@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	cdk "github.com/lacework/go-sdk/cli/cdk/go/proto/v1"
-	"github.com/lacework/go-sdk/lwlogger"
+	cdk "github.com/circleci/fork-lacework-go-sdk/cli/cdk/go/proto/v1"
+	"github.com/circleci/fork-lacework-go-sdk/lwlogger"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"

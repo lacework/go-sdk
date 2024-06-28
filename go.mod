@@ -1,4 +1,4 @@
-module github.com/lacework/go-sdk
+module github.com/circleci/fork-lacework-go-sdk
 
 go 1.21
 

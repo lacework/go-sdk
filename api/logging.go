@@ -27,7 +27,7 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
-	"github.com/lacework/go-sdk/lwlogger"
+	"github.com/circleci/fork-lacework-go-sdk/lwlogger"
 )
 
 // WithLogLevel sets the log level of the client, available: info, debug, or error

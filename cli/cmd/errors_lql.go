@@ -21,7 +21,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/lacework/go-sdk/internal/failon"
+	"github.com/circleci/fork-lacework-go-sdk/internal/failon"
 )
 
 type queryFailonError struct {

@@ -39,9 +39,9 @@ import (
 	tfjson "github.com/hashicorp/terraform-json"
 
 	"github.com/Netflix/go-expect"
+	"github.com/circleci/fork-lacework-go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/lwupdater"
 	"github.com/hinshun/vt10x"
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/lwupdater"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -244,7 +244,7 @@ ERROR
   Missing CI environment variables.
 
   To run the integration tests you need to setup a few environment variables, look
-  at https://github.com/lacework/go-sdk/tree/main/cli#integration-tests for
+  at https://github.com/circleci/fork-lacework-go-sdk/tree/main/cli#integration-tests for
   more information.
 
 `

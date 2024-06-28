@@ -23,7 +23,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/lacework/go-sdk/internal/databox"
+	"github.com/circleci/fork-lacework-go-sdk/internal/databox"
 )
 
 // AzureRecommendationsV2 is a service that interacts with the V2 Recommendations

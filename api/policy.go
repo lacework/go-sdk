@@ -28,7 +28,7 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 
-	"github.com/lacework/go-sdk/internal/array"
+	"github.com/circleci/fork-lacework-go-sdk/internal/array"
 )
 
 // PolicyService is a service that interacts with the Custom Policies

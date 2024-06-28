@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/lacework/go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/api"
 )
 
 func main() {

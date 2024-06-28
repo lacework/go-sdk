@@ -22,7 +22,7 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/lacework/go-sdk/lwtime"
+	"github.com/circleci/fork-lacework-go-sdk/lwtime"
 	"github.com/pkg/errors"
 )
 

@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/lwcomponent"
+	"github.com/circleci/fork-lacework-go-sdk/lwcomponent"
 )
 
 func TestIsNotFound(t *testing.T) {

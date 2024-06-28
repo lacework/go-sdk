@@ -24,7 +24,7 @@ import (
 	"fmt"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/lacework/go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/api"
 )
 
 func createResourceGroupV2(resourceType string) error {

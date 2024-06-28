@@ -23,7 +23,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/lacework/go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/api"
 	"github.com/stretchr/testify/assert"
 )
 

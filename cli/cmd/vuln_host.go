@@ -21,8 +21,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/array"
+	"github.com/circleci/fork-lacework-go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/internal/array"
 )
 
 var (

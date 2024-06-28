@@ -34,9 +34,9 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/pointer"
-	"github.com/lacework/go-sdk/lwseverity"
+	"github.com/circleci/fork-lacework-go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/internal/pointer"
+	"github.com/circleci/fork-lacework-go-sdk/lwseverity"
 )
 
 var (

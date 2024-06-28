@@ -38,10 +38,10 @@ import (
 	dircopy "github.com/otiai10/copy"
 	"github.com/pkg/errors"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/archive"
-	"github.com/lacework/go-sdk/internal/cache"
-	"github.com/lacework/go-sdk/internal/file"
+	"github.com/circleci/fork-lacework-go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/internal/archive"
+	"github.com/circleci/fork-lacework-go-sdk/internal/cache"
+	"github.com/circleci/fork-lacework-go-sdk/internal/file"
 )
 
 // State holds the components specification

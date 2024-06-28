@@ -24,7 +24,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/lacework/go-sdk/internal/format"
+	"github.com/circleci/fork-lacework-go-sdk/internal/format"
 )
 
 const DefaultTokenExpiryTime = 3600

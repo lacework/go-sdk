@@ -22,7 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/lacework/go-sdk/internal/databox"
+	"github.com/circleci/fork-lacework-go-sdk/internal/databox"
 )
 
 // AwsRecommendationsV2 is a service that interacts with the V2 Recommendations

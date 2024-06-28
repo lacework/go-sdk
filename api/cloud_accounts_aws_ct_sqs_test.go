@@ -25,9 +25,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/intgguid"
-	"github.com/lacework/go-sdk/internal/lacework"
+	"github.com/circleci/fork-lacework-go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/internal/intgguid"
+	"github.com/circleci/fork-lacework-go-sdk/internal/lacework"
 )
 
 func TestCloudAccountsNewAwsCtSqsWithCustomTemplateFile(t *testing.T) {

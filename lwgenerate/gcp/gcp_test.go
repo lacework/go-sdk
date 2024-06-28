@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/circleci/fork-lacework-go-sdk/lwgenerate"
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/lacework/go-sdk/lwgenerate"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/lwgenerate/gcp"
+	"github.com/circleci/fork-lacework-go-sdk/lwgenerate/gcp"
 )
 
 const (

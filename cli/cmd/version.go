@@ -25,10 +25,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lacework/go-sdk/internal/cache"
-	"github.com/lacework/go-sdk/internal/file"
-	"github.com/lacework/go-sdk/lwcomponent"
-	"github.com/lacework/go-sdk/lwupdater"
+	"github.com/circleci/fork-lacework-go-sdk/internal/cache"
+	"github.com/circleci/fork-lacework-go-sdk/internal/file"
+	"github.com/circleci/fork-lacework-go-sdk/lwcomponent"
+	"github.com/circleci/fork-lacework-go-sdk/lwupdater"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -114,7 +114,7 @@ func init() {
 // versionCheck checks if the user is running the latest version of the cli,
 // if not, displays a friendly message about the new version available
 func versionCheck() (*lwupdater.Version, error) {
-	cli.Log.Debugw("check version of the lacework-cli", "repository", "github.com/lacework/go-sdk")
+	cli.Log.Debugw("check version of the lacework-cli", "repository", "github.com/circleci/fork-lacework-go-sdk")
 	sdk, err := lwupdater.Check("go-sdk", fmt.Sprintf("v%s", Version))
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to check updates")

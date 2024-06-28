@@ -11,7 +11,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 
-	"github.com/lacework/go-sdk/lwgenerate/gcp"
+	"github.com/circleci/fork-lacework-go-sdk/lwgenerate/gcp"
 )
 
 var (

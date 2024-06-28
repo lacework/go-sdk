@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/lacework/go-sdk/lwgenerate/azure"
+	"github.com/circleci/fork-lacework-go-sdk/lwgenerate/azure"
 	"github.com/stretchr/testify/assert"
 )
 

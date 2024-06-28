@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/lacework/go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/api"
 )
 
 var (

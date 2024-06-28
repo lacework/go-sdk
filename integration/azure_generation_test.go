@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/Netflix/go-expect"
-	"github.com/lacework/go-sdk/cli/cmd"
-	"github.com/lacework/go-sdk/lwgenerate/azure"
+	"github.com/circleci/fork-lacework-go-sdk/cli/cmd"
+	"github.com/circleci/fork-lacework-go-sdk/lwgenerate/azure"
 	"github.com/stretchr/testify/assert"
 )
 

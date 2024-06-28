@@ -20,7 +20,7 @@ package logger
 import (
 	"os"
 
-	"github.com/lacework/go-sdk/lwlogger"
+	"github.com/circleci/fork-lacework-go-sdk/lwlogger"
 )
 
 // Log allows this component to leverage our Go-SDK lwlogger

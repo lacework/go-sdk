@@ -23,8 +23,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/lacework/go-sdk/lwseverity"
-	"github.com/lacework/go-sdk/lwtime"
+	"github.com/circleci/fork-lacework-go-sdk/lwseverity"
+	"github.com/circleci/fork-lacework-go-sdk/lwtime"
 )
 
 // AlertsService is a service that interacts with the Alerts

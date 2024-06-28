@@ -30,7 +30,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/lacework/go-sdk/lwrunner"
+	"github.com/circleci/fork-lacework-go-sdk/lwrunner"
 )
 
 func TestLwRunnerNew(t *testing.T) {

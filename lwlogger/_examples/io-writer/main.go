@@ -6,7 +6,7 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/lacework/go-sdk/lwlogger"
+	"github.com/circleci/fork-lacework-go-sdk/lwlogger"
 )
 
 func main() {

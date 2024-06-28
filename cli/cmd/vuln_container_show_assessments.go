@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/array"
-	"github.com/lacework/go-sdk/lwseverity"
+	"github.com/circleci/fork-lacework-go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/internal/array"
+	"github.com/circleci/fork-lacework-go-sdk/lwseverity"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

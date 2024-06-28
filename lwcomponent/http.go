@@ -23,8 +23,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/circleci/fork-lacework-go-sdk/lwlogger"
 	"github.com/go-resty/resty/v2"
-	"github.com/lacework/go-sdk/lwlogger"
 )
 
 const (

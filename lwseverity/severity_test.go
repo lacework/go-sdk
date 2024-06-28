@@ -3,7 +3,7 @@ package lwseverity_test
 import (
 	"testing"
 
-	"github.com/lacework/go-sdk/lwseverity"
+	"github.com/circleci/fork-lacework-go-sdk/lwseverity"
 	"github.com/stretchr/testify/assert"
 )
 

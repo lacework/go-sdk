@@ -22,8 +22,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/lacework/go-sdk/lwcloud/gcp/helpers"
-	folders "github.com/lacework/go-sdk/lwcloud/gcp/resources/folders"
+	"github.com/circleci/fork-lacework-go-sdk/lwcloud/gcp/helpers"
+	folders "github.com/circleci/fork-lacework-go-sdk/lwcloud/gcp/resources/folders"
 
 	resourcemanager "cloud.google.com/go/resourcemanager/apiv3"
 	resourcemanagerpb "cloud.google.com/go/resourcemanager/apiv3/resourcemanagerpb"

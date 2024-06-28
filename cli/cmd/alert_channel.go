@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/lacework/go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

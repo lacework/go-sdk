@@ -3,7 +3,7 @@ package validate_test
 import (
 	"testing"
 
-	"github.com/lacework/go-sdk/internal/validate"
+	"github.com/circleci/fork-lacework-go-sdk/internal/validate"
 	"github.com/stretchr/testify/assert"
 )
 

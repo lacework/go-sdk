@@ -32,8 +32,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/file"
+	"github.com/circleci/fork-lacework-go-sdk/api"
+	"github.com/circleci/fork-lacework-go-sdk/internal/file"
 )
 
 var SupportedPackageManagers = []string{"dpkg-query", "rpm"} // @afiune can we support yum and apk?

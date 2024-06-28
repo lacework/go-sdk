@@ -8,7 +8,7 @@ import (
 	"github.com/imdario/mergo"
 	"github.com/spf13/cobra"
 
-	"github.com/lacework/go-sdk/lwgenerate/azure"
+	"github.com/circleci/fork-lacework-go-sdk/lwgenerate/azure"
 	"github.com/pkg/errors"
 )
 

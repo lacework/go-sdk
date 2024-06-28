@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/Masterminds/semver"
+	"github.com/circleci/fork-lacework-go-sdk/internal/file"
 	"github.com/fatih/color"
-	"github.com/lacework/go-sdk/internal/file"
 	"github.com/pkg/errors"
 )
 

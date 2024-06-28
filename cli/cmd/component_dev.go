@@ -37,8 +37,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/lacework/go-sdk/internal/databox"
-	"github.com/lacework/go-sdk/lwcomponent"
+	"github.com/circleci/fork-lacework-go-sdk/internal/databox"
+	"github.com/circleci/fork-lacework-go-sdk/lwcomponent"
 )
 
 var cdkDevState = struct {
