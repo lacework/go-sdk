@@ -21,13 +21,12 @@ module "az_ad_application" {
 }
 
 module "azure-microsoft-entra-id-activity-log" {
-  source                          = "lacework/entra-id-activity-log/azure"
-  version                         = "~> 1.0"
-  application_id                  = module.az_ad_application.application_id
-  application_password            = module.az_ad_application.application_password
-  location                        = "West US 2"
-  num_partitions                  = 2
-  service_principal_id            = module.az_ad_application.service_principal_id
-  use_existing_ad_application     = false
-  use_existing_eventhub_namespace = false
+  source                      = "lacework/entra-id-activity-log/azure"
+  version                     = "~> 1.0"
+  application_id              = module.az_ad_application.application_id
+  application_password        = module.az_ad_application.application_password
+  location                    = "West US 2"
+  num_partitions              = 2
+  service_principal_id        = module.az_ad_application.service_principal_id
+  use_existing_ad_application = false
 }

@@ -222,7 +222,7 @@ func TestGenerationAzureRmProviderWithSubscriptionID(t *testing.T) {
 func TestGenerationEntraIDActivityLog(t *testing.T) {
 	ActivityLogEntraID, fileErr := getFileContent("test-data/entra-id-activity-log-no-custom-input.tf")
 	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(false, false, true, true, azure.WithExistingEventHubNamespace(false)).Generate()
+	hcl, err := azure.NewTerraform(false, false, true, true).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogEntraID, hcl)
@@ -231,16 +231,7 @@ func TestGenerationEntraIDActivityLog(t *testing.T) {
 func TestGenerationEntraIDActivityLogExistingActiveDirectoryApp(t *testing.T) {
 	ActivityLogEntraID, fileErr := getFileContent("test-data/entra-id-activity-log-existing-ad-app.tf")
 	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(false, false, true, false, azure.WithExistingEventHubNamespace(false), azure.WithAdApplicationId("testID"), azure.WithAdApplicationPassword("pass"), azure.WithAdServicePrincipalId("principal")).Generate()
-	assert.Nil(t, err)
-	assert.NotNil(t, hcl)
-	assert.Equal(t, ActivityLogEntraID, hcl)
-}
-
-func TestGenerationEntraIDActivityLogExistingEventHubNamespace(t *testing.T) {
-	ActivityLogEntraID, fileErr := getFileContent("test-data/entra-id-activity-log-existing-event-hub-ns.tf")
-	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(false, false, true, true, azure.WithExistingEventHubNamespace(true), azure.WithEventHubNamespaceName("testEventHubNamespace")).Generate()
+	hcl, err := azure.NewTerraform(false, false, true, false, azure.WithAdApplicationId("testID"), azure.WithAdApplicationPassword("pass"), azure.WithAdServicePrincipalId("principal")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogEntraID, hcl)
@@ -249,7 +240,7 @@ func TestGenerationEntraIDActivityLogExistingEventHubNamespace(t *testing.T) {
 func TestGenerationEntraIDActivityLogEventHubLocationAndPartition(t *testing.T) {
 	ActivityLogEntraID, fileErr := getFileContent("test-data/entra-id-activity-log-event-hub-location-and-partition.tf")
 	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(false, false, true, true, azure.WithExistingEventHubNamespace(false), azure.WithEventHubLocation("West US 2"), azure.WithEventHubPartitionCount(2)).Generate()
+	hcl, err := azure.NewTerraform(false, false, true, true, azure.WithEventHubLocation("West US 2"), azure.WithEventHubPartitionCount(2)).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogEntraID, hcl)

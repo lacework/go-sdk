@@ -67,12 +67,6 @@ type GenerateAzureTfConfigurationArgs struct {
 
 	LaceworkProfile string
 
-	// Existing Event Hub Namespace
-	ExistingEventHubNamespace bool
-
-	// Event Hub Namespace Name
-	EventHubNamespaceName string
-
 	// Azure region where the event hub for logging will reside
 	EventHubLocation string
 
@@ -224,20 +218,6 @@ func WithStorageAccountResourceGroup(storageAccountResourceGroup string) AzureTe
 func WithStorageLocation(location string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.StorageLocation = location
-	}
-}
-
-// WithExisitngEventHubNamespace Use an existing Event Hub Namespace
-func WithExistingEventHubNamespace(existingEventHubNamespace bool) AzureTerraformModifier {
-	return func(c *GenerateAzureTfConfigurationArgs) {
-		c.ExistingEventHubNamespace = existingEventHubNamespace
-	}
-}
-
-// WithEventHubNamespaceName The name of the Event Hub Namespace
-func WithEventHubNamespaceName(eventHubNamespaceName string) AzureTerraformModifier {
-	return func(c *GenerateAzureTfConfigurationArgs) {
-		c.EventHubNamespaceName = eventHubNamespaceName
 	}
 }
 
@@ -584,14 +564,10 @@ func createEntraIdActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwri
 			attributes["service_principal_id"] = args.AdServicePrincipalId
 		}
 
-		attributes["use_existing_eventhub_namespace"] = args.ExistingEventHubNamespace
-		if args.ExistingEventHubNamespace {
-			attributes["eventhub_namespace_name"] = args.EventHubNamespaceName
-		} else {
-			if args.EventHubLocation != "" {
-				attributes["location"] = args.EventHubLocation
-			}
+		if args.EventHubLocation != "" {
+			attributes["location"] = args.EventHubLocation
 		}
+
 		if args.EventHubPartitionCount > 0 {
 			attributes["num_partitions"] = args.EventHubPartitionCount
 		}

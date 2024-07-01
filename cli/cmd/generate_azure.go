@@ -30,10 +30,8 @@ var (
 	QuestionAzureCustomizeOutputLocation = "Provide the location for the output to be written:"
 
 	// EntraID Activity Log
-	QuestionUseExistingEventHubNamespace = "Use an existing Event Hub Namespace?"
-	QuestionEventHubNamespaceName        = "Specify existing Event Hub Namespace name"
-	QuestionEventHubLocation             = "Specify Azure region where the event hub for logging will reside"
-	QuestionEventHubPartitionCount       = "Specify the number of partitions in the event hub for logging"
+	QuestionEventHubLocation       = "Specify Azure region where the event hub for logging will reside"
+	QuestionEventHubPartitionCount = "Specify the number of partitions in the event hub for logging"
 
 	// Active Directory
 	QuestionEnableAdIntegration = "Create Active Directory Integration?"
@@ -194,8 +192,6 @@ the new cloud account. In interactive mode, this command will:
 				azure.WithActivityLogIntegrationName(GenerateAzureCommandState.ActivityLogIntegrationName),
 				azure.WithConfigIntegrationName(GenerateAzureCommandState.ConfigIntegrationName),
 				azure.WithEntraIdActivityLogIntegrationName(GenerateAzureCommandState.EntraIdIntegrationName),
-				azure.WithExistingEventHubNamespace(GenerateAzureCommandState.ExistingEventHubNamespace),
-				azure.WithEventHubNamespaceName(GenerateAzureCommandState.EventHubNamespaceName),
 				azure.WithEventHubLocation(GenerateAzureCommandState.EventHubLocation),
 				azure.WithEventHubPartitionCount(GenerateAzureCommandState.EventHubPartitionCount),
 			}
@@ -437,18 +433,6 @@ func initGenerateAzureTfCommandFlags() {
 		false,
 		"use existing storage account")
 
-	generateAzureTfCommand.PersistentFlags().BoolVar(
-		&GenerateAzureCommandState.ExistingEventHubNamespace,
-		"existing_event_hub_namespace",
-		false,
-		"use existing Event Hub Namespace")
-
-	generateAzureTfCommand.PersistentFlags().StringVar(
-		&GenerateAzureCommandState.EventHubNamespaceName,
-		"event_hub_namespace",
-		"",
-		"specify the name of the Event Hub Namespace")
-
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.EventHubLocation,
 		"event_hub_location",
@@ -585,35 +569,15 @@ func promptAzureStorageAccountQuestions(config *azure.GenerateAzureTfConfigurati
 
 // Similar to the above, prompt for event hub questions starting by asking for existing event hub namespace, if answer is no, then ask for event hub location. If answer is yes, then ask for namespace name.
 func promptAzureEntraIdActivityLogQuestions(config *azure.GenerateAzureTfConfigurationArgs) error {
+
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Confirm{Message: QuestionUseExistingEventHubNamespace, Default: config.ExistingEventHubNamespace},
-			Response: &config.ExistingEventHubNamespace,
+			Prompt:   &survey.Input{Message: QuestionEventHubLocation, Default: config.EventHubLocation},
+			Required: true,
+			Response: &config.EventHubLocation,
 		},
 	}); err != nil {
 		return err
-	}
-
-	if !config.ExistingEventHubNamespace {
-		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-			{
-				Prompt:   &survey.Input{Message: QuestionEventHubLocation, Default: config.EventHubLocation},
-				Required: true,
-				Response: &config.EventHubLocation,
-			},
-		}); err != nil {
-			return err
-		}
-	} else {
-		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-			{
-				Prompt:   &survey.Input{Message: QuestionEventHubNamespaceName, Default: config.EventHubNamespaceName},
-				Required: true,
-				Response: &config.EventHubNamespaceName,
-			},
-		}); err != nil {
-			return err
-		}
 	}
 
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
@@ -725,23 +689,6 @@ func promptCustomizeAzureStorageLoggingRegion(config *azure.GenerateAzureTfConfi
 		return err
 	}
 	config.StorageLocation = region
-	return nil
-}
-
-func promptCustomizeAzureEventHubLoggingRegion(config *azure.GenerateAzureTfConfigurationArgs) error {
-	var region string
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt:   &survey.Input{Message: QuestionEventHubLocation, Default: config.EventHubLocation},
-			Response: &region,
-		},
-	}); err != nil {
-		return err
-	}
-	if err := validateAzureLocation(region); err != nil {
-		return err
-	}
-	config.EventHubLocation = region
 	return nil
 }
 
