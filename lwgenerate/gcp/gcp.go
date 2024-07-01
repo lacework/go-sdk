@@ -140,6 +140,21 @@ type GenerateGcpTfConfigurationArgs struct {
 	WaitTime string
 
 	Projects []string
+
+	// Default GCP Provider labels
+	ProviderDefaultLabels map[string]interface{}
+
+	// Add custom blocks to the root `terraform{}` block. Can be used for advanced configuration. Things like backend, etc
+	ExtraBlocksRootTerraform []*hclwrite.Block
+
+	// ExtraProviderArguments allows adding more arguments to the provider block as needed (custom use cases)
+	ExtraProviderArguments map[string]interface{}
+
+	// ExtraBlocks allows adding more hclwrite.Block to the root terraform document (advanced use cases)
+	ExtraBlocks []*hclwrite.Block
+
+	// Custom outputs
+	CustomOutputs []lwgenerate.HclOutput
 }
 
 // Ensure all combinations of inputs are valid for supported spec
@@ -220,6 +235,43 @@ func WithUsePubSubAudit(usePubSub bool) GcpTerraformModifier {
 func WithGcpServiceAccountCredentials(path string) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.ServiceAccountCredentials = path
+	}
+}
+
+// WithProviderDefaultLabels adds default_labels to the provider configuration for GCP (if labels are present)
+func WithProviderDefaultLabels(labels map[string]interface{}) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.ProviderDefaultLabels = labels
+	}
+}
+
+// WithConfigOutputs Set Custom Terraform Outputs
+func WithCustomOutputs(outputs []lwgenerate.HclOutput) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.CustomOutputs = outputs
+	}
+}
+
+// WithExtraRootBlocks allows adding generic hcl blocks to the root `terraform{}` block
+// this enables custom use cases
+func WithExtraRootBlocks(blocks []*hclwrite.Block) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.ExtraBlocksRootTerraform = blocks
+	}
+}
+
+// WithExtraProviderArguments enables adding additional arguments into the `gcp` provider block
+// this enables custom use cases
+func WithExtraProviderArguments(arguments map[string]interface{}) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.ExtraProviderArguments = arguments
+	}
+}
+
+// WithExtraBlocks enables adding additional arbitrary blocks to the root hcl document
+func WithExtraBlocks(blocks []*hclwrite.Block) GcpTerraformModifier {
+	return func(c *GenerateGcpTfConfigurationArgs) {
+		c.ExtraBlocks = blocks
 	}
 }
 
@@ -417,12 +469,13 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 	}
 
 	// Create blocks
-	requiredProviders, err := createRequiredProviders(false)
+	requiredProviders, err := createRequiredProviders(false, args.ExtraBlocksRootTerraform)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate required providers")
 	}
 
-	gcpProvider, err := createGcpProvider(args.ServiceAccountCredentials, args.GcpProjectId, args.Regions, "")
+	gcpProvider, err := createGcpProvider(args.ExtraProviderArguments,
+		args.ServiceAccountCredentials, args.GcpProjectId, args.Regions, "", args.ProviderDefaultLabels)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate gcp provider")
 	}
@@ -447,6 +500,15 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate gcp audit log module")
 	}
 
+	outputBlocks := []*hclwrite.Block{}
+	for _, output := range args.CustomOutputs {
+		outputBlock, err := output.ToBlock()
+		if err != nil {
+			return "", errors.Wrap(err, "failed to add custom output")
+		}
+		outputBlocks = append(outputBlocks, outputBlock)
+	}
+
 	// Render
 	hclBlocks := lwgenerate.CreateHclStringOutput(
 		lwgenerate.CombineHclBlocks(
@@ -456,16 +518,20 @@ func (args *GenerateGcpTfConfigurationArgs) Generate() (string, error) {
 			agentlessModule,
 			configurationModule,
 			auditLogModule,
+			outputBlocks,
+			args.ExtraBlocks,
 		),
 	)
 	return hclBlocks, nil
 }
 
-func createRequiredProviders(useExistingRequiredProviders bool) (*hclwrite.Block, error) {
+func createRequiredProviders(useExistingRequiredProviders bool,
+	extraBlocks []*hclwrite.Block) (*hclwrite.Block, error) {
 	if useExistingRequiredProviders {
 		return nil, nil
 	}
-	return lwgenerate.CreateRequiredProviders(
+	return lwgenerate.CreateRequiredProvidersWithCustomBlocks(
+		extraBlocks,
 		lwgenerate.NewRequiredProvider(
 			"lacework",
 			lwgenerate.HclRequiredProviderWithSource(lwgenerate.LaceworkProviderSource),
@@ -485,10 +551,12 @@ func createLaceworkProvider(laceworkProfile string) (*hclwrite.Block, error) {
 }
 
 func createGcpProvider(
+	extraProviderArguments map[string]interface{},
 	serviceAccountCredentials string,
 	projectId string,
 	regionsArg []string,
 	alias string,
+	providerDefaultLabels map[string]interface{},
 ) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
 
@@ -500,6 +568,10 @@ func createGcpProvider(
 	for _, region := range regions {
 		attrs := map[string]interface{}{}
 
+		// set custom args before the required ones below to ensure expected behavior (i.e., no overrides)
+		for k, v := range extraProviderArguments {
+			attrs[k] = v
+		}
 		if serviceAccountCredentials != "" {
 			attrs["credentials"] = serviceAccountCredentials
 		}
@@ -517,10 +589,17 @@ func createGcpProvider(
 			attrs["region"] = region
 		}
 
+		if len(providerDefaultLabels) != 0 {
+			attrs["default_labels"] = providerDefaultLabels
+		}
+
+		modifiers := []lwgenerate.HclProviderModifier{
+			lwgenerate.HclProviderWithAttributes(attrs),
+		}
+
 		provider, err := lwgenerate.NewProvider(
 			"google",
-			lwgenerate.HclProviderWithAttributes(attrs),
-		).ToBlock()
+			modifiers...).ToBlock()
 		if err != nil {
 			return nil, err
 		}

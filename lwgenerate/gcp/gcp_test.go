@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/hcl/v2/hclwrite"
+	"github.com/lacework/go-sdk/lwgenerate"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/lwgenerate/gcp"
@@ -562,7 +565,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_config" {
   source             = "lacework/config/gcp"
-  version            = "~> 2.3"
+  version            = "~> 3.0"
   folders_to_include = ["abc", "def"]
   org_integration    = true
   organization_id    = "123456789"
@@ -580,7 +583,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_config" {
   source             = "lacework/config/gcp"
-  version            = "~> 2.3"
+  version            = "~> 3.0"
   folders_to_exclude = ["abc", "def"]
   org_integration    = true
   organization_id    = "123456789"
@@ -598,7 +601,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_config" {
   source          = "lacework/config/gcp"
-  version         = "~> 2.3"
+  version         = "~> 3.0"
   org_integration = true
   organization_id = "123456789"
 }
@@ -616,7 +619,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_config" {
   source                = "lacework/config/gcp"
-  version               = "~> 2.3"
+  version               = "~> 3.0"
   folders_to_exclude    = ["abc"]
   include_root_projects = false
   org_integration       = true
@@ -636,7 +639,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_organization_level_config" {
   source             = "lacework/config/gcp"
-  version            = "~> 2.3"
+  version            = "~> 3.0"
   folders_to_exclude = ["abc"]
   org_integration    = true
   organization_id    = "123456789"
@@ -652,7 +655,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_level_config" {
   source  = "lacework/config/gcp"
-  version = "~> 2.3"
+  version = "~> 3.0"
   prefix  = "rar"
 }
 `),
@@ -666,7 +669,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_level_config" {
   source    = "lacework/config/gcp"
-  version   = "~> 2.3"
+  version   = "~> 3.0"
   wait_time = "30s"
 }
 `),
@@ -680,7 +683,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			),
 			ReqProvider(projectName, `module "gcp_project_level_config" {
   source  = "lacework/config/gcp"
-  version = "~> 2.3"
+  version = "~> 3.0"
 
   for_each = {
     project1 = "project1"
@@ -795,6 +798,83 @@ var RequiredProviders = `terraform {
 }
 `
 
+var requiredProvidersWithCustomBlock = `terraform {
+  required_providers {
+    lacework = {
+      source  = "lacework/lacework"
+      version = "~> 1.0"
+    }
+  }
+  backend "s3" {
+  }
+}
+`
+
+func TestGenerationConfigWithExtraBlocks(t *testing.T) {
+	extraBlock, err := lwgenerate.HclCreateGenericBlock("variable", []string{"var_name"}, nil)
+	assert.NoError(t, err)
+
+	hcl, err := gcp.NewTerraform(false, false, true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId(projectName),
+		gcp.WithExtraBlocks([]*hclwrite.Block{extraBlock}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, RequiredProviders+"\n"+gcpProvider+"\n"+moduleImportProjectLevelAuditLogWithoutConfiguration+"\n"+testVariable, hcl)
+}
+
+func TestGenerationConfigWithCustomBackendBlock(t *testing.T) {
+	customBlock, err := lwgenerate.HclCreateGenericBlock("backend", []string{"s3"}, nil)
+	assert.NoError(t, err)
+	hcl, err := gcp.NewTerraform(false, false, true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId(projectName),
+		gcp.WithExtraRootBlocks([]*hclwrite.Block{customBlock}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, requiredProvidersWithCustomBlock+"\n"+gcpProvider+"\n"+moduleImportProjectLevelAuditLogWithoutConfiguration, hcl)
+}
+
+func TestGenerationConfigWithCustomProviderAttributes(t *testing.T) {
+	hcl, err := gcp.NewTerraform(false, false, true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId(projectName),
+		gcp.WithRegions([]string{"us-east1"}),
+		gcp.WithExtraProviderArguments(map[string]interface{}{"foo": "bar"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, RequiredProviders+"\n"+gcpProviderWithExtraArguments+"\n"+moduleImportProjectLevelAuditLogWithoutConfiguration, hcl)
+}
+
+func TestGenerationConfigWithOutputs(t *testing.T) {
+	hcl, err := gcp.NewTerraform(
+		false, false, true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId(projectName),
+		gcp.WithCustomOutputs([]lwgenerate.HclOutput{
+			*lwgenerate.NewOutput("test", []string{"module", "gcp_config", "lacework_integration_guid"}, "test description"),
+		})).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, RequiredProviders+"\n"+gcpProvider+"\n"+moduleImportProjectLevelAuditLogWithoutConfiguration+"\n"+customOutput, hcl)
+}
+
+func TestGenerationConfigWithDefaultProviderLabels(t *testing.T) {
+	hcl, err := gcp.NewTerraform(
+		false, false, true, false,
+		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+		gcp.WithProjectId(projectName),
+		gcp.WithRegions([]string{"us-east1"}),
+		gcp.WithProviderDefaultLabels(map[string]interface{}{"LABEL_TEST": "foo", "LABEL_TEST1": "bar"})).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, RequiredProviders+"\n"+gcpProviderWithDefaultLabels+"\n"+moduleImportProjectLevelAuditLogWithoutConfiguration, hcl)
+
+}
+
 func ProviderWithCredentials(projectName string) string {
 	return fmt.Sprintf(`provider "google" {
   credentials = "/path/to/credentials"
@@ -820,6 +900,43 @@ func ReqProvider(projectName string, extraInputs ...string) string {
 }
 
 var gcpProviderWithoutCredentialsAndProject = `provider "google" {
+}
+`
+
+var gcpProvider = `provider "google" {
+  credentials = "/path/to/credentials"
+  project     = "project1"
+}
+`
+
+var gcpProviderWithExtraArguments = `provider "google" {
+  alias       = "us-east1"
+  credentials = "/path/to/credentials"
+  foo         = "bar"
+  project     = "project1"
+  region      = "us-east1"
+}
+`
+
+var gcpProviderWithDefaultLabels = `provider "google" {
+  alias       = "us-east1"
+  credentials = "/path/to/credentials"
+  default_labels = {
+    LABEL_TEST  = "foo"
+    LABEL_TEST1 = "bar"
+  }
+  project = "project1"
+  region  = "us-east1"
+}
+`
+
+var testVariable = `variable "var_name" {
+}
+`
+
+var customOutput = `output "test" {
+  description = "test description"
+  value       = module.gcp_config.lacework_integration_guid
 }
 `
 
@@ -1009,13 +1126,13 @@ var moduleImportOrganizationLevelPubSubAuditLogCustomIntegrationName = `module "
 
 var moduleImportProjectLevelConfiguration = `module "gcp_project_level_config" {
   source  = "lacework/config/gcp"
-  version = "~> 2.3"
+  version = "~> 3.0"
 }
 `
 
 var moduleImportProjectLevelConfigurationExistingSA = `module "gcp_project_level_config" {
   source                       = "lacework/config/gcp"
-  version                      = "~> 2.3"
+  version                      = "~> 3.0"
   service_account_name         = "foo"
   service_account_private_key  = "123456789"
   use_existing_service_account = true
@@ -1024,14 +1141,14 @@ var moduleImportProjectLevelConfigurationExistingSA = `module "gcp_project_level
 
 var moduleImportProjectLevelConfigurationCustomIntegrationName = `module "gcp_project_level_config" {
   source                    = "lacework/config/gcp"
-  version                   = "~> 2.3"
+  version                   = "~> 3.0"
   lacework_integration_name = "custom_integration_name"
 }
 `
 
 var moduleImportOrganizationLevelConfiguration = `module "gcp_organization_level_config" {
   source          = "lacework/config/gcp"
-  version         = "~> 2.3"
+  version         = "~> 3.0"
   org_integration = true
   organization_id = "123456789"
 }
@@ -1039,7 +1156,7 @@ var moduleImportOrganizationLevelConfiguration = `module "gcp_organization_level
 
 var moduleImportOrganizationLevelConfigurationExistingSA = `module "gcp_organization_level_config" {
   source                       = "lacework/config/gcp"
-  version                      = "~> 2.3"
+  version                      = "~> 3.0"
   org_integration              = true
   organization_id              = "123456789"
   service_account_name         = "foo"
@@ -1050,7 +1167,7 @@ var moduleImportOrganizationLevelConfigurationExistingSA = `module "gcp_organiza
 
 var moduleImportOrganizationLevelConfigurationCustomIntegrationName = `module "gcp_organization_level_config" {
   source                    = "lacework/config/gcp"
-  version                   = "~> 2.3"
+  version                   = "~> 3.0"
   lacework_integration_name = "custom_integration_name"
   org_integration           = true
   organization_id           = "123456789"
@@ -1065,7 +1182,7 @@ var moduleImportProjectLevelAgentless = `provider "google" {
 
 module "lacework_gcp_agentless_scanning_global" {
   source   = "lacework/agentless-scanning/gcp"
-  version  = "~> 0.1"
+  version  = "~> 2.0"
   global   = true
   regional = true
 
@@ -1083,7 +1200,7 @@ var moduleImportProjectLevelAgentlessWithProjectFilterList = `provider "google" 
 
 module "lacework_gcp_agentless_scanning_global" {
   source              = "lacework/agentless-scanning/gcp"
-  version             = "~> 0.1"
+  version             = "~> 2.0"
   global              = true
   project_filter_list = ["p1", "p2"]
   regional            = true
@@ -1102,7 +1219,7 @@ var moduleImportOrgLevelAgentless = `provider "google" {
 
 module "lacework_gcp_agentless_scanning_global" {
   source           = "lacework/agentless-scanning/gcp"
-  version          = "~> 0.1"
+  version          = "~> 2.0"
   global           = true
   integration_type = "ORGANIZATION"
   organization_id  = "123456789"

@@ -28,9 +28,9 @@ const (
 	LWAzureADVersion                 = "~> 1.0"
 
 	GcpAgentlessSource       = "lacework/agentless-scanning/gcp"
-	GcpAgentlessVersion      = "~> 0.1"
+	GcpAgentlessVersion      = "~> 2.0"
 	GcpConfigSource          = "lacework/config/gcp"
-	GcpConfigVersion         = "~> 2.3"
+	GcpConfigVersion         = "~> 3.0"
 	GcpAuditLogSource        = "lacework/audit-log/gcp"
 	GcpAuditLogVersion       = "~> 3.4"
 	GcpGKEAuditLogSource     = "lacework/gke-audit-log/gcp"
