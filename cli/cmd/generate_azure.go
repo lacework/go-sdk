@@ -567,7 +567,6 @@ func promptAzureStorageAccountQuestions(config *azure.GenerateAzureTfConfigurati
 	return nil
 }
 
-// Similar to the above, prompt for event hub questions starting by asking for existing event hub namespace, if answer is no, then ask for event hub location. If answer is yes, then ask for namespace name.
 func promptAzureEntraIdActivityLogQuestions(config *azure.GenerateAzureTfConfigurationArgs) error {
 
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{

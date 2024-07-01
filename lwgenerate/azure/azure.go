@@ -26,7 +26,8 @@ type GenerateAzureTfConfigurationArgs struct {
 	// If ActivityLog is true, give the user the opportunity to name their integration. Defaults to "TF activity log"
 	ActivityLogIntegrationName string
 
-	// if EntraIdIntegration is true, give the user the opportunity to name their integration. Defaults to "TF activity log"
+	// If EntraIdIntegration is true, give the user the opportunity to name their integration.
+	// Defaults to "TF Entra ID activity log"
 	EntraIdIntegrationName string
 
 	// Active Directory application Id
@@ -122,7 +123,8 @@ type AzureTerraformModifier func(c *GenerateAzureTfConfigurationArgs)
 //
 // Note: Additional configuration details may be set using modifiers of the AzureTerraformModifier type
 func NewTerraform(
-	enableConfig bool, enableActivityLog bool, enableEntraIdActivityLog, createAdIntegration bool, mods ...AzureTerraformModifier,
+	enableConfig bool, enableActivityLog bool, enableEntraIdActivityLog, createAdIntegration bool,
+	mods ...AzureTerraformModifier,
 ) *GenerateAzureTfConfigurationArgs {
 	config := &GenerateAzureTfConfigurationArgs{
 		ActivityLog:         enableActivityLog,
@@ -188,7 +190,8 @@ func WithActivityLogIntegrationName(name string) AzureTerraformModifier {
 	}
 }
 
-// WithEntraIdActivityLogIntegrationName Set the Entra ID Activity Log Integration name to be displayed on the Lacework UI
+// WithEntraIdActivityLogIntegrationName Set the Entra ID Activity Log Integration name
+// to be displayed on the Lacework UI
 func WithEntraIdActivityLogIntegrationName(name string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.EntraIdIntegrationName = name
