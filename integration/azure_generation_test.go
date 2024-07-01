@@ -67,6 +67,7 @@ func TestGenerationAzureSimple(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -83,7 +84,7 @@ func TestGenerationAzureSimple(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, true, true).Generate()
+	buildTf, _ := azure.NewTerraform(true, true, false, true).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -108,6 +109,7 @@ func TestGenerationAzureCustomizedOutputLocation(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 				MsgMenu{cmd.AzureAdvancedOptDone, 5},
@@ -129,7 +131,7 @@ func TestGenerationAzureCustomizedOutputLocation(t *testing.T) {
 	result, _ := os.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, true, true).Generate()
+	buildTf, _ := azure.NewTerraform(true, true, false, true).Generate()
 	assert.Equal(t, buildTf, string(result))
 }
 
@@ -147,6 +149,7 @@ func TestGenerationAzureConfigOnly(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -163,7 +166,7 @@ func TestGenerationAzureConfigOnly(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, false, true).Generate()
+	buildTf, _ := azure.NewTerraform(true, false, false, true).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -181,6 +184,7 @@ func TestGenerationAzureActivityLogOnly(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -197,7 +201,7 @@ func TestGenerationAzureActivityLogOnly(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(false, true, true).Generate()
+	buildTf, _ := azure.NewTerraform(false, true, false, true).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -218,6 +222,7 @@ func TestGenerationAzureNoADEnabled(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "n"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 				MsgMenu{cmd.AzureAdvancedOptLocation, 2},
@@ -239,7 +244,7 @@ func TestGenerationAzureNoADEnabled(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, true, false,
+	buildTf, _ := azure.NewTerraform(true, true, false, false,
 		azure.WithAdApplicationPassword(pass),
 		azure.WithAdServicePrincipalId(principalId),
 		azure.WithAdApplicationId(applicationId),
@@ -263,6 +268,7 @@ func _TestGenerationAzureNamedConfig(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
@@ -285,7 +291,7 @@ func _TestGenerationAzureNamedConfig(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, false, true,
+	buildTf, _ := azure.NewTerraform(true, false, false, true,
 		azure.WithConfigIntegrationName(configName),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -307,6 +313,7 @@ func _TestGenerationAzureNamedActivityLog(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
@@ -329,7 +336,7 @@ func _TestGenerationAzureNamedActivityLog(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(false, true, true,
+	buildTf, _ := azure.NewTerraform(false, true, false, true,
 		azure.WithActivityLogIntegrationName(activityName)).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
@@ -348,6 +355,7 @@ func TestGenerationAzureAdvancedOptsDone(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
@@ -366,7 +374,7 @@ func TestGenerationAzureAdvancedOptsDone(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, true, true).Generate()
+	buildTf, _ := azure.NewTerraform(true, true, false, true).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -396,6 +404,7 @@ func TestGenerationAzureWithExistingTerraform(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 				MsgMenu{cmd.AzureAdvancedOptDone, 5},
@@ -435,6 +444,7 @@ func TestGenerationAzureConfigAllSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 				MsgMenu{cmd.AzureAdvancedOptDone, 1},
@@ -455,7 +465,7 @@ func TestGenerationAzureConfigAllSubs(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, false, true,
+	buildTf, _ := azure.NewTerraform(true, false, false, true,
 		azure.WithAllSubscriptions(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -476,6 +486,7 @@ func TestGenerationAzureConfigMgmntGroup(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
@@ -498,7 +509,7 @@ func TestGenerationAzureConfigMgmntGroup(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, false, true,
+	buildTf, _ := azure.NewTerraform(true, false, false, true,
 		azure.WithManagementGroup(true),
 		azure.WithManagementGroupId(mgmtGrpId),
 	).Generate()
@@ -520,6 +531,7 @@ func TestGenerationAzureConfigSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
@@ -543,7 +555,7 @@ func TestGenerationAzureConfigSubs(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, false, true,
+	buildTf, _ := azure.NewTerraform(true, false, false, true,
 		azure.WithSubscriptionIds(testIds),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -564,6 +576,7 @@ func TestGenerationAzureActivityLogSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
@@ -587,7 +600,7 @@ func TestGenerationAzureActivityLogSubs(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(false, true, true,
+	buildTf, _ := azure.NewTerraform(false, true, false, true,
 		azure.WithSubscriptionIds(testIds),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -609,6 +622,7 @@ func TestGenerationAzureActivityLogStorageAccount(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
@@ -634,7 +648,7 @@ func TestGenerationAzureActivityLogStorageAccount(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(false, true, true,
+	buildTf, _ := azure.NewTerraform(false, true, false, true,
 		azure.WithExistingStorageAccount(true),
 		azure.WithStorageAccountName(storageAccountName),
 		azure.WithStorageAccountResourceGroup(storageResourceGrp),
@@ -656,6 +670,7 @@ func TestGenerationAzureActivityLogAllSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
@@ -678,7 +693,7 @@ func TestGenerationAzureActivityLogAllSubs(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(false, true, true,
+	buildTf, _ := azure.NewTerraform(false, true, false, true,
 		azure.WithAllSubscriptions(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -699,6 +714,7 @@ func TestGenerationAzureActivityLogLocation(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
@@ -721,7 +737,7 @@ func TestGenerationAzureActivityLogLocation(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(false, true, true,
+	buildTf, _ := azure.NewTerraform(false, true, false, true,
 		azure.WithStorageLocation(region),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -745,6 +761,7 @@ func TestGenerationAzureOverwrite(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -764,6 +781,7 @@ func TestGenerationAzureOverwrite(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{"already exists, overwrite?", "n"},
@@ -800,6 +818,7 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -821,6 +840,7 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{"already exists, overwrite?", "n"},
@@ -851,6 +871,7 @@ func TestGenerationAzureLaceworkProfile(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -867,7 +888,7 @@ func TestGenerationAzureLaceworkProfile(t *testing.T) {
 	assert.Nil(t, runError)
 	assert.Contains(t, final, "Terraform code saved in")
 
-	buildTf, _ := azure.NewTerraform(true, true, true,
+	buildTf, _ := azure.NewTerraform(true, true, false, true,
 		azure.WithLaceworkProfile(azProfile),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -887,6 +908,7 @@ func TestGenerationAzureWithSubscriptionID(t *testing.T) {
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
@@ -904,7 +926,7 @@ func TestGenerationAzureWithSubscriptionID(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, true, true, azure.WithSubscriptionID(mockSubscriptionID)).Generate()
+	buildTf, _ := azure.NewTerraform(true, true, false, true, azure.WithSubscriptionID(mockSubscriptionID)).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
