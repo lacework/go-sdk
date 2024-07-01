@@ -581,7 +581,8 @@ func promptAzureEntraIdActivityLogQuestions(config *azure.GenerateAzureTfConfigu
 
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Input{Message: QuestionEventHubPartitionCount, Default: strconv.Itoa(config.EventHubPartitionCount)},
+			Prompt: &survey.Input{Message: QuestionEventHubPartitionCount,
+				Default: strconv.Itoa(config.EventHubPartitionCount)},
 			Response: &config.EventHubPartitionCount,
 		},
 	}); err != nil {
