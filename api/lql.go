@@ -29,9 +29,8 @@ import (
 )
 
 type NewQuery struct {
-	QueryID       string  `json:"queryId" yaml:"queryId"`
-	QueryLanguage *string `json:"queryLanguage,omitempty" yaml:"queryLanguage,omitempty"`
-	QueryText     string  `json:"queryText" yaml:"queryText"`
+	QueryID   string `json:"queryId" yaml:"queryId"`
+	QueryText string `json:"queryText" yaml:"queryText"`
 }
 
 func ParseNewQuery(s string) (NewQuery, error) {
@@ -50,7 +49,6 @@ func ParseNewQuery(s string) (NewQuery, error) {
 	if err == nil && !reflect.DeepEqual(query, NewQuery{}) { // empty string unmarshals w/o error
 		return query, nil
 	}
-
 	// invalid query
 	return query, errors.New("unable to parse query")
 }
@@ -61,7 +59,6 @@ type UpdateQuery struct {
 
 type Query struct {
 	QueryID        string                   `json:"queryId" yaml:"queryId"`
-	QueryLanguage  *string                  `json:"queryLanguage,omitempty" yaml:"queryLanguage,omitempty"`
 	QueryText      string                   `json:"queryText" yaml:"queryText"`
 	Owner          string                   `json:"owner"`
 	LastUpdateTime string                   `json:"lastUpdateTime"`
@@ -133,13 +130,4 @@ func (svc *QueryService) Get(id string) (
 		&response,
 	)
 	return
-}
-
-func (svc *QueryService) RegoQueryEnabled() bool {
-	response, err := svc.client.V2.FeatureFlags.GetFeatureFlagsMatchingPrefix("PUBLIC.lpp_rego_enabled")
-	if err != nil {
-		return false
-	}
-
-	return len(response.Data.Flags) >= 1
 }

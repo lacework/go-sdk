@@ -25,9 +25,8 @@ import (
 	"testing"
 
 	"github.com/aws/smithy-go/ptr"
-	"github.com/stretchr/testify/assert"
-
 	"github.com/lacework/go-sdk/lwseverity"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
@@ -122,38 +121,6 @@ var (
 ]
 }
 `
-
-	regoPolicyId = "rego-policy-1"
-	regoPolicy   = api.NewPolicy{
-		PolicyID:      regoPolicyId,
-		PolicyType:    "Violation",
-		QueryID:       "MyRegoQuery",
-		Title:         "My Rego Policy Title",
-		Enabled:       false,
-		Description:   "My Policy Description",
-		Remediation:   "Check yourself...",
-		Severity:      "high",
-		EvalFrequency: "Hourly",
-		Limit:         1000,
-		AlertEnabled:  false,
-		AlertProfile:  "LW_CloudTrail_Alerts",
-	}
-	regoPolicyCreateData = fmt.Sprintf(`{
-	"policyId": "%s",
-	"policyType": "%s",
-	"queryId": "%s",
-	"title": "%s",
-	"enabled": %v,
-	"description": "%s",
-	"remediation": "%s",
-	"severity": "%s",
-	"evalFrequency": "%s",
-	"limit": %d,
-	"alertEnabled": %v,
-	"alertProfile": "%s"
-}`, regoPolicy.PolicyID, regoPolicy.PolicyType, regoPolicy.QueryID, regoPolicy.Title,
-		regoPolicy.Enabled, regoPolicy.Description, regoPolicy.Remediation, regoPolicy.Severity,
-		regoPolicy.EvalFrequency, regoPolicy.Limit, regoPolicy.AlertEnabled, regoPolicy.AlertProfile)
 )
 
 func mockPolicyDataResponse(data string) string {
@@ -189,7 +156,7 @@ func TestPolicyCreateMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestLqlPolicyCreateOK(t *testing.T) {
+func TestPolicyCreateOK(t *testing.T) {
 	mockResponse := mockPolicyDataResponse(policyCreateData)
 
 	fakeServer := lacework.MockServer()
@@ -256,12 +223,12 @@ func TestPolicyGetMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func testPolicyGetOKHelper(t *testing.T, expectedPolicyData string, testPolicyId string) {
-	mockResponse := mockPolicyDataResponse(expectedPolicyData)
+func TestPolicyGetOK(t *testing.T) {
+	mockResponse := mockPolicyDataResponse(policyCreateData)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
-		fmt.Sprintf("%s/%s", policyURI, testPolicyId),
+		fmt.Sprintf("%s/%s", policyURI, policyID),
 		func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, mockResponse)
 		},
@@ -278,18 +245,10 @@ func testPolicyGetOKHelper(t *testing.T, expectedPolicyData string, testPolicyId
 	_ = json.Unmarshal([]byte(mockResponse), &getExpected)
 
 	var getActual api.PolicyResponse
-	getActual, err = c.V2.Policy.Get(testPolicyId)
+	getActual, err = c.V2.Policy.Get(policyID)
 	assert.Nil(t, err)
 
 	assert.Equal(t, getExpected, getActual)
-}
-
-func TestLQLPolicyGetOK(t *testing.T) {
-	testPolicyGetOKHelper(t, policyCreateData, policyID)
-}
-
-func TestRegoPolicyGetOK(t *testing.T) {
-	testPolicyGetOKHelper(t, regoPolicyCreateData, regoPolicyId)
 }
 
 func TestPolicyGetNotFound(t *testing.T) {

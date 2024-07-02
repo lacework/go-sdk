@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -30,7 +29,6 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
-	"github.com/lacework/go-sdk/internal/pointer"
 )
 
 var (
@@ -48,23 +46,6 @@ var (
 queryId: %s
 queryText: %s`, newQuery.QueryID, newQuery.QueryText)
 	lqlErrorReponse = `{ "message": "This is an error message" }`
-
-	regoQueryID      = "my_rego"
-	newRegoQueryText = "package clitest\n" +
-		"import future.keywords\n" +
-		"import data.lacework\n" +
-		"source := lacework.aws.cfg.list(\"s3\", \"list-buckets\")\n" +
-		"assess := assessment.violation(input, \"just because\")"
-	newRegoQuery = api.NewQuery{
-		QueryID:       regoQueryID,
-		QueryLanguage: pointer.Of("Rego"),
-		QueryText:     newRegoQueryText,
-	}
-	newRegoQueryJSON = fmt.Sprintf(`{
-	"queryId": "%s",
-	"queryLanguage": "Rego",
-	"queryText": %#v
-}`, queryID, newRegoQueryText)
 )
 
 func mockQueryDataResponse(data string) string {
@@ -148,8 +129,8 @@ func TestQueryCreateMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func createQueryOKTestHelper(t *testing.T, expectedResponseData string, testQuery api.NewQuery) {
-	mockResponse := mockQueryDataResponse(expectedResponseData)
+func TestQueryCreateOK(t *testing.T) {
+	mockResponse := mockQueryDataResponse(newQueryJSON)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
@@ -170,26 +151,10 @@ func createQueryOKTestHelper(t *testing.T, expectedResponseData string, testQuer
 	_ = json.Unmarshal([]byte(mockResponse), &createExpected)
 
 	var createActual api.QueryResponse
-	createActual, err = c.V2.Query.Create(testQuery)
+	createActual, err = c.V2.Query.Create(newQuery)
 	assert.Nil(t, err)
 
 	assert.Equal(t, createExpected, createActual)
-
-	if strings.Contains(expectedResponseData, "queryLanguage") {
-		assert.Equal(t, "Rego", *createActual.Data.QueryLanguage)
-	} else {
-		assert.Nil(t, createActual.Data.QueryLanguage)
-	}
-}
-
-func TestLQLQueryCreateOK(t *testing.T) {
-	// queryLanguage is not available
-	createQueryOKTestHelper(t, newQueryJSON, newQuery)
-}
-
-func TestRegoQueryCreateOK(t *testing.T) {
-	// queryLanguage is available
-	createQueryOKTestHelper(t, newRegoQueryJSON, newRegoQuery)
 }
 
 func TestQueryCreateError(t *testing.T) {
@@ -233,8 +198,8 @@ func TestQueryListMethod(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func getQueryByIDTestHelper(t *testing.T, expectedResponseData string, queryId string) {
-	mockResponse := mockQueryDataResponse(expectedResponseData)
+func TestQueryGetQueryByIDOK(t *testing.T) {
+	mockResponse := mockQueryDataResponse(newQueryJSON)
 
 	fakeServer := lacework.MockServer()
 	fakeServer.MockAPI(
@@ -260,22 +225,6 @@ func getQueryByIDTestHelper(t *testing.T, expectedResponseData string, queryId s
 	assert.Nil(t, err)
 
 	assert.Equal(t, getExpected, getActual)
-
-	if strings.Contains(expectedResponseData, "queryLanguage") {
-		assert.Equal(t, "Rego", *getActual.Data.QueryLanguage)
-	} else {
-		assert.Nil(t, getActual.Data.QueryLanguage)
-	}
-}
-
-func TestLQLQueryGetQueryByIDOK(t *testing.T) {
-	// queryLanguage is not available
-	getQueryByIDTestHelper(t, newQueryJSON, queryID)
-}
-
-func TestRegoQueryGetQueryByIDOK(t *testing.T) {
-	// queryLanguage is available
-	getQueryByIDTestHelper(t, newRegoQueryJSON, regoQueryID)
 }
 
 func TestQueryGetNotFound(t *testing.T) {
