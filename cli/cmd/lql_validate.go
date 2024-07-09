@@ -89,8 +89,7 @@ func validateQuery(cmd *cobra.Command, args []string) error {
 
 func validateQueryAndOutput(nq api.NewQuery) error {
 	vq := api.ValidateQuery{
-		QueryText:     nq.QueryText,
-		QueryLanguage: nq.QueryLanguage,
+		QueryText: nq.QueryText,
 	}
 
 	cli.StartProgress(" Validating query...")

@@ -28,7 +28,6 @@ import (
 
 	"github.com/lacework/go-sdk/api"
 	"github.com/lacework/go-sdk/internal/lacework"
-	"github.com/lacework/go-sdk/internal/pointer"
 )
 
 var (
@@ -87,14 +86,6 @@ func testQueryValidateOKHelper(t *testing.T, expectedResponseData string, testQu
 
 func TestLQLQueryValidateOK(t *testing.T) {
 	testQueryValidateOKHelper(t, newQueryJSON, validateQuery)
-}
-
-func TestRegoQueryValidateOK(t *testing.T) {
-	validateRegoQuery := api.ValidateQuery{
-		QueryText:     newRegoQueryText,
-		QueryLanguage: pointer.Of("Rego"),
-	}
-	testQueryValidateOKHelper(t, newRegoQueryJSON, validateRegoQuery)
 }
 
 func TestQueryValidateError(t *testing.T) {

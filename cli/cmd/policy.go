@@ -29,14 +29,13 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/internal/pointer"
+	"github.com/lacework/go-sdk/lwseverity"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
-
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/pointer"
-	"github.com/lacework/go-sdk/lwseverity"
 )
 
 var (
@@ -533,7 +532,6 @@ func showPolicy(_ *cobra.Command, args []string) error {
 			PolicyID:      policyResponse.Data.PolicyID,
 			PolicyType:    policyResponse.Data.PolicyType,
 			QueryID:       policyResponse.Data.QueryID,
-			QueryLanguage: policyResponse.Data.QueryLanguage,
 			Title:         policyResponse.Data.Title,
 			Enabled:       policyResponse.Data.Enabled,
 			Description:   policyResponse.Data.Description,
@@ -592,17 +590,6 @@ func showPolicy(_ *cobra.Command, args []string) error {
 			)
 		}
 		// we know we are in human-readable format
-		if queryResponse.Data.QueryLanguage != nil {
-			cli.OutputHuman(renderOneLineCustomTable("QUERY LANGUAGE",
-				*queryResponse.Data.QueryLanguage,
-				tableFunc(func(t *tablewriter.Table) {
-					t.SetAlignment(tablewriter.ALIGN_LEFT)
-					t.SetColWidth(120)
-					t.SetBorder(false)
-					t.SetAutoWrapText(false)
-				}),
-			))
-		}
 		cli.OutputHuman(renderOneLineCustomTable("QUERY TEXT",
 			queryResponse.Data.QueryText,
 			tableFunc(func(t *tablewriter.Table) {
