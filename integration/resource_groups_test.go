@@ -20,6 +20,7 @@ package integration
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/lacework/go-sdk/api"
@@ -173,7 +174,7 @@ func TestResourceGroupDelete(t *testing.T) {
 			t.Run(i.String(), func(t *testing.T) {
 				// setup resource group
 				resourceGroupID, err := createResourceGroup(i.String())
-				if err != nil {
+				if err != nil && !strings.Contains(err.Error(), "already exists in the account") {
 					assert.FailNow(t, err.Error(), fmt.Sprintf("Manually delete resourceGroup CLI_TestCreateResourceGroup_%s", i.String()))
 				}
 
