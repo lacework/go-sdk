@@ -720,6 +720,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Agentless(t *testing.T) {
 			"TestGenerationProjectLevelAgentless",
 			gcp.NewTerraform(true, false, false, false,
 				gcp.WithProjectId(projectName),
+				gcp.WithAgentlessOrganizationId("123456789"),
 				gcp.WithRegions([]string{"us-east1"}),
 			),
 			fmt.Sprintf("%s\n%s", RequiredProviders, moduleImportProjectLevelAgentless),
@@ -729,6 +730,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Agentless(t *testing.T) {
 			gcp.NewTerraform(true, false, false, false,
 				gcp.WithProjectId(projectName),
 				gcp.WithRegions([]string{"us-east1"}),
+				gcp.WithAgentlessOrganizationId("123456789"),
 				gcp.WithProjectFilterList([]string{"p1", "p2"}),
 			),
 			fmt.Sprintf("%s\n%s", RequiredProviders, moduleImportProjectLevelAgentlessWithProjectFilterList),
@@ -1181,10 +1183,11 @@ var moduleImportProjectLevelAgentless = `provider "google" {
 }
 
 module "lacework_gcp_agentless_scanning_global" {
-  source   = "lacework/agentless-scanning/gcp"
-  version  = "~> 2.0"
-  global   = true
-  regional = true
+  source          = "lacework/agentless-scanning/gcp"
+  version         = "~> 2.0"
+  global          = true
+  organization_id = "123456789"
+  regional        = true
 
   providers = {
     google = google.us-east1
@@ -1202,6 +1205,7 @@ module "lacework_gcp_agentless_scanning_global" {
   source              = "lacework/agentless-scanning/gcp"
   version             = "~> 2.0"
   global              = true
+  organization_id     = "123456789"
   project_filter_list = ["p1", "p2"]
   regional            = true
 
