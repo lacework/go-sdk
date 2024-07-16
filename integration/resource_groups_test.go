@@ -22,12 +22,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/lacework/go-sdk/api"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
-func createResourceGroup(typ string) (string, error) {
+func createResourceGroup(typ string, uid string) (string, error) {
 	iType, _ := api.FindResourceGroupType(typ)
 
 	var testQuery api.RGQuery
@@ -37,7 +39,7 @@ func createResourceGroup(typ string) (string, error) {
 	}
 
 	var testResourceGroup api.ResourceGroupDataWithQuery = api.ResourceGroupDataWithQuery{
-		Name:        fmt.Sprintf("CLI_TestCreateResourceGroup_%s", iType.String()),
+		Name:        fmt.Sprintf("CLI_TestCreateResourceGroup_%s", iType.String()+"_"+uid),
 		Type:        iType.String(),
 		Query:       &testQuery,
 		Description: "Resource Group Created By CLI Integration Testing",
@@ -172,9 +174,10 @@ func TestResourceGroupDelete(t *testing.T) {
 			// skip lw_account
 			t.Run(i.String(), func(t *testing.T) {
 				// setup resource group
-				resourceGroupID, err := createResourceGroup(i.String())
+				uid := uuid.New().String()[:8]
+				resourceGroupID, err := createResourceGroup(i.String(), uid)
 				if err != nil {
-					assert.FailNow(t, err.Error(), fmt.Sprintf("Manually delete resourceGroup CLI_TestCreateResourceGroup_%s", i.String()))
+					assert.FailNow(t, err.Error(), fmt.Sprintf("Manually delete resourceGroup CLI_TestCreateResourceGroup_%s", i.String()+"_"+uid))
 				}
 
 				// delete resource group
