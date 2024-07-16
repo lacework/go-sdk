@@ -45,6 +45,17 @@ func TestGenerateGcpTfConfigurationArgs_Generate_AuditLog(t *testing.T) {
 			ReqProvider(projectName, moduleImportProjectLevelPubSubAuditLogWithoutConfiguration),
 		},
 		{
+			"TestGenerationProjectLevelPubSubAuditLogWithoutConfigWithOrgId",
+			gcp.NewTerraform(
+				false,
+				false,
+				true,
+				true,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName), gcp.WithOrganizationId("123456789")),
+			ReqProvider(projectName, moduleImportProjectLevelPubSubAuditLogWithoutConfiguration),
+		},
+		{
 			"TestGenerationProjectLevelAuditLogWithoutCredentialsAndProject",
 			gcp.NewTerraform(false, false, true, false),
 			fmt.Sprintf("%s\n%s\n%s", RequiredProviders, gcpProviderWithoutCredentialsAndProject, moduleImportProjectLevelAuditLogWithoutConfiguration),
@@ -514,6 +525,16 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Configuration(t *testing.T) {
 			ReqProvider(projectName, moduleImportProjectLevelConfigurationExistingSA),
 		},
 		{
+			"TestGenerationProjectLevelConfigurationExistingSAWithOrgId",
+			gcp.NewTerraform(false, true, false, false,
+				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
+				gcp.WithProjectId(projectName),
+				gcp.WithOrganizationId("123456789"),
+				gcp.WithExistingServiceAccount(gcp.NewExistingServiceAccountDetails("foo", "123456789")),
+			),
+			ReqProvider(projectName, moduleImportProjectLevelConfigurationExistingSA),
+		},
+		{
 			"TestGenerationProjectLevelConfigurationCustomIntegrationName",
 			gcp.NewTerraform(false, true, false, false,
 				gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
@@ -720,7 +741,7 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Agentless(t *testing.T) {
 			"TestGenerationProjectLevelAgentless",
 			gcp.NewTerraform(true, false, false, false,
 				gcp.WithProjectId(projectName),
-				gcp.WithAgentlessOrganizationId("123456789"),
+				gcp.WithOrganizationId("123456789"),
 				gcp.WithRegions([]string{"us-east1"}),
 			),
 			fmt.Sprintf("%s\n%s", RequiredProviders, moduleImportProjectLevelAgentless),
@@ -730,7 +751,6 @@ func TestGenerateGcpTfConfigurationArgs_Generate_Agentless(t *testing.T) {
 			gcp.NewTerraform(true, false, false, false,
 				gcp.WithProjectId(projectName),
 				gcp.WithRegions([]string{"us-east1"}),
-				gcp.WithAgentlessOrganizationId("123456789"),
 				gcp.WithProjectFilterList([]string{"p1", "p2"}),
 			),
 			fmt.Sprintf("%s\n%s", RequiredProviders, moduleImportProjectLevelAgentlessWithProjectFilterList),
@@ -769,16 +789,6 @@ func TestGenerationOrganizationLevelAuditLogNoOrgId(t *testing.T) {
 	).Generate()
 	assert.Empty(t, hcl)
 	assert.EqualError(t, err, "invalid inputs: an Organization ID must be provided for an Organization Integration")
-}
-
-func TestGenerationOrganizationLevelAuditLogNoOrgIntegrationFlag(t *testing.T) {
-	hcl, err := gcp.NewTerraform(false, false, true, false,
-		gcp.WithGcpServiceAccountCredentials("/path/to/credentials"),
-		gcp.WithProjectId(projectName),
-		gcp.WithOrganizationId("123456789"),
-	).Generate()
-	assert.Empty(t, hcl)
-	assert.EqualError(t, err, "invalid inputs: to provide an Organization ID, Organization Integration must be true")
 }
 
 func TestGenerationNoIntegration(t *testing.T) {
@@ -1205,7 +1215,6 @@ module "lacework_gcp_agentless_scanning_global" {
   source              = "lacework/agentless-scanning/gcp"
   version             = "~> 2.0"
   global              = true
-  organization_id     = "123456789"
   project_filter_list = ["p1", "p2"]
   regional            = true
 

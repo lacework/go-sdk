@@ -141,10 +141,6 @@ type GenerateGcpTfConfigurationArgs struct {
 
 	Projects []string
 
-	// GCP organization id for agentless integration. Agentless integration requires an organization id
-	// even for project level integration
-	AgentlessOrganizationId string
-
 	// Default GCP Provider labels
 	ProviderDefaultLabels map[string]interface{}
 
@@ -175,11 +171,6 @@ func (args *GenerateGcpTfConfigurationArgs) validate() error {
 	// Validate if this is an organization integration, verify that the organization id has been provided
 	if args.OrganizationIntegration && args.GcpOrganizationId == "" {
 		return errors.New("an Organization ID must be provided for an Organization Integration")
-	}
-
-	// Validate if an organization id has been provided that this is and organization integration
-	if !args.OrganizationIntegration && args.GcpOrganizationId != "" {
-		return errors.New("to provide an Organization ID, Organization Integration must be true")
 	}
 
 	// Validate existing Service Account values, if set
@@ -232,13 +223,6 @@ func NewTerraform(
 func WithUsePubSubAudit(usePubSub bool) GcpTerraformModifier {
 	return func(c *GenerateGcpTfConfigurationArgs) {
 		c.UsePubSubAudit = usePubSub
-	}
-}
-
-// WithAgentlessOrganizationId Set the agentless organization id for GCP provider
-func WithAgentlessOrganizationId(organizationId string) GcpTerraformModifier {
-	return func(c *GenerateGcpTfConfigurationArgs) {
-		c.AgentlessOrganizationId = organizationId
 	}
 }
 
@@ -642,9 +626,9 @@ func createAgentless(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, e
 			}
 			if args.OrganizationIntegration {
 				attributes["integration_type"] = "ORGANIZATION"
+			}
+			if len(args.GcpOrganizationId) > 0 {
 				attributes["organization_id"] = args.GcpOrganizationId
-			} else if len(args.AgentlessOrganizationId) > 0 {
-				attributes["organization_id"] = args.AgentlessOrganizationId
 			}
 		}
 		if i > 0 {
