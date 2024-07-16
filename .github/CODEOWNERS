@@ -1,2 +1,4 @@
 # Global rule:
-*           @lacework/growth-team
+# updating our fork to point to our team
+#*           @lacework/growth-team
+*           @circleci/seceng
