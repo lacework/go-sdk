@@ -1,6 +1,6 @@
 module github.com/circleci/fork-lacework-go-sdk
 
-go 1.21
+go 1.22.5
 
 require (
 	aead.dev/minisign v0.2.0
