@@ -42,20 +42,20 @@ func TestMissingValidEntity(t *testing.T) {
 }
 
 func TestValidStorageLocations(t *testing.T) {
-	err := validateStorageLocation("East US")
+	err := validateAzureLocation("East US")
 	assert.Nil(t, err)
-	err = validateStorageLocation("Brazil Southeast")
+	err = validateAzureLocation("Brazil Southeast")
 	assert.Nil(t, err)
 
 }
 
 func TestInvalidStorageLocations(t *testing.T) {
-	err := validateStorageLocation("Mars")
+	err := validateAzureLocation("Mars")
 	assert.Error(t, err)
-	assert.Equal(t, "invalid storage location supplied", err.Error())
-	err = validateStorageLocation("Jupiter")
+	assert.Equal(t, "invalid Azure region prvovided", err.Error())
+	err = validateAzureLocation("Jupiter")
 	assert.Error(t, err)
-	assert.Equal(t, "invalid storage location supplied", err.Error())
+	assert.Equal(t, "invalid Azure region prvovided", err.Error())
 }
 
 func TestAzureGenerationCache(t *testing.T) {
