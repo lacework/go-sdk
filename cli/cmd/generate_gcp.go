@@ -315,7 +315,7 @@ func initGenerateGcpTfCommandFlags() {
 		&GenerateGcpCommandState.GcpOrganizationId,
 		"organization_id",
 		"",
-		"specify the organization id (only set if organization_integration is set)")
+		"specify the organization id (only set if agentless integration or organization_integration is set)")
 	generateGcpTfCommand.PersistentFlags().StringVar(
 		&GenerateGcpCommandState.GcpProjectId,
 		"project_id",
@@ -736,9 +736,17 @@ func promptGcpGenerate(
 				Prompt:   &survey.Confirm{Message: QuestionGcpOrganizationIntegration, Default: config.OrganizationIntegration},
 				Response: &config.OrganizationIntegration,
 			},
+		}); err != nil {
+		return err
+	}
+
+	organizationIdRequired := config.Agentless || config.OrganizationIntegration
+
+	if err := SurveyMultipleQuestionWithValidation(
+		[]SurveyQuestionWithValidationArgs{
 			{
 				Prompt:   &survey.Input{Message: QuestionGcpOrganizationID, Default: config.GcpOrganizationId},
-				Checks:   []*bool{&config.OrganizationIntegration},
+				Checks:   []*bool{&organizationIdRequired},
 				Required: true,
 				Response: &config.GcpOrganizationId,
 			},

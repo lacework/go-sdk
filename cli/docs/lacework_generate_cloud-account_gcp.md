@@ -58,7 +58,7 @@ lacework generate cloud-account gcp [flags]
   -h, --help                                          help for gcp
       --include_root_projects                         Disables logic that includes root-level projects if excluding folders (default true)
       --k8s_filter                                    filter out GKE logs from GCP Audit Log sinks (default true)
-      --organization_id string                        specify the organization id (only set if organization_integration is set)
+      --organization_id string                        specify the organization id (only set if agentless integration or organization_integration is set)
       --organization_integration                      enable organization integration
       --output string                                 location to write generated content (default is ~/lacework/gcp)
       --prefix string                                 prefix that will be used at the beginning of every generated resource
