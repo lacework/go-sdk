@@ -121,6 +121,48 @@ func TestGenerationGcpAgentless(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+// Test Agentless only generation
+func TestGenerationGcpAgentlessProjectLevel(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+
+	tfResult := runGcpGenerateTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "y"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "n"},
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpRegions, "us-east1"},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpOrganizationID, organizationId},
+				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
+				MsgMenu{cmd.GcpAdvancedOptAgentless, 0},
+				MsgRsp{cmd.QuestionGcpProjectFilterList, "p1,p2"},
+				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"gcp",
+	)
+
+	assertTerraformSaved(t, final)
+
+	buildTf, _ := gcp.NewTerraform(true, false, false, true,
+		gcp.WithProjectId(projectId),
+		gcp.WithOrganizationIntegration(false),
+		gcp.WithOrganizationId(organizationId),
+		gcp.WithRegions([]string{"us-east1"}),
+		gcp.WithProjectFilterList([]string{"p1", "p2"}),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
 // Test configuration only generation
 func TestGenerationGcpConfig(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")

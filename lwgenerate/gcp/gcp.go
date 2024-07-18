@@ -173,11 +173,6 @@ func (args *GenerateGcpTfConfigurationArgs) validate() error {
 		return errors.New("an Organization ID must be provided for an Organization Integration")
 	}
 
-	// Validate if an organization id has been provided that this is and organization integration
-	if !args.OrganizationIntegration && args.GcpOrganizationId != "" {
-		return errors.New("to provide an Organization ID, Organization Integration must be true")
-	}
-
 	// Validate existing Service Account values, if set
 	if args.ExistingServiceAccount != nil {
 		if args.ExistingServiceAccount.Name == "" ||
@@ -631,6 +626,8 @@ func createAgentless(args *GenerateGcpTfConfigurationArgs) ([]*hclwrite.Block, e
 			}
 			if args.OrganizationIntegration {
 				attributes["integration_type"] = "ORGANIZATION"
+			}
+			if len(args.GcpOrganizationId) > 0 {
 				attributes["organization_id"] = args.GcpOrganizationId
 			}
 		}
