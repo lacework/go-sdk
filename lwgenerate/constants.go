@@ -22,8 +22,8 @@ const (
 	LWAzureConfigVersion             = "~> 2.0"
 	LWAzureActivityLogSource         = "lacework/activity-log/azure"
 	LWAzureActivityLogVersion        = "~> 2.0"
-	LWAzureEntraIdActivityLogSource  = "lacework/entra-id-activity-log/azure"
-	LWAzureEntraIdActivityLogVersion = "~> 1.0"
+	LWAzureEntraIdActivityLogSource  = "lacework/microsoft-entra-id-activity-log/azure"
+	LWAzureEntraIdActivityLogVersion = "~> 0.2"
 	LWAzureADSource                  = "lacework/ad-application/azure"
 	LWAzureADVersion                 = "~> 1.0"
 
