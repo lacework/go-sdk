@@ -34,7 +34,7 @@ lacework generate cloud-account azure [flags]
 ### Options
 
 ```
-      --activity_log                                    enable active log integration
+      --activity_log                                    enable activity log integration
       --activity_log_integration_name string            specify a custom activity log integration name
       --ad_create                                       create new active directory integration (default true)
       --ad_id string                                    existing active directory application id
@@ -47,7 +47,7 @@ lacework generate cloud-account azure [flags]
       --entra_id_activity_log                           enable Entra ID activity log integration
       --entra_id_activity_log_integration_name string   specify a custom Entra ID activity log integration name
       --event_hub_location string                       specify the location where the Event Hub for logging will reside  
-      --event_hub_partition_count                       specify the number of partitions for the Event Hub
+      --event_hub_partition_count int                   specify the number of partitions for the Event Hub
       --existing_storage                                use existing storage account
   -h, --help                                            help for azure
       --location string                                 specify azure region where storage account logging resides
