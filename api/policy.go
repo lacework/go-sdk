@@ -25,10 +25,9 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/lacework/go-sdk/internal/array"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
-
-	"github.com/lacework/go-sdk/internal/array"
 )
 
 // PolicyService is a service that interacts with the Custom Policies
@@ -177,7 +176,6 @@ type Policy struct {
 	PolicyID               string             `json:"policyId" yaml:"policyId"`
 	PolicyType             string             `json:"policyType" yaml:"-"`
 	QueryID                string             `json:"queryId" yaml:"queryId"`
-	QueryLanguage          *string            `json:"queryLanguage,omitempty" yaml:"queryLanguage,omitempty"`
 	Title                  string             `json:"title" yaml:"title"`
 	Enabled                bool               `json:"enabled" yaml:"enabled"`
 	Description            string             `json:"description" yaml:"description"`

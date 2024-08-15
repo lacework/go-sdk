@@ -71,9 +71,8 @@ func showQuery(_ *cobra.Command, args []string) error {
 
 	if cli.YAMLOutput() {
 		return cli.OutputYAML(&api.NewQuery{
-			QueryID:       queryResponse.Data.QueryID,
-			QueryLanguage: queryResponse.Data.QueryLanguage,
-			QueryText:     queryResponse.Data.QueryText,
+			QueryID:   queryResponse.Data.QueryID,
+			QueryText: queryResponse.Data.QueryText,
 		})
 	}
 

@@ -41,14 +41,9 @@ lacework generate cloud-account gcp [flags]
       --apply                                         run terraform apply without executing plan or prompting
       --audit_log                                     enable audit log integration
       --audit_log_integration_name string             specify a custom audit log integration name
-      --bucket_lifecycle_rule_age int                 specify the lifecycle rule age (default -1)
-      --bucket_region string                          specify bucket region
       --configuration                                 enable configuration integration
       --configuration_integration_name string         specify a custom configuration integration name
-      --custom_bucket_name string                     override prefix based storage bucket name generation with a custom name
       --custom_filter string                          Audit Log filter which supersedes all other filter options when defined
-      --enable_ubla                                   enable universal bucket level access(ubla) (default true)
-      --existing_bucket_name string                   specify existing bucket name
       --existing_service_account_name string          specify existing service account name
       --existing_service_account_private_key string   specify existing service account private key (base64 encoded)
       --existing_sink_name string                     specify existing sink name
@@ -58,7 +53,7 @@ lacework generate cloud-account gcp [flags]
   -h, --help                                          help for gcp
       --include_root_projects                         Disables logic that includes root-level projects if excluding folders (default true)
       --k8s_filter                                    filter out GKE logs from GCP Audit Log sinks (default true)
-      --organization_id string                        specify the organization id (only set if organization_integration is set)
+      --organization_id string                        specify the organization id (only set if agentless integration or organization_integration is set)
       --organization_integration                      enable organization integration
       --output string                                 location to write generated content (default is ~/lacework/gcp)
       --prefix string                                 prefix that will be used at the beginning of every generated resource
@@ -67,7 +62,7 @@ lacework generate cloud-account gcp [flags]
       --projects strings                              list of project IDs to integrate with (project-level integrations)
       --regions strings                               List of GCP regions to deploy for Agentless integration
       --service_account_credentials string            specify service account credentials JSON file path (leave blank to make use of google credential ENV vars)
-      --use_pub_sub                                   use pub/sub for the audit log data rather than bucket
+      --use_pub_sub                                   deprecated: pub/sub audit log integration is always used and only supported type (default true)
       --wait_time string                              amount of time to wait before the next resource is provisioned
 ```
 
