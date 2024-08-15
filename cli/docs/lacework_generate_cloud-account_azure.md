@@ -46,7 +46,7 @@ lacework generate cloud-account azure [flags]
       --configuration_name string                       specify a custom configuration integration name
       --entra_id_activity_log                           enable Entra ID activity log integration
       --entra_id_activity_log_integration_name string   specify a custom Entra ID activity log integration name
-      --event_hub_location string                       specify the location where the Event Hub for logging will reside  
+      --event_hub_location string                       specify the location where the Event Hub for logging will reside
       --event_hub_partition_count int                   specify the number of partitions for the Event Hub (default 1)
       --existing_storage                                use existing storage account
   -h, --help                                            help for azure
