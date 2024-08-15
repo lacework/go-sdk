@@ -34,26 +34,30 @@ lacework generate cloud-account azure [flags]
 ### Options
 
 ```
-      --activity_log                           enable active log integration
-      --activity_log_integration_name string   specify a custom activity log integration name
-      --ad_create                              create new active directory integration (default true)
-      --ad_id string                           existing active directory application id
-      --ad_pass string                         existing active directory application password
-      --ad_pid string                          existing active directory application service principle id
-      --all_subscriptions subscription ids     grant read access to ALL subscriptions within Tenant (overrides subscription ids)
-      --apply                                  run terraform apply for the generated hcl
-      --configuration                          enable configuration integration
-      --configuration_name string              specify a custom configuration integration name
-      --existing_storage                       use existing storage account
-  -h, --help                                   help for azure
-      --location string                        specify azure region where storage account logging resides
-      --management_group                       management group level integration
-      --management_group_id string             specify management group id. Required if mgmt_group provided
-      --output string                          location to write generated content (default is ~/lacework/azure)
-      --storage_account_name string            specify storage account name
-      --storage_resource_group string          specify storage resource group
-      --subscription_id string                 specify the Azure Subscription ID to be used to provision Lacework resources
-      --subscription_ids strings               list of subscriptions to grant read access; format is id1,id2,id3
+      --activity_log                                    enable activity log integration
+      --activity_log_integration_name string            specify a custom activity log integration name
+      --ad_create                                       create new active directory integration (default true)
+      --ad_id string                                    existing active directory application id
+      --ad_pass string                                  existing active directory application password
+      --ad_pid string                                   existing active directory application service principle id
+      --all_subscriptions subscription ids              grant read access to ALL subscriptions within Tenant (overrides subscription ids)
+      --apply                                           run terraform apply for the generated hcl
+      --configuration                                   enable configuration integration
+      --configuration_name string                       specify a custom configuration integration name
+      --entra_id_activity_log                           enable Entra ID activity log integration
+      --entra_id_activity_log_integration_name string   specify a custom Entra ID activity log integration name
+      --event_hub_location string                       specify the location where the Event Hub for logging will reside
+      --event_hub_partition_count int                   specify the number of partitions for the Event Hub (default 1)
+      --existing_storage                                use existing storage account
+  -h, --help                                            help for azure
+      --location string                                 specify azure region where storage account logging resides
+      --management_group                                management group level integration
+      --management_group_id string                      specify management group id. Required if mgmt_group provided
+      --output string                                   location to write generated content (default is ~/lacework/azure)
+      --storage_account_name string                     specify storage account name
+      --storage_resource_group string                   specify storage resource group
+      --subscription_id string                          specify the Azure Subscription ID to be used to provision Lacework resources
+      --subscription_ids strings                        list of subscriptions to grant read access; format is id1,id2,id3
 ```
 
 ### Options inherited from parent commands
