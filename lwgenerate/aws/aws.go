@@ -1058,14 +1058,14 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 			if args.BucketName != "" {
 				attributes["bucket_name"] = args.BucketName
 			}
-			if args.BucketEncryptionEnabledSet {
-				if args.BucketEncryptionEnabled {
-					if args.BucketSseKeyArn != "" {
-						attributes["bucket_sse_key_arn"] = args.BucketSseKeyArn
-					}
-				} else {
-					attributes["bucket_encryption_enabled"] = false
+		}
+		if args.BucketEncryptionEnabledSet {
+			if args.BucketEncryptionEnabled {
+				if args.BucketSseKeyArn != "" {
+					attributes["bucket_sse_key_arn"] = args.BucketSseKeyArn
 				}
+			} else {
+				attributes["bucket_encryption_enabled"] = false
 			}
 		}
 		if args.S3BucketNotification {

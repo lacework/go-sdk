@@ -159,6 +159,8 @@ func TestGenerationAwsNoninteractive(t *testing.T) {
 		aws.WithCloudtrailUseExistingTrail(true),
 		aws.WithCloudtrailName(cloudtrailName),
 		aws.WithExistingCloudtrailBucketArn(s3BucketArn),
+		aws.WithBucketEncryptionEnabled(true),
+		aws.WithBucketSSEKeyArn(kmsArn),
 		aws.WithCloudtrailUseExistingSNSTopic(true),
 		aws.WithExistingSnsTopicArn(snsTopicArn),
 		aws.WithSnsTopicEncryptionEnabled(true),
