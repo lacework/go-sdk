@@ -36,8 +36,8 @@ import (
 )
 
 const (
-	defaultTimeout    = 60 * time.Second
-	defaultTLSTimeout = 63 * time.Second
+	defaultTimeout    = 120 * time.Second
+	defaultTLSTimeout = 123 * time.Second
 )
 
 type Client struct {
