@@ -1,3 +1,13 @@
+# v1.53.0
+
+## Features
+* feat: Support bucket encryption for existing cloudtrail (#1653) (Lei Jin)([86ef42a3](https://github.com/lacework/go-sdk/commit/86ef42a3cd5a8ecf5e4f04ec44aa7a48c5c56036))
+* feat(cli): CLI guided config support for creating Azure AD integration (#1628) (Manan Bhatia)([e5ecd21e](https://github.com/lacework/go-sdk/commit/e5ecd21efc4fd62a0d7899feb51398a35bbb60ee))
+## Bug Fixes
+* fix: Increase API timeout to 120 seconds (#1655) (Lei Jin)([a363439c](https://github.com/lacework/go-sdk/commit/a363439c7f7899c9086694a9fb8aadbb2ece92b4))
+## Other Changes
+* ci: version bump to v1.52.1-dev (Lacework)([d25c70d7](https://github.com/lacework/go-sdk/commit/d25c70d7fd62de5045423cbee3b83be8e4db0009))
+---
 # v1.52.0
 
 ## Features
