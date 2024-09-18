@@ -1050,9 +1050,11 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 			attributes["consolidated_trail"] = true
 		}
 		// S3 Bucket attributes
+		if args.CloudtrailName != "" {
+			attributes["cloudtrail_name"] = args.CloudtrailName
+		}
 		if args.CloudtrailUseExistingTrail {
 			attributes["use_existing_cloudtrail"] = true
-			attributes["cloudtrail_name"] = args.CloudtrailName
 			attributes["bucket_arn"] = args.ExistingCloudtrailBucketArn
 		} else {
 			if args.BucketName != "" {
