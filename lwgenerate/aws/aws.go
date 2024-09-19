@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/pkg/errors"
 
@@ -293,6 +294,9 @@ type GenerateAwsTfConfigurationArgs struct {
 
 	// Lacework Organization
 	LaceworkOrganizationLevel bool
+
+	// Use random Cloudtrail name
+	UseCloudTrailRandomName bool
 
 	// Default AWS Provider Tags
 	ProviderDefaultTags map[string]interface{}
@@ -592,6 +596,13 @@ func WithControlTowerAuditAccount(auditAccount *AwsSubAccount) AwsTerraformModif
 func WithControlTowerLogArchiveAccount(LogArchiveAccount *AwsSubAccount) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.ControlTowerLogArchiveAccount = LogArchiveAccount
+	}
+}
+
+// WithUseCloudTrailRandomName CloudTrail random name
+func WithUseCloudTrailRandomName(useCloudTrailRandomName bool) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.UseCloudTrailRandomName = useCloudTrailRandomName
 	}
 }
 
@@ -1049,6 +1060,12 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 		if args.ConsolidatedCloudtrail {
 			attributes["consolidated_trail"] = true
 		}
+
+		if args.UseCloudTrailRandomName {
+			uid := uuid.New().String()[:8]
+			attributes["cloudtrail_name"] = fmt.Sprintf("lacework-cloudtrail-%s", uid)
+		}
+
 		// S3 Bucket attributes
 		if args.CloudtrailUseExistingTrail {
 			attributes["use_existing_cloudtrail"] = true
