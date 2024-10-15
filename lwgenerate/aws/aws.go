@@ -909,22 +909,34 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 	seenAccounts := []string{}
 
 	for _, account := range accounts {
-		alias := fmt.Sprintf("%s-%s", account.AwsProfile, account.AwsRegion)
+		alias := account.AwsRegion
 		if account.Alias != "" {
 			alias = account.Alias
+		} else if account.AwsProfile != "" {
+			alias = fmt.Sprintf("%s-%s", account.AwsProfile, account.AwsRegion)
 		}
 		// Skip duplicate account
 		if slices.Contains(seenAccounts, alias) {
 			continue
 		}
 		seenAccounts = append(seenAccounts, alias)
+
+		attributes := map[string]interface{}{}
+		// set `access_key`, `secret_key` and `token` for single-account multiple-region Agentless
+		if args.Agentless {
+			for k, v := range args.ExtraProviderArguments {
+				attributes[k] = v
+			}
+		}
+		attributes["alias"] = alias
+		attributes["region"] = account.AwsRegion
+		if args.AwsProfile != "" {
+			attributes["profile"] = account.AwsProfile
+		}
+
 		providerBlock, err := lwgenerate.NewProvider(
 			"aws",
-			lwgenerate.HclProviderWithAttributes(map[string]interface{}{
-				"alias":   alias,
-				"profile": account.AwsProfile,
-				"region":  account.AwsRegion,
-			}),
+			lwgenerate.HclProviderWithAttributes(attributes),
 		).ToBlock()
 		if err != nil {
 			return nil, err
