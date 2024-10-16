@@ -1,4 +1,4 @@
-List all components
+List all available components and their current state
 
 Usage:
   lacework component list [flags]

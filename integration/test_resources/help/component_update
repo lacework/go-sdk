@@ -3,8 +3,12 @@ Update an existing component
 Usage:
   lacework component update <component> [flags]
 
+Aliases:
+  update, upgrade
+
 Flags:
-  -h, --help   help for update
+  -h, --help             help for update
+      --version string   update to a specific version (default is latest)
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
