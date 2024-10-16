@@ -7,10 +7,11 @@ Aliases:
   component, components
 
 Available Commands:
-  install     install a new component
-  list        list all components
-  uninstall   uninstall an existing component
-  update      update an existing component
+  install     Install a new component
+  list        List all components
+  show        Show details about a component
+  uninstall   Uninstall an existing component
+  update      Update an existing component
 
 Flags:
   -h, --help   help for component

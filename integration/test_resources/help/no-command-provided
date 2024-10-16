@@ -22,6 +22,7 @@ Available Commands:
   api                     Helper to call Lacework's API
   cloud-account           Manage cloud accounts
   compliance              Manage compliance reports
+  component               Manage components
   configure               Configure the Lacework CLI
   container-registry      Manage container registries
   generate                Generate code to onboard your account

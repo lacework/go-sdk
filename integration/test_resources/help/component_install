@@ -4,7 +4,8 @@ Usage:
   lacework component install <component> [flags]
 
 Flags:
-  -h, --help   help for install
+  -h, --help             help for install
+      --version string   require a specific version to be installed (default is latest)
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
