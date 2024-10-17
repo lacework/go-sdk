@@ -1,13 +1,12 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.53.0`.
+Another day, another release. These are the release notes for the version `v1.54.0`.
 
 ## Features
-* feat: Support bucket encryption for existing cloudtrail (#1653) (Lei Jin)([86ef42a3](https://github.com/lacework/go-sdk/commit/86ef42a3cd5a8ecf5e4f04ec44aa7a48c5c56036))
-* feat(cli): CLI guided config support for creating Azure AD integration (#1628) (Manan Bhatia)([e5ecd21e](https://github.com/lacework/go-sdk/commit/e5ecd21efc4fd62a0d7899feb51398a35bbb60ee))
-## Bug Fixes
-* fix: Increase API timeout to 120 seconds (#1655) (Lei Jin)([a363439c](https://github.com/lacework/go-sdk/commit/a363439c7f7899c9086694a9fb8aadbb2ece92b4))
+* feat: Add support for use random cloudtrail name (#1658) (Lei Jin)([97a45bcd](https://github.com/lacework/go-sdk/commit/97a45bcde3ec2948f3cd9f5c22358ee7346f442b))
 ## Other Changes
-* ci: version bump to v1.52.1-dev (Lacework)([d25c70d7](https://github.com/lacework/go-sdk/commit/d25c70d7fd62de5045423cbee3b83be8e4db0009))
+* chore: show component command in lacework --help (#1660) (Pengyuan Zhao)([6db317d9](https://github.com/lacework/go-sdk/commit/6db317d99f23f20aaeb130e98fba7b3a87e26edd))
+* chore(GROW-2960): support access keys for AWS Agentless multiple scanning regions  (#1659) (Pengyuan Zhao)([2d7d669d](https://github.com/lacework/go-sdk/commit/2d7d669d768c45f963d5153d8d9982fde450e4e7))
+* ci: version bump to v1.53.1-dev (Lacework)([a3da143f](https://github.com/lacework/go-sdk/commit/a3da143f29e939159df09c3c7417ed602c6d38e5))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
