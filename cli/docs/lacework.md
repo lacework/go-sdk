@@ -50,6 +50,7 @@ This will prompt you for your Lacework account and a set of API access keys.
 * [lacework api](lacework_api.md)	 - Helper to call Lacework's API
 * [lacework cloud-account](lacework_cloud-account.md)	 - Manage cloud accounts
 * [lacework compliance](lacework_compliance.md)	 - Manage compliance reports
+* [lacework component](lacework_component.md)	 - Manage components
 * [lacework configure](lacework_configure.md)	 - Configure the Lacework CLI
 * [lacework container-registry](lacework_container-registry.md)	 - Manage container registries
 * [lacework generate](lacework_generate.md)	 - Generate code to onboard your account
