@@ -10,7 +10,7 @@ const (
 	AwsConfigSource                  = "lacework/config/aws"
 	AwsConfigVersion                 = "~> 0.5"
 	AwsConfigOrgSource               = "lacework/org-configuration/aws"
-	AwsConfigOrgVersion              = "~> 0.1"
+	AwsConfigOrgVersion              = "~> 1.0"
 	AwsCloudTrailSource              = "lacework/cloudtrail/aws"
 	AwsCloudTrailVersion             = "~> 2.7"
 	AwsCloudTrailControlTowerSource  = "lacework/cloudtrail-controltower/aws"
