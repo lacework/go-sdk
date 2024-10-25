@@ -113,7 +113,7 @@ func TestResourceGroupList(t *testing.T) {
 	// list (output human)
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("resource-group", "list")
 	assert.Contains(t, out.String(), "RESOURCE GROUP ID")
-	assert.Contains(t, out.String(), "All Aws Accounts")
+	assert.Contains(t, out.String(), "All AWS Resources")
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 
