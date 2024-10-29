@@ -167,7 +167,7 @@ func TestResourceGroupDelete(t *testing.T) {
 	// test each RGv2 type against its default template
 	for i := range api.ResourceGroupTypes {
 		switch i {
-		case api.NoneResourceGroup, api.LwAccountResourceGroup:
+		case api.NoneResourceGroup:
 			// these resource groups are not applicable
 			continue
 		default:
