@@ -19,14 +19,13 @@
 package cmd
 
 import (
-	"encoding/json"
-	"fmt"
-	"time"
+		"fmt"
+	"strconv"
+"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
-	"github.com/olekukonko/tablewriter"
-	"github.com/pkg/errors"
+		"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -70,34 +69,13 @@ Then navigate to Settings > Resource Groups.
 
 			groups := make([]resourceGroup, 0)
 			for _, g := range resourceGroups.Data {
-				var props api.ResourceGroupProps
-				var resourceGroupGuid string
-				var isDefault int
-				var resourceName string
-
-				if g.GetProps() != nil {
-					props, _ = parsePropsType(g.Props, g.Type)
-					resourceGroupGuid = g.ResourceGuid
-					isDefault = g.IsDefault
-					resourceName = g.Name
-				} else {
-					resourceGroupGuid = g.ResourceGroupGuid
-					if *g.IsDefaultBoolean {
-						isDefault = 1
-					} else {
-						isDefault = 0
-					}
-					resourceName = g.NameV2
-				}
 
 				groups = append(groups, resourceGroup{
-					Id:        resourceGroupGuid,
+					Id:        g.ResourceGroupGuid,
 					ResType:   g.Type,
-					Name:      resourceName,
-					status:    g.Status(),
-					Props:     props,
+					Name:      g.Name,
 					Enabled:   g.Enabled,
-					IsDefault: isDefault,
+					IsDefaultBoolean: *g.IsDefaultBoolean,
 					Query:     g.Query,
 				})
 			}
@@ -111,7 +89,8 @@ Then navigate to Settings > Resource Groups.
 
 			rows := [][]string{}
 			for _, g := range groups {
-				rows = append(rows, []string{g.Id, g.ResType, g.Name, g.status, IsDefault(g.IsDefault)})
+				rows = append(rows, []string{g.Id, g.ResType, g.Name, strconv.Itoa(g.Enabled),
+					strconv.FormatBool(g.IsDefaultBoolean)})
 			}
 
 			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GROUP ID", "TYPE", "NAME", "STATUS", "DEFAULT"}, rows))
@@ -131,34 +110,12 @@ Then navigate to Settings > Resource Groups.
 				return errors.Wrap(err, "unable to get resource group")
 			}
 
-			var props api.ResourceGroupProps
-			var resourceGroupGuid string
-			var isDefault int
-			var name string
-
-			if response.Data.Props != nil {
-				props, _ = parsePropsType(response.Data.Props, response.Data.Type)
-				resourceGroupGuid = response.Data.ResourceGuid
-				isDefault = response.Data.IsDefault
-				name = response.Data.Name
-			} else {
-				resourceGroupGuid = response.Data.ResourceGroupGuid
-				if *response.Data.IsDefaultBoolean {
-					isDefault = 1
-				} else {
-					isDefault = 0
-				}
-				name = response.Data.NameV2
-			}
-
 			group := resourceGroup{
-				Id:          resourceGroupGuid,
+				Id:          response.Data.ResourceGroupGuid,
 				ResType:     response.Data.Type,
-				Name:        name,
-				status:      response.Data.Status(),
-				Props:       props,
+				Name:        response.Data.Name,
 				Enabled:     response.Data.Enabled,
-				IsDefault:   isDefault,
+				IsDefaultBoolean: *response.Data.IsDefaultBoolean,
 				Query:       response.Data.Query,
 				Description: response.Data.Description,
 				UpdatedBy:   response.Data.UpdatedBy,
@@ -176,15 +133,18 @@ Then navigate to Settings > Resource Groups.
 
 			if group.Props != nil {
 				groupCommon = append(groupCommon,
-					[]string{group.Id, group.ResType, group.Name, group.status, IsDefault(group.IsDefault)},
+					[]string{group.Id, group.ResType, group.Name, strconv.Itoa(group.Enabled),
+						strconv.FormatBool(group.IsDefaultBoolean)},
 				)
-				cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GROUP ID", "TYPE", "NAME", "STATE", "DEFAULT"}, groupCommon))
+				cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GROUP GUID", "TYPE", "NAME", "ENABLED",
+					"IS_DEFAULT_BOOLEAN"},
+				groupCommon))
 				cli.OutputHuman("\n")
-				cli.OutputHuman(buildResourceGroupPropsTable(group))
+				//cli.OutputHuman(buildResourceGroupPropsTable(group))
 			} else {
 				groupCommon = append(groupCommon,
-					[]string{group.Id, group.ResType, group.Name, group.Description, group.status,
-						IsDefault(group.IsDefault), group.UpdatedBy, group.UpdatedTime.UTC().String()},
+					[]string{group.Id, group.ResType, group.Name, group.Description, strconv.Itoa(group.Enabled),
+						strconv.FormatBool(group.IsDefaultBoolean), group.UpdatedBy, group.UpdatedTime.UTC().String()},
 				)
 				cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GROUP ID", "TYPE", "NAME", "DESCRIPTION", "STATE",
 					"DEFAULT", "UPDATED BY", "UPDATED_TIME"}, groupCommon))
@@ -231,28 +191,6 @@ Then navigate to Settings > Resource Groups.
 		},
 	}
 )
-
-// parsePropsType converts props json string to interface of resource group props type
-func parsePropsType(props interface{}, resourceType string) (api.ResourceGroupProps, error) {
-	propsString := props.(string)
-
-	switch resourceType {
-	case api.AwsResourceGroup.String():
-		return unmarshallAwsPropString([]byte(propsString))
-	case api.AzureResourceGroup.String():
-		return unmarshallAzurePropString([]byte(propsString))
-	case api.ContainerResourceGroup.String():
-		return unmarshallContainerPropString([]byte(propsString))
-	case api.GcpResourceGroup.String():
-		return unmarshallGcpPropString([]byte(propsString))
-	case api.LwAccountResourceGroup.String():
-		return unmarshallLwAccountPropString([]byte(propsString))
-	case api.MachineResourceGroup.String():
-		return unmarshallMachinePropString([]byte(propsString))
-	}
-	return nil, errors.New("Unable to determine resource group props type")
-}
-
 func promptCreateResourceGroup() error {
 
 	resourceGroupOptions := []string{
@@ -260,25 +198,9 @@ func promptCreateResourceGroup() error {
 		"AZURE",
 		"CONTAINER",
 		"GCP",
-		"LW_ACCOUNT",
 		"MACHINE",
-	}
-
-	isRGv2Enabled := false
-	ffResponse, _ := cli.LwApi.V2.FeatureFlags.GetFeatureFlagsMatchingPrefix(api.ApiV2CliFeatureFlag)
-	if len(ffResponse.Data.Flags) >= 1 {
-		isRGv2Enabled = true
-	}
-
-	if isRGv2Enabled {
-		resourceGroupOptions = append(resourceGroupOptions,
-			"AWS(v2)",
-			"AZURE(v2)",
-			"GCP(v2)",
-			"CONTAINER(v2)",
-			"MACHINE(v2)",
-			"OCI(v2)",
-		)
+		"OCI",
+		"KUBERNETES",
 	}
 
 	var (
@@ -295,77 +217,67 @@ func promptCreateResourceGroup() error {
 
 	switch group {
 	case "AWS":
-		return createAwsResourceGroup()
-	case "AZURE":
-		return createAzureResourceGroup()
-	case "CONTAINER":
-		return createContainerResourceGroup()
-	case "GCP":
-		return createGcpResourceGroup()
-	case "LW_ACCOUNT":
-		return createLwAccountResourceGroup()
-	case "MACHINE":
-		return createMachineResourceGroup()
-	case "AWS(v2)":
 		return createResourceGroupV2("AWS")
-	case "AZURE(v2)":
+	case "AZURE":
 		return createResourceGroupV2("AZURE")
-	case "GCP(v2)":
+	case "GCP":
 		return createResourceGroupV2("GCP")
-	case "CONTAINER(v2)":
+	case "CONTAINER":
 		return createResourceGroupV2("CONTAINER")
-	case "MACHINE(v2)":
+	case "MACHINE":
 		return createResourceGroupV2("MACHINE")
-	case "OCI(v2)":
+	case "OCI":
 		return createResourceGroupV2("OCI")
+	case "KUBERNETES":
+		return createResourceGroupV2("KUBERNETES")
 	default:
 		return errors.New("unknown resource group type")
 	}
 }
 
-func buildResourceGroupPropsTable(group resourceGroup) string {
-	props := determineResourceGroupProps(group.ResType, group.Props)
+//func buildResourceGroupPropsTable(group resourceGroup) string {
+//	props := determineResourceGroupProps(group.ResType, group.Props)
+//
+//	return renderOneLineCustomTable("RESOURCE GROUP PROPS",
+//		renderCustomTable([]string{}, props,
+//			tableFunc(func(t *tablewriter.Table) {
+//				t.SetBorder(false)
+//				t.SetColumnSeparator(" ")
+//				t.SetAutoWrapText(false)
+//				t.SetAlignment(tablewriter.ALIGN_LEFT)
+//			}),
+//		),
+//		tableFunc(func(t *tablewriter.Table) {
+//			t.SetBorder(false)
+//			t.SetAutoWrapText(false)
+//		}),
+//	)
+//}
 
-	return renderOneLineCustomTable("RESOURCE GROUP PROPS",
-		renderCustomTable([]string{}, props,
-			tableFunc(func(t *tablewriter.Table) {
-				t.SetBorder(false)
-				t.SetColumnSeparator(" ")
-				t.SetAutoWrapText(false)
-				t.SetAlignment(tablewriter.ALIGN_LEFT)
-			}),
-		),
-		tableFunc(func(t *tablewriter.Table) {
-			t.SetBorder(false)
-			t.SetAutoWrapText(false)
-		}),
-	)
-}
-
-func determineResourceGroupProps(resType string, props api.ResourceGroupProps) [][]string {
-	propsString, err := json.Marshal(props)
-	if err != nil {
-		return [][]string{}
-	}
-	details := setBaseProps(props)
-
-	switch resType {
-	case api.AwsResourceGroup.String():
-		details = append(details, setAwsProps(propsString))
-	case api.AzureResourceGroup.String():
-		details = append(details, setAzureProps(propsString)...)
-	case api.ContainerResourceGroup.String():
-		details = append(details, setContainerProps(propsString)...)
-	case api.GcpResourceGroup.String():
-		details = append(details, setGcpProps(propsString)...)
-	case api.LwAccountResourceGroup.String():
-		details = append(details, setLwAccountProps(propsString))
-	case api.MachineResourceGroup.String():
-		details = append(details, setMachineProps(propsString))
-	}
-
-	return details
-}
+//func determineResourceGroupProps(resType string, props api.ResourceGroupProps) [][]string {
+//	propsString, err := json.Marshal(props)
+//	if err != nil {
+//		return [][]string{}
+//	}
+//	details := setBaseProps(props)
+//
+//	switch resType {
+//	case api.AwsResourceGroup.String():
+//		details = append(details, setAwsProps(propsString))
+//	case api.AzureResourceGroup.String():
+//		details = append(details, setAzureProps(propsString)...)
+//	case api.ContainerResourceGroup.String():
+//		details = append(details, setContainerProps(propsString)...)
+//	case api.GcpResourceGroup.String():
+//		details = append(details, setGcpProps(propsString)...)
+//	case api.LwAccountResourceGroup.String():
+//		details = append(details, setLwAccountProps(propsString))
+//	case api.MachineResourceGroup.String():
+//		details = append(details, setMachineProps(propsString))
+//	}
+//
+//	return details
+//}
 
 func setBaseProps(props api.ResourceGroupProps) [][]string {
 	var (
@@ -397,15 +309,14 @@ func IsDefault(isDefault int) string {
 }
 
 type resourceGroup struct {
-	Id          string                 `json:"resource_guid"`
-	ResType     string                 `json:"type"`
-	Name        string                 `json:"name"`
-	Props       api.ResourceGroupProps `json:"props"`
-	Enabled     int                    `json:"enabled"`
-	IsDefault   int                    `json:"isDefault"`
-	Query       *api.RGQuery           `json:"query"`
-	Description string                 `json:"description,omitempty"`
-	UpdatedTime *time.Time             `json:"updatedTime,omitempty"`
-	UpdatedBy   string                 `json:"updatedBy,omitempty"`
-	status      string
+	Id          		string                 			`json:"resource_guid"`
+	ResType     		string                 			`json:"type"`
+	Name        		string                 			`json:"name"`
+	Props       		api.ResourceGroupProps 			`json:"props"`
+	Enabled     		int                    			`json:"enabled"`
+	IsDefaultBoolean   	bool                    		`json:"isDefault"`
+	Query       		*api.RGQuery           			`json:"query"`
+	Description 		string                 			`json:"description,omitempty"`
+	UpdatedTime 		*time.Time             			`json:"updatedTime,omitempty"`
+	UpdatedBy   		string                 			`json:"updatedBy,omitempty"`
 }

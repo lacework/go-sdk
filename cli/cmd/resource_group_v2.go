@@ -71,8 +71,7 @@ func createResourceGroupV2(resourceType string) error {
 		// This should never reach this. The type is controlled by us in cmd/resource_groups
 		return errors.New("internal error")
 	}
-	resourceGroup := api.NewResourceGroupWithQuery(answers.Name, groupType, answers.Description, &rgQuery)
-
+	resourceGroup := api.NewResourceGroup(answers.Name, groupType, answers.Description, &rgQuery)
 	cli.StartProgress(" Creating resource group...")
 	_, err = cli.LwApi.V2.ResourceGroups.Create(resourceGroup)
 	cli.StopProgress()

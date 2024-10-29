@@ -110,7 +110,7 @@ func TestResourceGroupGet(t *testing.T) {
 		err := c.V2.ResourceGroups.Get(resourceGUID, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
-			assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
+			assert.Equal(t, resourceGUID, response.Data.ResourceGroupGuid)
 			assert.Equal(t, "group_name", response.Data.Name)
 			assert.Equal(t, "VANILLA", response.Data.Type)
 		}
@@ -173,7 +173,7 @@ func TestResourceGroupsDelete(t *testing.T) {
 		err := c.V2.ResourceGroups.Get(resourceGUID, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
-			assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
+			assert.Equal(t, resourceGUID, response.Data.ResourceGroupGuid)
 			assert.Equal(t, "group_name", response.Data.Name)
 			assert.Equal(t, "VANILLA", response.Data.Type)
 		}
@@ -241,7 +241,7 @@ func TestResourceGroupsList(t *testing.T) {
 	assert.NotNil(t, response)
 	assert.Equal(t, expectedLen, len(response.Data))
 	for _, d := range response.Data {
-		assert.Contains(t, allGuids, d.ResourceGuid)
+		assert.Contains(t, allGuids, d.ResourceGroupGuid)
 	}
 }
 
@@ -257,13 +257,337 @@ func generateResourceGroups(guids []string, iType string) string {
 			resourceGroups[i] = singleContainerResourceGroup(guid)
 		case api.GcpResourceGroup.String():
 			resourceGroups[i] = singleGcpResourceGroup(guid)
-		case api.LwAccountResourceGroup.String():
-			resourceGroups[i] = singleLwAccountResourceGroup(guid)
 		case api.MachineResourceGroup.String():
 			resourceGroups[i] = singleMachineResourceGroup(guid)
 		}
 	}
 	return strings.Join(resourceGroups, ", ")
+}
+
+func singleAwsResourceGroup(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+		"description": "All Aws Resources"
+        "isDefaultBoolean": true,
+        "resourceGroupGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "AWS",
+        "enabled": 1,
+		"query": "{
+			  "filters": {
+				  "filter1": {
+					  "field": "AWS_ACCOUNT_ID",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter2": {
+					  "field": "AWS_ORGANIZATION_ID",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter3": {
+					  "field": "AWS_RESOURCE_TAGS",
+					  "operation": "EQUALS",
+					  "key": "*",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter4": {
+					  "field": "AWS_RESOURCE_REGION",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  }
+			  },
+			  "expression": {
+				  "operator": "OR",
+				  "children": [
+					  {
+						  "filterName": "filter1"
+					  },
+					  {
+						  "filterName": "filter2"
+					  },
+					  {
+						  "filterName": "filter3"
+					  },
+					  {
+						  "filterName": "filter4"
+					  }
+				  ]
+			  }
+		  }"
+	}
+	`
+}
+
+func singleAzureResourceGroup(id string) string {
+
+	return `
+	{
+        "guid": "` + id + `",
+		"description": "All Azure Resources"
+        "isDefaultBoolean": true,
+        "resourceGroupGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "AZURE",
+        "enabled": 1,
+		"query": "{
+			  "filters": {
+				  "filter1": {
+					  "field": "AZURE_TENANT_ID",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter2": {
+					  "field": "AZURE_SUBSCRIPTION_ID",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter3": {
+					  "field": "AZURE_RESOURCE_TAGS",
+					  "operation": "EQUALS",
+					  "key": "*",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter4": {
+					  "field": "AZURE_RESOURCE_REGION",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter5": {
+					  "field": "AZURE_TENANT_NAME",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter6": {
+					  "field": "AZURE_SUBSCRIPTION_NAME",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  }
+			  },
+			  "expression": {
+				  "operator": "OR",
+				  "children": [
+					  {
+						  "filterName": "filter1"
+					  },
+					  {
+						  "filterName": "filter2"
+					  },
+					  {
+						  "filterName": "filter3"
+					  },
+					  {
+						  "filterName": "filter4"
+					  },
+					  {
+						  "filterName": "filter5"
+					  },
+					  {
+						  "filterName": "filter6"
+					  }
+				  ]
+			  }
+		  }"
+	}
+	`
+}
+
+func singleContainerResourceGroup(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+		"description": "All Container Resources"
+        "isDefaultBoolean": true,
+        "resourceGroupGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "CONTAINER",
+        "enabled": 1,
+		"query": "{
+			  "filters": {
+				  "filter1": {
+					  "field": "IMAGE_TAG",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter2": {
+					  "field": "CONTAINER_LABELS",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ],
+					  "key": "*"
+				  },
+				  "filter3": {
+					  "field": "IMAGE_REPO",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter4": {
+					  "field": "IMAGE_REGISTRY",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				}
+			  },
+			  "expression": {
+				  "operator": "OR",
+				  "children": [
+					  {
+						  "filterName": "filter1"
+					  },
+					  {
+						  "filterName": "filter2"
+					  },
+					  {
+						  "filterName": "filter3"
+					  },
+					  {
+						  "filterName": "filter4"
+					  }
+				  ]
+			  }
+		  }"
+	}
+	`
+}
+
+func singleGcpResourceGroup(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+		"description": "All GCP Resources"
+        "isDefaultBoolean": true,
+        "resourceGroupGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "GCP",
+        "enabled": 1,
+		"query": "{
+                          "filters": {
+                              "filter1": {
+                                  "field": "GCP_ORGANIZATION_ID",
+                                  "operation": "EQUALS",
+                                  "values": [
+                                      "*"
+                                  ]
+                              },
+                              "filter2": {
+                                  "field": "GCP_FOLDER_IDS",
+                                  "operation": "EQUALS",
+                                  "values": [
+                                      "*"
+                                  ]
+                              },
+                              "filter3": {
+                                  "field": "GCP_PROJECT_ID",
+                                  "operation": "EQUALS",
+                                  "values": [
+                                      "*"
+                                  ]
+                              },
+                              "filter4": {
+                                  "field": "GCP_RESOURCE_TAGS",
+                                  "operation": "EQUALS",
+                                  "key": "*",
+                                  "values": [
+                                      "*"
+                                  ]
+                              },
+                              "filter5": {
+                                  "field": "GCP_RESOURCE_REGION",
+                                  "operation": "EQUALS",
+                                  "values": [
+                                      "*"
+                                  ]
+                              },
+                              "filter6": {
+                                  "field": "GCP_ORGANIZATION_NAME",
+                                  "operation": "EQUALS",
+                                  "values": [
+                                      "*"
+                                  ]
+                              }
+                          },
+                          "expression": {
+                              "operator": "OR",
+                              "children": [
+                                  {
+                                      "filterName": "filter1"
+                                  },
+                                  {
+                                      "filterName": "filter2"
+                                  },
+                                  {
+                                      "filterName": "filter3"
+                                  },
+                                  {
+                                      "filterName": "filter4"
+                                  },
+                                  {
+                                      "filterName": "filter5"
+                                  },
+                                  {
+                                      "filterName": "filter5"
+                                  }
+                              ]
+                          }
+                      }"
+	}
+	`
+}
+
+func singleMachineResourceGroup(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+		"description": "All Machine Resources"
+        "isDefaultBoolean": true,
+        "resourceGroupGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "MACHINE",
+        "enabled": 1,
+		"query": "{
+                          "filters": {
+                              "filter1": {
+                                  "field": "MACHINE_TAGS",
+                                  "operation": "EQUALS",
+                                  "values": [
+                                      "*"
+                                  ],
+                                  "key": "*"
+                              }
+                          },
+                          "expression": {
+                              "filterName": "filter1"
+                          }
+                      }"
+	}
+	`
 }
 
 func generateResourceGroupsResponse(data string) string {
@@ -282,19 +606,19 @@ func generateResourceGroupResponse(data string) string {
 	`
 }
 
-func singleVanillaResourceGroup(id string, iType string, props string) string {
-	if props == "" {
-		props = "{}"
+func singleVanillaResourceGroup(id string, iType string, query string) string {
+	if query == "" {
+		query = "{}"
 	}
 	return `
 	{
         "guid": "` + id + `",
-        "isDefault": "1",
-        "props": ` + props + `,
-        "resourceGuid": "` + id + `",
-        "resourceName": "group_name",
+        "isDefaultBoolean": "true",
+        "query": ` + query + `,
+        "resourceGroupGuid": "` + id + `",
+        "name": "group_name",
         "resourceType": "` + iType + `",
-        "enabled": 1
+        "enabled": 1,
 	}
 	`
 }

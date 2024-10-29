@@ -172,9 +172,6 @@ func (group ResourceGroupDataWithQuery) ID() string {
 	return group.ResourceGroupGuid
 }
 
-func (group *ResourceGroupDataWithQuery) ResetRGV2Fields() {
-	// no-op
-}
 
 func (group *ResourceGroupDataWithQuery) ResetResourceGUID() {
 	group.ResourceGroupGuid = ""

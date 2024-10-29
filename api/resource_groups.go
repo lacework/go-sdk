@@ -22,7 +22,6 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/lacework/go-sdk/lwtime"
@@ -63,11 +62,8 @@ const (
 	ContainerResourceGroup
 	GcpResourceGroup
 	MachineResourceGroup
-
-	// requires Org Access account client.WithOrgAccess()
-	LwAccountResourceGroup
-
 	OciResourceGroup
+	KubernetesResourceGroup
 )
 
 // query templates
@@ -86,6 +82,8 @@ var (
 	LwAccountResourceGroupQueryTemplate string = ""
 	//go:embed _templates/resource_groups/oci.json
 	OciResourceGroupQueryTemplate string
+	//go:embed _templates/resource_groups/kubernetes.json
+	KubernetesResourceGroupQueryTemplate string
 )
 
 type resourceGroupContext struct {
@@ -100,9 +98,20 @@ var ResourceGroupTypes = map[resourceGroupType]resourceGroupContext{
 	AzureResourceGroup:     {resourceGroupType: "AZURE", queryTemplate: AzureResourceGroupQueryTemplate},
 	ContainerResourceGroup: {resourceGroupType: "CONTAINER", queryTemplate: ContainerResourceGroupQueryTemplate},
 	GcpResourceGroup:       {resourceGroupType: "GCP", queryTemplate: GcpResourceGroupQueryTemplate},
-	LwAccountResourceGroup: {resourceGroupType: "LW_ACCOUNT", queryTemplate: LwAccountResourceGroupQueryTemplate},
 	MachineResourceGroup:   {resourceGroupType: "MACHINE", queryTemplate: MachineResourceGroupQueryTemplate},
 	OciResourceGroup:       {resourceGroupType: "OCI", queryTemplate: OciResourceGroupQueryTemplate},
+	KubernetesResourceGroup: {resourceGroupType: "KUBERNETES", queryTemplate: KubernetesResourceGroupQueryTemplate},
+}
+
+func NewResourceGroup(name string, iType resourceGroupType,
+	description string, query *RGQuery) ResourceGroupDataWithQuery {
+	return ResourceGroupDataWithQuery{
+		Name:        name,
+		Type:        iType.String(),
+		Enabled:     1,
+		Query:       query,
+		Description: description,
+	}
 }
 
 // String returns the string representation of a Resource Group type
@@ -171,19 +180,14 @@ func (svc *ResourceGroupsService) Update(data ResourceGroup) (
 }
 
 func castResourceGroupResponse(data resourceGroupWorkaroundData, response interface{}) error {
-	isDefault, err := strconv.Atoi(data.IsDefault)
-	if err != nil {
-		return err
-	}
 	group := ResourceGroupResponse{
 		Data: ResourceGroupData{
-			Guid:         data.Guid,
-			IsDefault:    isDefault,
-			ResourceGuid: data.ResourceGuid,
+			IsDefaultBoolean:    data.IsDefaultBoolean,
+			ResourceGroupGuid: data.ResourceGroupGuid,
 			Name:         data.Name,
 			Type:         data.Type,
 			Enabled:      data.Enabled,
-			Props:        data.Props,
+			Query:        data.Query,
 		},
 	}
 
@@ -210,6 +214,25 @@ func setResourceGroupsResponse(workaround resourceGroupsWorkaroundResponse) (Res
 	}
 
 	return ResourceGroupsResponse{Data: data}, nil
+}
+
+func setResourceGroupResponse(response resourceGroupWorkaroundData) (ResourceGroupResponse,
+	error) {
+	return ResourceGroupResponse{
+		Data: ResourceGroupData{
+			Type:              response.Type,
+			Enabled:           response.Enabled,
+			Name:              response.Name,
+			Query:             response.Query,
+			Description:       response.Description,
+			ResourceGroupGuid: response.ResourceGroupGuid,
+			CreatedTime:       response.CreatedTime,
+			CreatedBy:         response.CreatedBy,
+			UpdatedTime:       response.UpdatedTime,
+			UpdatedBy:         response.UpdatedBy,
+			IsDefaultBoolean:  response.IsDefaultBoolean,
+		},
+	}, nil
 }
 
 // Delete deletes a Resource Group that matches the provided resource guid
@@ -271,26 +294,16 @@ func (group ResourceGroupData) ResourceGroupType() resourceGroupType {
 }
 
 func (group ResourceGroupData) ID() string {
-	if !group.IsV2Group() {
-		return group.ResourceGuid
-	} else {
-		return group.ResourceGroupGuid
-	}
+	return group.ResourceGroupGuid
 }
 
-func (group *ResourceGroupData) ResetRGV2Fields() {
+func (group *ResourceGroupData) ResetResourceGUID() {
+	group.ResourceGroupGuid = ""
 	group.UpdatedBy = ""
 	group.UpdatedTime = nil
 	group.CreatedBy = ""
 	group.CreatedTime = nil
 	group.IsDefaultBoolean = nil
-	group.IsOrg = nil
-}
-
-func (group *ResourceGroupData) ResetResourceGUID() {
-	group.ResourceGuid = ""
-	group.ResourceGroupGuid = ""
-	group.ResetRGV2Fields()
 }
 
 func (group ResourceGroupData) Status() string {
@@ -298,10 +311,6 @@ func (group ResourceGroupData) Status() string {
 		return "Enabled"
 	}
 	return "Disabled"
-}
-
-func (group ResourceGroupData) IsV2Group() bool {
-	return group.Query != nil
 }
 
 type ResourceGroupResponse struct {
@@ -313,17 +322,7 @@ type ResourceGroupsResponse struct {
 }
 
 type ResourceGroupData struct {
-	// RGv1 Fields
-	Guid         string      `json:"guid,omitempty"`
-	IsDefault    int         `json:"isDefault,omitempty"`
-	ResourceGuid string      `json:"resourceGuid,omitempty"`
-	Name         string      `json:"resourceName,omitempty"`
-	Type         string      `json:"resourceType"`
-	Enabled      int         `json:"enabled"`
-	Props        interface{} `json:"props,omitempty"`
-
-	// RG v2 Fields. `Enabled` and `Type` fields are the same in RGv1 nd RGv2
-	NameV2            string     `json:"name,omitempty"`
+	Name              string     `json:"name,omitempty"`
 	Query             *RGQuery   `json:"query,omitempty"`
 	Description       string     `json:"description,omitempty"`
 	ResourceGroupGuid string     `json:"resourceGroupGuid,omitempty"`
@@ -332,7 +331,8 @@ type ResourceGroupData struct {
 	UpdatedTime       *time.Time `json:"updatedTime,omitempty"`
 	UpdatedBy         string     `json:"updatedBy,omitempty"`
 	IsDefaultBoolean  *bool      `json:"isDefaultBoolean,omitempty"`
-	IsOrg             *bool      `json:"isOrg,omitempty"`
+	Type         	  string      `json:"resourceType"`
+	Enabled      	  int         `json:"enabled"`
 }
 
 // RAIN-21510 workaround
@@ -345,15 +345,7 @@ type resourceGroupsWorkaroundResponse struct {
 }
 
 type resourceGroupWorkaroundData struct {
-	Guid         string      `json:"guid,omitempty"`
-	IsDefault    string      `json:"isDefault,omitempty"`
-	ResourceGuid string      `json:"resourceGuid,omitempty"`
-	Name         string      `json:"resourceName"`
-	Type         string      `json:"resourceType"`
-	Enabled      int         `json:"enabled,omitempty"`
-	Props        interface{} `json:"props"`
-
-	NameV2            string     `json:"name,omitempty"`
+	Name           string     `json:"name,omitempty"`
 	Query             *RGQuery   `json:"query,omitempty"`
 	Description       string     `json:"description,omitempty"`
 	ResourceGroupGuid string     `json:"resourceGroupGuid,omitempty"`
@@ -362,5 +354,6 @@ type resourceGroupWorkaroundData struct {
 	UpdatedTime       *time.Time `json:"updatedTime,omitempty"`
 	UpdatedBy         string     `json:"updatedBy,omitempty"`
 	IsDefaultBoolean  *bool      `json:"isDefaultBoolean,omitempty"`
-	IsOrg             *bool      `json:"isOrg,omitempty"`
+	Type         string      `json:"resourceType"`
+	Enabled      int         `json:"enabled,omitempty"`
 }
