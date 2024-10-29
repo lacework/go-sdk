@@ -19,13 +19,13 @@
 package cmd
 
 import (
-		"fmt"
+	"fmt"
 	"strconv"
-"time"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/lacework/go-sdk/api"
-		"github.com/pkg/errors"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -71,12 +71,12 @@ Then navigate to Settings > Resource Groups.
 			for _, g := range resourceGroups.Data {
 
 				groups = append(groups, resourceGroup{
-					Id:        g.ResourceGroupGuid,
-					ResType:   g.Type,
-					Name:      g.Name,
-					Enabled:   g.Enabled,
+					Id:               g.ResourceGroupGuid,
+					ResType:          g.Type,
+					Name:             g.Name,
+					Enabled:          g.Enabled,
 					IsDefaultBoolean: *g.IsDefaultBoolean,
-					Query:     g.Query,
+					Query:            g.Query,
 				})
 			}
 
@@ -111,15 +111,15 @@ Then navigate to Settings > Resource Groups.
 			}
 
 			group := resourceGroup{
-				Id:          response.Data.ResourceGroupGuid,
-				ResType:     response.Data.Type,
-				Name:        response.Data.Name,
-				Enabled:     response.Data.Enabled,
+				Id:               response.Data.ResourceGroupGuid,
+				ResType:          response.Data.Type,
+				Name:             response.Data.Name,
+				Enabled:          response.Data.Enabled,
 				IsDefaultBoolean: *response.Data.IsDefaultBoolean,
-				Query:       response.Data.Query,
-				Description: response.Data.Description,
-				UpdatedBy:   response.Data.UpdatedBy,
-				UpdatedTime: response.Data.UpdatedTime,
+				Query:            response.Data.Query,
+				Description:      response.Data.Description,
+				UpdatedBy:        response.Data.UpdatedBy,
+				UpdatedTime:      response.Data.UpdatedTime,
 			}
 
 			if cli.JSONOutput() {
@@ -138,7 +138,7 @@ Then navigate to Settings > Resource Groups.
 				)
 				cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GROUP GUID", "TYPE", "NAME", "ENABLED",
 					"IS_DEFAULT_BOOLEAN"},
-				groupCommon))
+					groupCommon))
 				cli.OutputHuman("\n")
 				//cli.OutputHuman(buildResourceGroupPropsTable(group))
 			} else {
@@ -191,6 +191,7 @@ Then navigate to Settings > Resource Groups.
 		},
 	}
 )
+
 func promptCreateResourceGroup() error {
 
 	resourceGroupOptions := []string{
@@ -279,16 +280,16 @@ func promptCreateResourceGroup() error {
 //	return details
 //}
 
-func setBaseProps(props api.ResourceGroupProps) [][]string {
-	var (
-		details [][]string
-	)
-	lastUpdated := props.GetBaseProps().LastUpdated
-	details = append(details, []string{"DESCRIPTION", props.GetBaseProps().Description})
-	details = append(details, []string{"UPDATED BY", props.GetBaseProps().UpdatedBy})
-	details = append(details, []string{"LAST UPDATED", lastUpdated.String()})
-	return details
-}
+//func setBaseProps(props api.ResourceGroupProps) [][]string {
+//	var (
+//		details [][]string
+//	)
+//	lastUpdated := props.GetBaseProps().LastUpdated
+//	details = append(details, []string{"DESCRIPTION", props.GetBaseProps().Description})
+//	details = append(details, []string{"UPDATED BY", props.GetBaseProps().UpdatedBy})
+//	details = append(details, []string{"LAST UPDATED", lastUpdated.String()})
+//	return details
+//}
 
 func init() {
 	// add the resource-group command
@@ -309,14 +310,14 @@ func IsDefault(isDefault int) string {
 }
 
 type resourceGroup struct {
-	Id          		string                 			`json:"resource_guid"`
-	ResType     		string                 			`json:"type"`
-	Name        		string                 			`json:"name"`
-	Props       		api.ResourceGroupProps 			`json:"props"`
-	Enabled     		int                    			`json:"enabled"`
-	IsDefaultBoolean   	bool                    		`json:"isDefault"`
-	Query       		*api.RGQuery           			`json:"query"`
-	Description 		string                 			`json:"description,omitempty"`
-	UpdatedTime 		*time.Time             			`json:"updatedTime,omitempty"`
-	UpdatedBy   		string                 			`json:"updatedBy,omitempty"`
+	Id               string                 `json:"resource_guid"`
+	ResType          string                 `json:"type"`
+	Name             string                 `json:"name"`
+	Props            api.ResourceGroupProps `json:"props"`
+	Enabled          int                    `json:"enabled"`
+	IsDefaultBoolean bool                   `json:"isDefault"`
+	Query            *api.RGQuery           `json:"query"`
+	Description      string                 `json:"description,omitempty"`
+	UpdatedTime      *time.Time             `json:"updatedTime,omitempty"`
+	UpdatedBy        string                 `json:"updatedBy,omitempty"`
 }

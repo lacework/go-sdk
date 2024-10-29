@@ -93,13 +93,13 @@ type resourceGroupContext struct {
 
 // ResourceGroupTypes is the list of available Resource Group types
 var ResourceGroupTypes = map[resourceGroupType]resourceGroupContext{
-	NoneResourceGroup:      {resourceGroupType: "None", queryTemplate: NoneResourceGroupQueryTemplate},
-	AwsResourceGroup:       {resourceGroupType: "AWS", queryTemplate: AwsResourceGroupQueryTemplate},
-	AzureResourceGroup:     {resourceGroupType: "AZURE", queryTemplate: AzureResourceGroupQueryTemplate},
-	ContainerResourceGroup: {resourceGroupType: "CONTAINER", queryTemplate: ContainerResourceGroupQueryTemplate},
-	GcpResourceGroup:       {resourceGroupType: "GCP", queryTemplate: GcpResourceGroupQueryTemplate},
-	MachineResourceGroup:   {resourceGroupType: "MACHINE", queryTemplate: MachineResourceGroupQueryTemplate},
-	OciResourceGroup:       {resourceGroupType: "OCI", queryTemplate: OciResourceGroupQueryTemplate},
+	NoneResourceGroup:       {resourceGroupType: "None", queryTemplate: NoneResourceGroupQueryTemplate},
+	AwsResourceGroup:        {resourceGroupType: "AWS", queryTemplate: AwsResourceGroupQueryTemplate},
+	AzureResourceGroup:      {resourceGroupType: "AZURE", queryTemplate: AzureResourceGroupQueryTemplate},
+	ContainerResourceGroup:  {resourceGroupType: "CONTAINER", queryTemplate: ContainerResourceGroupQueryTemplate},
+	GcpResourceGroup:        {resourceGroupType: "GCP", queryTemplate: GcpResourceGroupQueryTemplate},
+	MachineResourceGroup:    {resourceGroupType: "MACHINE", queryTemplate: MachineResourceGroupQueryTemplate},
+	OciResourceGroup:        {resourceGroupType: "OCI", queryTemplate: OciResourceGroupQueryTemplate},
 	KubernetesResourceGroup: {resourceGroupType: "KUBERNETES", queryTemplate: KubernetesResourceGroupQueryTemplate},
 }
 
@@ -182,12 +182,12 @@ func (svc *ResourceGroupsService) Update(data ResourceGroup) (
 func castResourceGroupResponse(data resourceGroupWorkaroundData, response interface{}) error {
 	group := ResourceGroupResponse{
 		Data: ResourceGroupData{
-			IsDefaultBoolean:    data.IsDefaultBoolean,
+			IsDefaultBoolean:  data.IsDefaultBoolean,
 			ResourceGroupGuid: data.ResourceGroupGuid,
-			Name:         data.Name,
-			Type:         data.Type,
-			Enabled:      data.Enabled,
-			Query:        data.Query,
+			Name:              data.Name,
+			Type:              data.Type,
+			Enabled:           data.Enabled,
+			Query:             data.Query,
 		},
 	}
 
@@ -219,19 +219,7 @@ func setResourceGroupsResponse(workaround resourceGroupsWorkaroundResponse) (Res
 func setResourceGroupResponse(response resourceGroupWorkaroundData) (ResourceGroupResponse,
 	error) {
 	return ResourceGroupResponse{
-		Data: ResourceGroupData{
-			Type:              response.Type,
-			Enabled:           response.Enabled,
-			Name:              response.Name,
-			Query:             response.Query,
-			Description:       response.Description,
-			ResourceGroupGuid: response.ResourceGroupGuid,
-			CreatedTime:       response.CreatedTime,
-			CreatedBy:         response.CreatedBy,
-			UpdatedTime:       response.UpdatedTime,
-			UpdatedBy:         response.UpdatedBy,
-			IsDefaultBoolean:  response.IsDefaultBoolean,
-		},
+		Data: ResourceGroupData(response),
 	}, nil
 }
 
@@ -331,8 +319,8 @@ type ResourceGroupData struct {
 	UpdatedTime       *time.Time `json:"updatedTime,omitempty"`
 	UpdatedBy         string     `json:"updatedBy,omitempty"`
 	IsDefaultBoolean  *bool      `json:"isDefaultBoolean,omitempty"`
-	Type         	  string      `json:"resourceType"`
-	Enabled      	  int         `json:"enabled"`
+	Type              string     `json:"resourceType"`
+	Enabled           int        `json:"enabled"`
 }
 
 // RAIN-21510 workaround
@@ -345,7 +333,7 @@ type resourceGroupsWorkaroundResponse struct {
 }
 
 type resourceGroupWorkaroundData struct {
-	Name           string     `json:"name,omitempty"`
+	Name              string     `json:"name,omitempty"`
 	Query             *RGQuery   `json:"query,omitempty"`
 	Description       string     `json:"description,omitempty"`
 	ResourceGroupGuid string     `json:"resourceGroupGuid,omitempty"`
@@ -354,6 +342,6 @@ type resourceGroupWorkaroundData struct {
 	UpdatedTime       *time.Time `json:"updatedTime,omitempty"`
 	UpdatedBy         string     `json:"updatedBy,omitempty"`
 	IsDefaultBoolean  *bool      `json:"isDefaultBoolean,omitempty"`
-	Type         string      `json:"resourceType"`
-	Enabled      int         `json:"enabled,omitempty"`
+	Type              string     `json:"resourceType"`
+	Enabled           int        `json:"enabled,omitempty"`
 }
