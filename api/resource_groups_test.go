@@ -38,7 +38,6 @@ func TestResourceGroupTypes(t *testing.T) {
 	assert.Equal(t, "CONTAINER", api.ContainerResourceGroup.String(), "wrong resource group type")
 	assert.Equal(t, "GCP", api.GcpResourceGroup.String(), "wrong resource group type")
 	assert.Equal(t, "MACHINE", api.MachineResourceGroup.String(), "wrong resource group type")
-	assert.Equal(t, "LW_ACCOUNT", api.LwAccountResourceGroup.String(), "wrong resource group type")
 }
 
 func TestFindResourceGroupType(t *testing.T) {
@@ -67,9 +66,9 @@ func TestFindResourceGroupType(t *testing.T) {
 	assert.True(t, found, "resource group type should exist")
 	assert.Equal(t, "MACHINE", groupFound.String(), "wrong resource group type")
 
-	groupFound, found = api.FindResourceGroupType("LW_ACCOUNT")
+	groupFound, found = api.FindResourceGroupType("KUBERNETES")
 	assert.True(t, found, "resource group type should exist")
-	assert.Equal(t, "LW_ACCOUNT", groupFound.String(), "wrong resource group type")
+	assert.Equal(t, "KUBERNETES", groupFound.String(), "wrong resource group type")
 }
 
 func TestResourceGroupGet(t *testing.T) {
@@ -612,7 +611,6 @@ func singleVanillaResourceGroup(id string, iType string, query string) string {
 	}
 	return `
 	{
-        "guid": "` + id + `",
         "isDefaultBoolean": "true",
         "query": ` + query + `,
         "resourceGroupGuid": "` + id + `",
