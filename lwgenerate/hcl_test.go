@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
-	"github.com/lacework/go-sdk/lwgenerate"
+	"github.com/lacework/go-sdk/v2/lwgenerate"
 	"github.com/stretchr/testify/assert"
 )
 

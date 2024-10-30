@@ -16,8 +16,8 @@ go install gotest.tools/gotestsum@v1.7.0
 Write-Host "Building Lacework CLI binaries."
 $env:GOFLAGS = '-mod=vendor'
 $env:CGO_ENABLED = 0
-gox -output="bin/lacework-cli-{{.OS}}-{{.Arch}}" -os="windows" -arch="amd64 386" github.com/lacework/go-sdk/cli
+gox -output="bin/lacework-cli-{{.OS}}-{{.Arch}}" -os="windows" -arch="amd64 386" github.com/lacework/go-sdk/v2/cli
 
 Write-Host "Running integrations tests."
 $env:Path += ";$pwd\bin"
-gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="account vulnerability agent_token alert_rules compliance configure event help integration migration policy query version generation"
+gotestsum -- -v github.com/lacework/go-sdk/v2/integration -timeout 30m -tags="account vulnerability agent_token alert_rules compliance configure event help integration migration policy query version generation"

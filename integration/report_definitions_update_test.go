@@ -28,8 +28,8 @@ import (
 	"time"
 
 	"github.com/Netflix/go-expect"
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/cli/cmd"
+	"github.com/lacework/go-sdk/v2/api"
+	"github.com/lacework/go-sdk/v2/cli/cmd"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 )

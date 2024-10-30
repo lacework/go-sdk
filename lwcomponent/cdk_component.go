@@ -9,7 +9,7 @@ import (
 
 	"github.com/Masterminds/semver"
 	"github.com/fatih/color"
-	"github.com/lacework/go-sdk/internal/file"
+	"github.com/lacework/go-sdk/v2/internal/file"
 	"github.com/pkg/errors"
 )
 

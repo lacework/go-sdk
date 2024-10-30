@@ -32,7 +32,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/internal/cache"
+	"github.com/lacework/go-sdk/v2/internal/cache"
 )
 
 var (

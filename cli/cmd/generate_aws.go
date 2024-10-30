@@ -11,8 +11,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/lacework/go-sdk/internal/format"
-	"github.com/lacework/go-sdk/lwgenerate/aws"
+	"github.com/lacework/go-sdk/v2/internal/format"
+	"github.com/lacework/go-sdk/v2/lwgenerate/aws"
 	"github.com/pkg/errors"
 )
 

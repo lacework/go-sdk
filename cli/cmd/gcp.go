@@ -24,9 +24,9 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/compute/metadata"
-	instances "github.com/lacework/go-sdk/lwcloud/gcp/resources/instances"
-	resources "github.com/lacework/go-sdk/lwcloud/gcp/resources/models"
-	"github.com/lacework/go-sdk/lwrunner"
+	instances "github.com/lacework/go-sdk/v2/lwcloud/gcp/resources/instances"
+	resources "github.com/lacework/go-sdk/v2/lwcloud/gcp/resources/models"
+	"github.com/lacework/go-sdk/v2/lwrunner"
 )
 
 // gcpDescribeInstancesInProject takes a GCP project ID and the username of an IAM username in the

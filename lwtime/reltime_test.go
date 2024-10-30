@@ -23,7 +23,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lacework/go-sdk/lwtime"
+	"github.com/lacework/go-sdk/v2/lwtime"
 	"github.com/stretchr/testify/assert"
 )
 

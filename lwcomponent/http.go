@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/lacework/go-sdk/lwlogger"
+	"github.com/lacework/go-sdk/v2/lwlogger"
 )
 
 const (

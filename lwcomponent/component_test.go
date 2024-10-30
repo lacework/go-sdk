@@ -33,10 +33,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/api"
-	capturer "github.com/lacework/go-sdk/internal/capturer"
-	"github.com/lacework/go-sdk/internal/lacework"
-	"github.com/lacework/go-sdk/lwcomponent"
+	"github.com/lacework/go-sdk/v2/api"
+	capturer "github.com/lacework/go-sdk/v2/internal/capturer"
+	"github.com/lacework/go-sdk/v2/internal/lacework"
+	"github.com/lacework/go-sdk/v2/lwcomponent"
 	homedir "github.com/mitchellh/go-homedir"
 )
 

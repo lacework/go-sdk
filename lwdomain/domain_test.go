@@ -24,7 +24,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	subject "github.com/lacework/go-sdk/lwdomain"
+	subject "github.com/lacework/go-sdk/v2/lwdomain"
 )
 
 func TestDomains(t *testing.T) {

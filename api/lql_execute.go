@@ -25,7 +25,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/lacework/go-sdk/lwtime"
+	"github.com/lacework/go-sdk/v2/lwtime"
 	"github.com/pkg/errors"
 )
 

@@ -6,12 +6,12 @@ A Golang API client for interacting with [Lacework APIs](https://docs.lacework.n
 
 Download the library into your `$GOPATH`:
 
-    $ go get github.com/lacework/go-sdk/api
+    $ go get github.com/lacework/go-sdk/v2/api
 
 Import the library into your tool:
 
 ```go
-import "github.com/lacework/go-sdk/api"
+import "github.com/lacework/go-sdk/v2/api"
 ```
 
 ## Requirements
@@ -33,7 +33,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/v2/api"
 )
 
 func main() {

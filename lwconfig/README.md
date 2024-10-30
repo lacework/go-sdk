@@ -6,12 +6,12 @@ A Go library to manage the Lacework configuration file (`$HOME/.lacework.toml`)
 
 Download the library into your `$GOPATH`:
 
-    $ go get github.com/lacework/go-sdk/lwconfig
+    $ go get github.com/lacework/go-sdk/v2/lwconfig
 
 Import the library into your tool:
 
 ```go
-import "github.com/lacework/go-sdk/lwconfig"
+import "github.com/lacework/go-sdk/v2/lwconfig"
 ```
 
 ## Examples
@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lacework/go-sdk/lwconfig"
+	"github.com/lacework/go-sdk/v2/lwconfig"
 )
 
 func main() {

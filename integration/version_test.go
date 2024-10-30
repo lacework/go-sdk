@@ -29,7 +29,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/lwupdater"
+	"github.com/lacework/go-sdk/v2/lwupdater"
 )
 
 // To test the daily version check we need to set the environment

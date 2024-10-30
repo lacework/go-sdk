@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/v2/api"
 	"github.com/stretchr/testify/assert"
 )
 

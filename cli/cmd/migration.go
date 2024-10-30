@@ -28,9 +28,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
-	"github.com/lacework/go-sdk/internal/cache"
-	"github.com/lacework/go-sdk/internal/file"
-	"github.com/lacework/go-sdk/lwconfig"
+	"github.com/lacework/go-sdk/v2/internal/cache"
+	"github.com/lacework/go-sdk/v2/internal/file"
+	"github.com/lacework/go-sdk/v2/lwconfig"
 )
 
 // The name of the directory we will store backups of configuration files before migrating them

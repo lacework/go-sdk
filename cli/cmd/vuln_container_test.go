@@ -27,8 +27,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/capturer"
+	"github.com/lacework/go-sdk/v2/api"
+	"github.com/lacework/go-sdk/v2/internal/capturer"
 )
 
 func TestUserFriendlyErrorFromOnDemandCtrVulnScanRepositoryNotFound(t *testing.T) {

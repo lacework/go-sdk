@@ -28,7 +28,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/lacework/go-sdk/internal/file"
+	"github.com/lacework/go-sdk/v2/internal/file"
 	homedir "github.com/mitchellh/go-homedir"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"

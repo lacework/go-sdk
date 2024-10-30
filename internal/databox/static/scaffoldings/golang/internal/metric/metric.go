@@ -7,7 +7,7 @@ import (
 	"[[.Component]]/internal/logger"
 	"[[.Component]]/internal/version"
 
-	cdk "github.com/lacework/go-sdk/cli/cdk/go/proto/v1"
+	cdk "github.com/lacework/go-sdk/v2/cli/cdk/go/proto/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

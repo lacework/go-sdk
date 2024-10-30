@@ -27,8 +27,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 
-	"github.com/lacework/go-sdk/internal/capturer"
-	"github.com/lacework/go-sdk/lwlogger"
+	"github.com/lacework/go-sdk/v2/internal/capturer"
+	"github.com/lacework/go-sdk/v2/lwlogger"
 )
 
 func TestLoggerNew(t *testing.T) {

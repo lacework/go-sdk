@@ -25,7 +25,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	subject "github.com/lacework/go-sdk/api"
+	subject "github.com/lacework/go-sdk/v2/api"
 )
 
 func TestVersionMatchVERSIONfile(t *testing.T) {

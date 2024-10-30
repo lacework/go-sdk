@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/aws/smithy-go/ptr"
-	"github.com/lacework/go-sdk/internal/pointer"
+	"github.com/lacework/go-sdk/v2/internal/pointer"
 	"github.com/stretchr/testify/assert"
 )
 

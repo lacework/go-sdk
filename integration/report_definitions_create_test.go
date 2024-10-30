@@ -27,7 +27,7 @@ import (
 	"testing"
 
 	"github.com/Netflix/go-expect"
-	"github.com/lacework/go-sdk/cli/cmd"
+	"github.com/lacework/go-sdk/v2/cli/cmd"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )

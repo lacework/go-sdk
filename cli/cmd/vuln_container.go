@@ -19,7 +19,7 @@
 package cmd
 
 import (
-	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/v2/internal/array"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 )

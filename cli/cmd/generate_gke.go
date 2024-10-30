@@ -3,7 +3,7 @@ package cmd
 import (
 	"time"
 
-	"github.com/lacework/go-sdk/lwgenerate/gcp"
+	"github.com/lacework/go-sdk/v2/lwgenerate/gcp"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/imdario/mergo"

@@ -26,8 +26,8 @@ import (
 	"sync"
 
 	"github.com/honeycombio/libhoney-go"
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/lwdomain"
+	"github.com/lacework/go-sdk/v2/api"
+	"github.com/lacework/go-sdk/v2/lwdomain"
 )
 
 var (

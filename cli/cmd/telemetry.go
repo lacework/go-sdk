@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	cdk "github.com/lacework/go-sdk/cli/cdk/go/proto/v1"
+	cdk "github.com/lacework/go-sdk/v2/cli/cdk/go/proto/v1"
 )
 
 var (

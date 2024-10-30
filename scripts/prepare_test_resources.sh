@@ -33,7 +33,7 @@ go_component() {
             -os="linux windows" \
             -arch="amd64 386" \
             -osarch="darwin/amd64 darwin/arm64 linux/arm linux/arm64" \
-            github.com/lacework/go-sdk/integration/test_resources/cdk/go-component
+            github.com/lacework/go-sdk/v2/integration/test_resources/cdk/go-component
 }
 
 

@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/lwseverity"
+	"github.com/lacework/go-sdk/v2/api"
+	"github.com/lacework/go-sdk/v2/lwseverity"
 )
 
 func main() {

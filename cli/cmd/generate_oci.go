@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/lacework/go-sdk/internal/validate"
-	"github.com/lacework/go-sdk/lwgenerate/oci"
+	"github.com/lacework/go-sdk/v2/internal/validate"
+	"github.com/lacework/go-sdk/v2/lwgenerate/oci"
 	"github.com/pkg/errors"
 )
 

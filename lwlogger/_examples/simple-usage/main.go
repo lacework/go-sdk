@@ -1,6 +1,6 @@
 package main
 
-import "github.com/lacework/go-sdk/lwlogger"
+import "github.com/lacework/go-sdk/v2/lwlogger"
 
 func main() {
 	lwL := lwlogger.New("INFO")

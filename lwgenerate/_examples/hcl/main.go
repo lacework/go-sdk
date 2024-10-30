@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lacework/go-sdk/lwgenerate"
+	"github.com/lacework/go-sdk/v2/lwgenerate"
 )
 
 func exampleModule() {
