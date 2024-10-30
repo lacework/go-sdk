@@ -131,24 +131,12 @@ Then navigate to Settings > Resource Groups.
 
 			var groupCommon [][]string
 
-			if group.Props != nil {
-				groupCommon = append(groupCommon,
-					[]string{group.Id, group.ResType, group.Name, strconv.Itoa(group.Enabled),
-						strconv.FormatBool(group.IsDefaultBoolean)},
-				)
-				cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GROUP GUID", "TYPE", "NAME", "ENABLED",
-					"IS_DEFAULT_BOOLEAN"},
-					groupCommon))
-				cli.OutputHuman("\n")
-				//cli.OutputHuman(buildResourceGroupPropsTable(group))
-			} else {
-				groupCommon = append(groupCommon,
-					[]string{group.Id, group.ResType, group.Name, group.Description, strconv.Itoa(group.Enabled),
-						strconv.FormatBool(group.IsDefaultBoolean), group.UpdatedBy, group.UpdatedTime.UTC().String()},
-				)
-				cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GROUP ID", "TYPE", "NAME", "DESCRIPTION", "STATE",
-					"DEFAULT", "UPDATED BY", "UPDATED_TIME"}, groupCommon))
-			}
+			groupCommon = append(groupCommon,
+				[]string{group.Id, group.ResType, group.Name, group.Description, strconv.Itoa(group.Enabled),
+					strconv.FormatBool(group.IsDefaultBoolean), group.UpdatedBy, group.UpdatedTime.UTC().String()},
+			)
+			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GROUP ID", "TYPE", "NAME", "DESCRIPTION", "STATE",
+				"DEFAULT", "UPDATED BY", "UPDATED_TIME"}, groupCommon))
 
 			return nil
 		},
@@ -310,14 +298,13 @@ func IsDefault(isDefault int) string {
 }
 
 type resourceGroup struct {
-	Id               string                 `json:"resource_guid"`
-	ResType          string                 `json:"type"`
-	Name             string                 `json:"name"`
-	Props            api.ResourceGroupProps `json:"props"`
-	Enabled          int                    `json:"enabled"`
-	IsDefaultBoolean bool                   `json:"isDefault"`
-	Query            *api.RGQuery           `json:"query"`
-	Description      string                 `json:"description,omitempty"`
-	UpdatedTime      *time.Time             `json:"updatedTime,omitempty"`
-	UpdatedBy        string                 `json:"updatedBy,omitempty"`
+	Id               string       `json:"resourceGroupGuid"`
+	ResType          string       `json:"type"`
+	Name             string       `json:"name"`
+	Enabled          int          `json:"enabled"`
+	IsDefaultBoolean bool         `json:"isDefault"`
+	Query            *api.RGQuery `json:"query"`
+	Description      string       `json:"description,omitempty"`
+	UpdatedTime      *time.Time   `json:"updatedTime,omitempty"`
+	UpdatedBy        string       `json:"updatedBy,omitempty"`
 }
