@@ -29,10 +29,10 @@ func (svc *ResourceGroupsV2Service) List() (response ResourceGroupsV2Response, e
 	var rawResponse ResourceGroupsV2Response
 	err = svc.client.RequestDecoder("GET", apiV2ResourceGroups, nil, &rawResponse)
 	if err != nil {
-		return
+		return rawResponse, err
 	}
 
-	return
+	return rawResponse, nil
 }
 
 func (svc *ResourceGroupsV2Service) Create(group ResourceGroupDataWithQuery) (
@@ -171,7 +171,6 @@ func (group ResourceGroupDataWithQuery) ResourceGroupType() resourceGroupType {
 func (group ResourceGroupDataWithQuery) ID() string {
 	return group.ResourceGroupGuid
 }
-
 
 func (group *ResourceGroupDataWithQuery) ResetResourceGUID() {
 	group.ResourceGroupGuid = ""

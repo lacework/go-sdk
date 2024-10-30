@@ -267,13 +267,13 @@ func singleAwsResourceGroup(id string) string {
 	return `
 	{
         "guid": "` + id + `",
-		"description": "All Aws Resources"
+		"description": "All Aws Resources",
         "isDefaultBoolean": true,
         "resourceGroupGuid": "` + id + `",
         "resourceName": "group_name",
         "resourceType": "AWS",
         "enabled": 1,
-		"query": "{
+		"query": {
 			  "filters": {
 				  "filter1": {
 					  "field": "AWS_ACCOUNT_ID",
@@ -322,7 +322,7 @@ func singleAwsResourceGroup(id string) string {
 					  }
 				  ]
 			  }
-		  }"
+		  }
 	}
 	`
 }
@@ -332,13 +332,13 @@ func singleAzureResourceGroup(id string) string {
 	return `
 	{
         "guid": "` + id + `",
-		"description": "All Azure Resources"
+		"description": "All Azure Resources",
         "isDefaultBoolean": true,
         "resourceGroupGuid": "` + id + `",
         "resourceName": "group_name",
         "resourceType": "AZURE",
         "enabled": 1,
-		"query": "{
+		"query": {
 			  "filters": {
 				  "filter1": {
 					  "field": "AZURE_TENANT_ID",
@@ -407,7 +407,7 @@ func singleAzureResourceGroup(id string) string {
 					  }
 				  ]
 			  }
-		  }"
+		  }
 	}
 	`
 }
@@ -416,13 +416,13 @@ func singleContainerResourceGroup(id string) string {
 	return `
 	{
         "guid": "` + id + `",
-		"description": "All Container Resources"
+		"description": "All Container Resources",
         "isDefaultBoolean": true,
         "resourceGroupGuid": "` + id + `",
         "resourceName": "group_name",
         "resourceType": "CONTAINER",
         "enabled": 1,
-		"query": "{
+		"query": {
 			  "filters": {
 				  "filter1": {
 					  "field": "IMAGE_TAG",
@@ -471,7 +471,7 @@ func singleContainerResourceGroup(id string) string {
 					  }
 				  ]
 			  }
-		  }"
+		  }
 	}
 	`
 }
@@ -480,13 +480,13 @@ func singleGcpResourceGroup(id string) string {
 	return `
 	{
         "guid": "` + id + `",
-		"description": "All GCP Resources"
+		"description": "All GCP Resources",
         "isDefaultBoolean": true,
         "resourceGroupGuid": "` + id + `",
         "resourceName": "group_name",
         "resourceType": "GCP",
         "enabled": 1,
-		"query": "{
+		"query": {
                           "filters": {
                               "filter1": {
                                   "field": "GCP_ORGANIZATION_ID",
@@ -555,7 +555,7 @@ func singleGcpResourceGroup(id string) string {
                                   }
                               ]
                           }
-                      }"
+                      }
 	}
 	`
 }
@@ -564,13 +564,13 @@ func singleMachineResourceGroup(id string) string {
 	return `
 	{
         "guid": "` + id + `",
-		"description": "All Machine Resources"
+		"description": "All Machine Resources",
         "isDefaultBoolean": true,
         "resourceGroupGuid": "` + id + `",
         "resourceName": "group_name",
         "resourceType": "MACHINE",
         "enabled": 1,
-		"query": "{
+		"query": {
                           "filters": {
                               "filter1": {
                                   "field": "MACHINE_TAGS",
@@ -584,7 +584,7 @@ func singleMachineResourceGroup(id string) string {
                           "expression": {
                               "filterName": "filter1"
                           }
-                      }"
+                      }
 	}
 	`
 }
@@ -611,12 +611,12 @@ func singleVanillaResourceGroup(id string, iType string, query string) string {
 	}
 	return `
 	{
-        "isDefaultBoolean": "true",
+        "isDefaultBoolean": true,
         "query": ` + query + `,
         "resourceGroupGuid": "` + id + `",
         "name": "group_name",
         "resourceType": "` + iType + `",
-        "enabled": 1,
+        "enabled": 1
 	}
 	`
 }
