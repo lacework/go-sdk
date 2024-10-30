@@ -6,12 +6,12 @@ A simple relative and natural time package.
 
 Download the library into your `$GOPATH`:
 
-    $ go get github.com/lacework/go-sdk/lwtime
+    $ go get github.com/lacework/go-sdk/v2/lwtime
 
 Import the library:
 
 ```go
-import "github.com/lacework/go-sdk/lwtime"
+import "github.com/lacework/go-sdk/v2/lwtime"
 ```
 
 ## Relative Time Specifiers
@@ -26,7 +26,7 @@ import (
 	"fmt"
     "os"
 
-	"github.com/lacework/go-sdk/lwtime"
+	"github.com/lacework/go-sdk/v2/lwtime"
 )
 
 func main() {
@@ -77,7 +77,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lacework/go-sdk/lwtime"
+	"github.com/lacework/go-sdk/v2/lwtime"
 )
 
 func main() {

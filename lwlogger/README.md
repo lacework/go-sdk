@@ -6,12 +6,12 @@ A wrapper Logger Go package for Lacework projects based of [zap](https://github.
 
 Download the library into your `$GOPATH`:
 
-    $ go get github.com/lacework/go-sdk/lwlogger
+    $ go get github.com/lacework/go-sdk/v2/lwlogger
 
 Import the library into your tool:
 
 ```go
-import "github.com/lacework/go-sdk/lwlogger"
+import "github.com/lacework/go-sdk/v2/lwlogger"
 ```
 
 ## Environment Variables
@@ -32,7 +32,7 @@ displayed:
 ```go
 package main
 
-import "github.com/lacework/go-sdk/lwlogger"
+import "github.com/lacework/go-sdk/v2/lwlogger"
 
 func main() {
 	lwL := lwlogger.New("INFO")

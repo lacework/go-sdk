@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	capturer "github.com/lacework/go-sdk/internal/capturer"
-	"github.com/lacework/go-sdk/lwlogger"
+	capturer "github.com/lacework/go-sdk/v2/internal/capturer"
+	"github.com/lacework/go-sdk/v2/lwlogger"
 )
 
 func TestDownloadFile(t *testing.T) {

@@ -40,8 +40,8 @@ import (
 
 	"github.com/Netflix/go-expect"
 	"github.com/hinshun/vt10x"
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/lwupdater"
+	"github.com/lacework/go-sdk/v2/api"
+	"github.com/lacework/go-sdk/v2/lwupdater"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -244,7 +244,7 @@ ERROR
   Missing CI environment variables.
 
   To run the integration tests you need to setup a few environment variables, look
-  at https://github.com/lacework/go-sdk/tree/main/cli#integration-tests for
+  at https://github.com/lacework/go-sdk/v2/tree/main/cli#integration-tests for
   more information.
 
 `

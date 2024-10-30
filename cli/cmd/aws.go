@@ -27,7 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/gammazero/workerpool"
-	"github.com/lacework/go-sdk/lwrunner"
+	"github.com/lacework/go-sdk/v2/lwrunner"
 )
 
 func awsDescribeInstances(filterSSH bool) ([]*lwrunner.AWSRunner, error) {

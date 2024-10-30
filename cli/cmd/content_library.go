@@ -23,7 +23,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/lacework/go-sdk/lwcomponent"
+	"github.com/lacework/go-sdk/v2/lwcomponent"
 )
 
 const (

@@ -21,7 +21,7 @@ package cmd
 import (
 	"github.com/AlecAivazis/survey/v2"
 
-	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/v2/api"
 )
 
 func createAwsGovCloudConfigIntegration() error {

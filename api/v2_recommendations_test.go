@@ -23,11 +23,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/lacework/go-sdk/internal/lacework"
+	"github.com/lacework/go-sdk/v2/internal/lacework"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/v2/api"
 )
 
 func TestRecommendationsAwsList(t *testing.T) {

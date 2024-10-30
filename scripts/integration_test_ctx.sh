@@ -23,7 +23,7 @@ run_integration_tests(){
 
   # Run integration tests matching build tags
   log "Running tests with tags ${TAGS}"
-  PATH="${PWD}/bin:${PATH}" gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="${TAGS}"
+  PATH="${PWD}/bin:${PATH}" gotestsum -- -v github.com/lacework/go-sdk/v2/integration -timeout 30m -tags="${TAGS}"
 }
 
 log() {

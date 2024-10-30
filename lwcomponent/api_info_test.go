@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/Masterminds/semver"
-	"github.com/lacework/go-sdk/lwcomponent"
+	"github.com/lacework/go-sdk/v2/lwcomponent"
 	"github.com/stretchr/testify/assert"
 )
 

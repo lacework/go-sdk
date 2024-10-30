@@ -22,11 +22,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/lacework/go-sdk/lwseverity"
+	"github.com/lacework/go-sdk/v2/lwseverity"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/v2/api"
 )
 
 var (

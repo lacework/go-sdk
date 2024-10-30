@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/v2/api"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 )

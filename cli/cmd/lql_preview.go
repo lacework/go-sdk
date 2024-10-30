@@ -25,8 +25,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/lwtime"
+	"github.com/lacework/go-sdk/v2/api"
+	"github.com/lacework/go-sdk/v2/lwtime"
 )
 
 var (

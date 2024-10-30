@@ -23,7 +23,7 @@ import (
 	"fmt"
 
 	resourcemanager "cloud.google.com/go/resourcemanager/apiv3"
-	"github.com/lacework/go-sdk/lwcloud/gcp/helpers"
+	"github.com/lacework/go-sdk/v2/lwcloud/gcp/helpers"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 

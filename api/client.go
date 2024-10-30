@@ -30,7 +30,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	"github.com/lacework/go-sdk/lwdomain"
+	"github.com/lacework/go-sdk/v2/lwdomain"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )

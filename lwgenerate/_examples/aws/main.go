@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lacework/go-sdk/lwgenerate/aws"
+	"github.com/lacework/go-sdk/v2/lwgenerate/aws"
 )
 
 func basic() {

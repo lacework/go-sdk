@@ -23,9 +23,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/lacework/go-sdk/api"
-	componentCDKClient "github.com/lacework/go-sdk/cli/cdk/client/go"
-	"github.com/lacework/go-sdk/lwlogger"
+	"github.com/lacework/go-sdk/v2/api"
+	componentCDKClient "github.com/lacework/go-sdk/v2/cli/cdk/client/go"
+	"github.com/lacework/go-sdk/v2/lwlogger"
 	"github.com/pkg/errors"
 )
 

@@ -18,7 +18,7 @@
 
 package api
 
-import "github.com/lacework/go-sdk/lwdomain"
+import "github.com/lacework/go-sdk/v2/lwdomain"
 
 // OrganizationInfoService is the service that interacts with
 // the OrganizationInfo schema from the Lacework APIv2 Server

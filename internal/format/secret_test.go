@@ -23,7 +23,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/internal/format"
+	"github.com/lacework/go-sdk/v2/internal/format"
 )
 
 func TestSecret(t *testing.T) {

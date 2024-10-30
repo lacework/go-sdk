@@ -27,7 +27,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/lwupdater"
+	"github.com/lacework/go-sdk/v2/lwupdater"
 )
 
 func TestCheckErrorEmptyProject(t *testing.T) {

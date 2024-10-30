@@ -31,7 +31,7 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/lacework/go-sdk/lwrunner"
+	"github.com/lacework/go-sdk/v2/lwrunner"
 )
 
 // Official download url for installing Lacework agents

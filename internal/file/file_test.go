@@ -23,7 +23,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/lacework/go-sdk/internal/file"
+	"github.com/lacework/go-sdk/v2/internal/file"
 	"github.com/stretchr/testify/assert"
 )
 

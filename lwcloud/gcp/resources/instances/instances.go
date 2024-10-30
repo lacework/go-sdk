@@ -26,10 +26,10 @@ import (
 	"strings"
 	"time"
 
-	helpers "github.com/lacework/go-sdk/lwcloud/gcp/helpers"
-	projects "github.com/lacework/go-sdk/lwcloud/gcp/resources/projects"
+	helpers "github.com/lacework/go-sdk/v2/lwcloud/gcp/helpers"
+	projects "github.com/lacework/go-sdk/v2/lwcloud/gcp/resources/projects"
 
-	models "github.com/lacework/go-sdk/lwcloud/gcp/resources/models"
+	models "github.com/lacework/go-sdk/v2/lwcloud/gcp/resources/models"
 
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"

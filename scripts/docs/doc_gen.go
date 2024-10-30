@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/lacework/go-sdk/cli/cmd"
+	"github.com/lacework/go-sdk/v2/cli/cmd"
 )
 
 //

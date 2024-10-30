@@ -19,10 +19,10 @@ PACKAGENAME?=lacework-cli
 CLINAME?=lacework
 # Honeycomb variables
 HONEYDATASET?=lacework-cli-dev
-GO_LDFLAGS="-X github.com/lacework/go-sdk/cli/cmd.Version=$(shell cat VERSION) \
-            -X github.com/lacework/go-sdk/cli/cmd.GitSHA=$(shell git rev-parse HEAD) \
-            -X github.com/lacework/go-sdk/cli/cmd.HoneyDataset=$(HONEYDATASET) \
-            -X github.com/lacework/go-sdk/cli/cmd.BuildTime=$(shell date +%Y%m%d%H%M%S)"
+GO_LDFLAGS="-X github.com/lacework/go-sdk/v2/cli/cmd.Version=$(shell cat VERSION) \
+            -X github.com/lacework/go-sdk/v2/cli/cmd.GitSHA=$(shell git rev-parse HEAD) \
+            -X github.com/lacework/go-sdk/v2/cli/cmd.HoneyDataset=$(HONEYDATASET) \
+            -X github.com/lacework/go-sdk/v2/cli/cmd.BuildTime=$(shell date +%Y%m%d%H%M%S)"
 GOFLAGS=-mod=vendor
 CGO_ENABLED?=0
 export GOFLAGS GO_LDFLAGS CGO_ENABLED
@@ -81,12 +81,12 @@ integration-context-tests: install-tools ## Run integration tests with build tag
 
 .PHONY: integration-generation-only
 integration-generation-only: ## Run integration tests
-	PATH="$(PWD)/bin:${PATH}" go test -v github.com/lacework/go-sdk/integration -timeout 30m -run "^TestGeneration" -tags="generation"
+	PATH="$(PWD)/bin:${PATH}" go test -v github.com/lacework/go-sdk/v2/integration -timeout 30m -run "^TestGeneration" -tags="generation"
 
 .PHONY: integration-only
 integration-only: install-tools ## Run integration tests
-	PATH="$(PWD)/bin:${PATH}" gotestsum -f testname  --rerun-fails=3 --packages="github.com/lacework/go-sdk/integration" \
-		-- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="$(INTEGRATION_TEST_TAGS)" -run=$(regex)
+	PATH="$(PWD)/bin:${PATH}" gotestsum -f testname  --rerun-fails=3 --packages="github.com/lacework/go-sdk/v2/integration" \
+		-- -v github.com/lacework/go-sdk/v2/integration -timeout 30m -tags="$(INTEGRATION_TEST_TAGS)" -run=$(regex)
 
 .PHONY: integration-only-subset
 integration-only-subset: install-tools ## Run a subset of integration tests
@@ -94,8 +94,8 @@ integration-only-subset: install-tools ## Run a subset of integration tests
 	$(eval END := $(shell echo 5+$(index)*5 | bc))
 	$(eval LENGTH := ${words $(INTEGRATION_TEST_TAGS)})
 	if [ ${START} -le ${LENGTH} ]; then \
-		PATH="$(PWD)/bin:${PATH}" gotestsum -f testname  --rerun-fails=3 --packages="github.com/lacework/go-sdk/integration" \
-			-- -v github.com/lacework/go-sdk/integration -timeout 30m \
+		PATH="$(PWD)/bin:${PATH}" gotestsum -f testname  --rerun-fails=3 --packages="github.com/lacework/go-sdk/v2/integration" \
+			-- -v github.com/lacework/go-sdk/v2/integration -timeout 30m \
 			-tags="${wordlist $(START), $(END), $(INTEGRATION_TEST_TAGS)}" -run=$(regex) \
 		exit 1; \
 	fi
@@ -105,14 +105,14 @@ integration-lql: build-cli-cross-platform integration-lql-only ## Build and run 
 
 .PHONY: integration-lql-only
 integration-lql-only: ## Run lql integration tests
-	PATH=$(PWD)/bin:${PATH} gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="query"
+	PATH=$(PWD)/bin:${PATH} gotestsum -- -v github.com/lacework/go-sdk/v2/integration -timeout 30m -tags="query"
 
 .PHONY: integration-policy
 integration-policy: build-cli-cross-platform integration-policy-only ## Build and run lql policy tests
 
 .PHONY: integration-policy-only
 integration-policy-only: ## Run lql policy tests
-	PATH=$(PWD)/bin:${PATH} gotestsum -- -v github.com/lacework/go-sdk/integration -timeout 30m -tags="policy"
+	PATH=$(PWD)/bin:${PATH} gotestsum -- -v github.com/lacework/go-sdk/v2/integration -timeout 30m -tags="policy"
 
 .PHONY: coverage
 coverage: test ## Output coverage profile information for each function
@@ -175,7 +175,7 @@ run-api-example: ## Run an API example like 'make run-api-example example=api/_e
 
 .PHONY: build
 build: ## Compiles binary for the running workstation
-	go build -o bin/lacework -ldflags=$(GO_LDFLAGS) github.com/lacework/go-sdk/cli
+	go build -o bin/lacework -ldflags=$(GO_LDFLAGS) github.com/lacework/go-sdk/v2/cli
 
 .PHONY: build-cli-cross-platform
 build-cli-cross-platform: ## Compiles the Lacework CLI for all supported platforms
@@ -184,7 +184,7 @@ build-cli-cross-platform: ## Compiles the Lacework CLI for all supported platfor
             -arch="amd64 386" \
             -osarch="darwin/amd64 darwin/arm64 linux/arm linux/arm64" \
             -ldflags=$(GO_LDFLAGS) \
-            github.com/lacework/go-sdk/cli
+            github.com/lacework/go-sdk/v2/cli
 
 .PHONY: generate-databox
 generate-databox: ## *CI ONLY* Generates in memory representation of template files

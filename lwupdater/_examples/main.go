@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/lacework/go-sdk/lwupdater"
+	"github.com/lacework/go-sdk/v2/lwupdater"
 )
 
 func main() {

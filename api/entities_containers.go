@@ -21,7 +21,7 @@ package api
 import (
 	"time"
 
-	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/v2/internal/array"
 )
 
 // ListContainers returns a list of Active Containers from the last 7 days

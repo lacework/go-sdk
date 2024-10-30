@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/lacework/go-sdk/lwgenerate/aws_eks_audit"
+	"github.com/lacework/go-sdk/v2/lwgenerate/aws_eks_audit"
 
 	"github.com/stretchr/testify/assert"
 )

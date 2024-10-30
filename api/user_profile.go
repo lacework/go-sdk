@@ -21,7 +21,7 @@ package api
 import (
 	"strings"
 
-	"github.com/lacework/go-sdk/lwdomain"
+	"github.com/lacework/go-sdk/v2/lwdomain"
 )
 
 // UserProfileService is the service that interacts with the UserProfile

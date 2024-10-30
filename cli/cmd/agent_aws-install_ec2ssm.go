@@ -31,7 +31,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/gammazero/workerpool"
-	"github.com/lacework/go-sdk/lwrunner"
+	"github.com/lacework/go-sdk/v2/lwrunner"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

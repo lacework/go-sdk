@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/array"
-	"github.com/lacework/go-sdk/internal/format"
+	"github.com/lacework/go-sdk/v2/api"
+	"github.com/lacework/go-sdk/v2/internal/array"
+	"github.com/lacework/go-sdk/v2/internal/format"
 	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

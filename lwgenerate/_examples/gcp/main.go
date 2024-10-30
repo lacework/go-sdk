@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lacework/go-sdk/lwgenerate/gcp"
+	"github.com/lacework/go-sdk/v2/lwgenerate/gcp"
 )
 
 func basic() {

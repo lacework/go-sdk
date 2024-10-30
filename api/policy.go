@@ -25,7 +25,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/v2/internal/array"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )

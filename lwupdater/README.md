@@ -6,12 +6,12 @@ A Go library to check for available updates of Lacework projects.
 
 Download the library into your `$GOPATH`:
 
-    $ go get github.com/lacework/go-sdk/lwupdater
+    $ go get github.com/lacework/go-sdk/v2/lwupdater
 
 Import the library into your tool:
 
 ```go
-import "github.com/lacework/go-sdk/lwupdater"
+import "github.com/lacework/go-sdk/v2/lwupdater"
 ```
 
 ## Examples
@@ -23,7 +23,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/lacework/go-sdk/lwupdater"
+	"github.com/lacework/go-sdk/v2/lwupdater"
 )
 
 func main() {

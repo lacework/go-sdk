@@ -24,8 +24,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lacework/go-sdk/internal/cache"
-	"github.com/lacework/go-sdk/internal/format"
+	"github.com/lacework/go-sdk/v2/internal/cache"
+	"github.com/lacework/go-sdk/v2/internal/format"
 	"github.com/mitchellh/hashstructure/v2"
 	"github.com/peterbourgon/diskv/v3"
 	"github.com/pkg/errors"

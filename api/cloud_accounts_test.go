@@ -26,9 +26,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/intgguid"
-	"github.com/lacework/go-sdk/internal/lacework"
+	"github.com/lacework/go-sdk/v2/api"
+	"github.com/lacework/go-sdk/v2/internal/intgguid"
+	"github.com/lacework/go-sdk/v2/internal/lacework"
 )
 
 func TestCloudAccountTypeAwsCtsSqs(t *testing.T) {

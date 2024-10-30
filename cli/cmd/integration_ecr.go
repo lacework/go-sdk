@@ -25,7 +25,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/pkg/errors"
 
-	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/v2/api"
 )
 
 func createAwsEcrIntegration() error {

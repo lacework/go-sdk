@@ -7,12 +7,12 @@ it is an internal account.
 
 Download the library into your `$GOPATH`:
 
-    $ go get github.com/lacework/go-sdk/lwdomain
+    $ go get github.com/lacework/go-sdk/v2/lwdomain
 
 Import the library into your tool:
 
 ```go
-import "github.com/lacework/go-sdk/lwdomain"
+import "github.com/lacework/go-sdk/v2/lwdomain"
 ```
 
 ## Examples
@@ -27,7 +27,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lacework/go-sdk/lwdomain"
+	"github.com/lacework/go-sdk/v2/lwdomain"
 )
 
 func main() {

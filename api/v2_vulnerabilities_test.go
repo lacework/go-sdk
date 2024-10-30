@@ -26,8 +26,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/lacework/go-sdk/api"
-	"github.com/lacework/go-sdk/internal/lacework"
+	"github.com/lacework/go-sdk/v2/api"
+	"github.com/lacework/go-sdk/v2/internal/lacework"
 )
 
 func TestV2Vulnerabilities_Containers_SearchAllPages_EmptyData(t *testing.T) {

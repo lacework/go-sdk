@@ -3,7 +3,7 @@ package cmd
 import (
 	"testing"
 
-	"github.com/lacework/go-sdk/lwgenerate/aws_controltower"
+	"github.com/lacework/go-sdk/v2/lwgenerate/aws_controltower"
 	"github.com/stretchr/testify/assert"
 )
 

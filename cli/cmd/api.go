@@ -25,7 +25,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/lacework/go-sdk/internal/array"
+	"github.com/lacework/go-sdk/v2/internal/array"
 )
 
 var (

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/lacework/go-sdk/api"
+	"github.com/lacework/go-sdk/v2/api"
 	"github.com/pkg/errors"
 )
 
