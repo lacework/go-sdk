@@ -52,21 +52,25 @@ func TestFindResourceGroupType(t *testing.T) {
 	assert.True(t, found, "resource group type should exist")
 	assert.Equal(t, "AWS", groupFound.String(), "wrong resource group type")
 
-	groupFound, found = api.FindResourceGroupType("AWS")
+	groupFound, found = api.FindResourceGroupType("GCP")
 	assert.True(t, found, "resource group type should exist")
-	assert.Equal(t, "AWS", groupFound.String(), "wrong resource group type")
+	assert.Equal(t, "GCP", groupFound.String(), "wrong resource group type")
+
+	groupFound, found = api.FindResourceGroupType("AZURE")
+	assert.True(t, found, "resource group type should exist")
+	assert.Equal(t, "AZURE", groupFound.String(), "wrong resource group type")
 
 	groupFound, found = api.FindResourceGroupType("CONTAINER")
 	assert.True(t, found, "resource group type should exist")
 	assert.Equal(t, "CONTAINER", groupFound.String(), "wrong resource group type")
 
-	groupFound, found = api.FindResourceGroupType("GCP")
-	assert.True(t, found, "resource group type should exist")
-	assert.Equal(t, "GCP", groupFound.String(), "wrong resource group type")
-
 	groupFound, found = api.FindResourceGroupType("MACHINE")
 	assert.True(t, found, "resource group type should exist")
 	assert.Equal(t, "MACHINE", groupFound.String(), "wrong resource group type")
+
+	groupFound, found = api.FindResourceGroupType("OCI")
+	assert.True(t, found, "resource group type should exist")
+	assert.Equal(t, "OCI", groupFound.String(), "wrong resource group type")
 
 	groupFound, found = api.FindResourceGroupType("KUBERNETES")
 	assert.True(t, found, "resource group type should exist")
@@ -196,17 +200,17 @@ func TestResourceGroupsDelete(t *testing.T) {
 
 func TestResourceGroupsList(t *testing.T) {
 	var (
-		awsResourceGUIDs       	= []string{intgguid.New(), intgguid.New()}
-		azureResourceGUIDs     	= []string{intgguid.New(), intgguid.New()}
-		containerResourceGUIDs 	= []string{intgguid.New()}
-		gcpResourceGUIDs       	= []string{intgguid.New()}
-		machineResourceGUIDs   	= []string{intgguid.New()}
-		ociResourceGUIDs		= []string{intgguid.New()}
+		awsResourceGUIDs        = []string{intgguid.New(), intgguid.New()}
+		azureResourceGUIDs      = []string{intgguid.New(), intgguid.New()}
+		containerResourceGUIDs  = []string{intgguid.New()}
+		gcpResourceGUIDs        = []string{intgguid.New()}
+		machineResourceGUIDs    = []string{intgguid.New()}
+		ociResourceGUIDs        = []string{intgguid.New()}
 		kubernetesResourceGUIDs = []string{intgguid.New()}
-		allGroups              = [][]string{awsResourceGUIDs, azureResourceGUIDs, containerResourceGUIDs,
+		allGroups               = [][]string{awsResourceGUIDs, azureResourceGUIDs, containerResourceGUIDs,
 			gcpResourceGUIDs, machineResourceGUIDs, ociResourceGUIDs, kubernetesResourceGUIDs}
-		allGuids               []string
-		fakeServer             = lacework.MockServer()
+		allGuids   []string
+		fakeServer = lacework.MockServer()
 	)
 
 	for _, guids := range allGroups {
