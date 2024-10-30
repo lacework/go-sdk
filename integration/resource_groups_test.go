@@ -61,12 +61,12 @@ func createResourceGroup(typ string, uid string) (string, error) {
 		return "", errors.New("non-zero exit code")
 	}
 
-	var resourceGroupV2Response api.ResourceGroupResponse
-	err = json.Unmarshal(out.Bytes(), &resourceGroupV2Response)
+	var resourceGroupResponse api.ResourceGroupResponse
+	err = json.Unmarshal(out.Bytes(), &resourceGroupResponse)
 	if err != nil {
 		return "", err
 	}
-	return resourceGroupV2Response.Data.ID(), nil
+	return resourceGroupResponse.Data.ID(), nil
 }
 
 func popResourceGroup() (string, error) {

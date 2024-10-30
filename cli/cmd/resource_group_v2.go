@@ -27,7 +27,7 @@ import (
 	"github.com/lacework/go-sdk/api"
 )
 
-func createResourceGroupV2(resourceType string) error {
+func createResourceGroup(resourceType string) error {
 	questions := []*survey.Question{
 		{
 			Name:     "name",

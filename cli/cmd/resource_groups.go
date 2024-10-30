@@ -210,19 +210,19 @@ func promptCreateResourceGroup() error {
 
 	switch group {
 	case "AWS":
-		return createResourceGroupV2("AWS")
+		return createResourceGroup("AWS")
 	case "AZURE":
-		return createResourceGroupV2("AZURE")
+		return createResourceGroup("AZURE")
 	case "GCP":
-		return createResourceGroupV2("GCP")
+		return createResourceGroup("GCP")
 	case "CONTAINER":
-		return createResourceGroupV2("CONTAINER")
+		return createResourceGroup("CONTAINER")
 	case "MACHINE":
-		return createResourceGroupV2("MACHINE")
+		return createResourceGroup("MACHINE")
 	case "OCI":
-		return createResourceGroupV2("OCI")
+		return createResourceGroup("OCI")
 	case "KUBERNETES":
-		return createResourceGroupV2("KUBERNETES")
+		return createResourceGroup("KUBERNETES")
 	default:
 		return errors.New("unknown resource group type")
 	}
