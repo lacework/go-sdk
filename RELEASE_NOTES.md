@@ -1,5 +1,5 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v1.55.0`.
+Another day, another release. These are the release notes for the version `v2.1.0`.
 
 ## Features
 * feat: Remove RGv1 logic. Add KUBERNETES to ResourceGroups (#1666) (Zeki Sherif)([2b0ffd41](https://github.com/lacework/go-sdk/commit/2b0ffd411c65cefc664fb43591f8be6a47c6e6a0))
@@ -7,6 +7,7 @@ Another day, another release. These are the release notes for the version `v1.55
 ## Bug Fixes
 * fix: Fix failed resource group tests (#1664) (Lei Jin)([cbebb620](https://github.com/lacework/go-sdk/commit/cbebb620edf3ef59327d417634772870092c4a43))
 ## Other Changes
+* chore: Update VERSION (#1668) (Lei Jin)([f27ba951](https://github.com/lacework/go-sdk/commit/f27ba9517cd66e8fbc5de1e5f46be7af78661704))
 * ci: version bump to v1.54.1-dev (Lacework)([b47e0030](https://github.com/lacework/go-sdk/commit/b47e00301001fcea7edaf61637666971b36741e6))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
