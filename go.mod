@@ -1,4 +1,4 @@
-module github.com/lacework/go-sdk/v2
+module github.com/lacework/go-sdk
 
 go 1.21
 
@@ -62,7 +62,6 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/consul/sdk v0.13.1
-	github.com/lacework/go-sdk v1.54.1-0.20241030155210-2b0ffd411c65
 	github.com/mattn/go-isatty v0.0.18
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/otiai10/copy v1.14.0
