@@ -20,7 +20,6 @@ package api
 
 import (
 	_ "embed"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -125,7 +124,7 @@ func (svc *ResourceGroupsService) Update(data *ResourceGroupData) (
 	return
 }
 
-func (group ResourceGroupData) ResetResourceGUID() {
+func (group *ResourceGroupData) ResetResourceGUID() {
 	group.ResourceGroupGuid = ""
 	group.UpdatedBy = ""
 	group.UpdatedTime = nil
@@ -148,13 +147,13 @@ func (svc *ResourceGroupsService) Delete(guid string) error {
 }
 
 func (svc *ResourceGroupsService) Get(guid string, response interface{}) error {
-	var rawResponse resourceGroupWorkaroundResponse
+	var rawResponse ResourceGroupData
 	err := svc.get(guid, &rawResponse)
 	if err != nil {
 		return err
 	}
 
-	return castResourceGroupResponse(rawResponse.Data, &response)
+	return nil
 }
 
 func (svc *ResourceGroupsService) create(data interface{}, response interface{}) error {
@@ -226,44 +225,8 @@ func FindResourceGroupType(typ string) (resourceGroupType, bool) {
 	return NoneResourceGroup, false
 }
 
-func castResourceGroupResponse(data resourceGroupWorkaroundData, response interface{}) error {
-	group := ResourceGroupResponse{
-		Data: ResourceGroupData{
-			IsDefaultBoolean:  data.IsDefaultBoolean,
-			ResourceGroupGuid: data.ResourceGroupGuid,
-			Name:              data.Name,
-			Type:              data.Type,
-			Enabled:           data.Enabled,
-			Query:             data.Query,
-			Description:       data.Description,
-			CreatedTime:       data.CreatedTime,
-			CreatedBy:         data.CreatedBy,
-			UpdatedBy:         data.UpdatedBy,
-			UpdatedTime:       data.UpdatedTime,
-		},
-	}
-
-	j, err := json.Marshal(group)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(j, &response)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (group ResourceGroupData) ID() string {
+func (group *ResourceGroupData) ID() string {
 	return group.ResourceGroupGuid
-}
-
-func (group ResourceGroupData) Status() string {
-	if group.Enabled == 1 {
-		return "Enabled"
-	}
-	return "Disabled"
 }
 
 type ResourceGroupResponse struct {
@@ -286,23 +249,4 @@ type ResourceGroupData struct {
 	IsDefaultBoolean  *bool      `json:"isDefaultBoolean,omitempty"`
 	Type              string     `json:"resourceType"`
 	Enabled           int        `json:"enabled"`
-}
-
-// RAIN-21510 workaround
-type resourceGroupWorkaroundResponse struct {
-	Data resourceGroupWorkaroundData `json:"data"`
-}
-
-type resourceGroupWorkaroundData struct {
-	Name              string     `json:"name,omitempty"`
-	Query             *RGQuery   `json:"query,omitempty"`
-	Description       string     `json:"description,omitempty"`
-	ResourceGroupGuid string     `json:"resourceGroupGuid,omitempty"`
-	CreatedTime       *time.Time `json:"createdTime,omitempty"`
-	CreatedBy         string     `json:"createdBy,omitempty"`
-	UpdatedTime       *time.Time `json:"updatedTime,omitempty"`
-	UpdatedBy         string     `json:"updatedBy,omitempty"`
-	IsDefaultBoolean  *bool      `json:"isDefaultBoolean,omitempty"`
-	Type              string     `json:"resourceType"`
-	Enabled           int        `json:"enabled,omitempty"`
 }
