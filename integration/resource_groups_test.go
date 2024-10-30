@@ -38,7 +38,7 @@ func createResourceGroup(typ string, uid string) (string, error) {
 		return "", errors.Wrap(err, "error serializing query template")
 	}
 
-	var testResourceGroup api.ResourceGroupDataWithQuery = api.ResourceGroupDataWithQuery{
+	var testResourceGroup api.ResourceGroupData = api.ResourceGroupData{
 		Name:        fmt.Sprintf("CLI_TestCreateResourceGroup_%s", iType.String()+"_"+uid),
 		Type:        iType.String(),
 		Query:       &testQuery,
@@ -61,17 +61,17 @@ func createResourceGroup(typ string, uid string) (string, error) {
 		return "", errors.New("non-zero exit code")
 	}
 
-	var resourceGroupV2Response api.ResourceGroupV2Response
-	err = json.Unmarshal(out.Bytes(), &resourceGroupV2Response)
+	var resourceGroupResponse api.ResourceGroupResponse
+	err = json.Unmarshal(out.Bytes(), &resourceGroupResponse)
 	if err != nil {
 		return "", err
 	}
-	return resourceGroupV2Response.Data.ID(), nil
+	return resourceGroupResponse.Data.ID(), nil
 }
 
 func popResourceGroup() (string, error) {
 	type resourceGroup struct {
-		Id string `json:"resource_guid"`
+		Id string `json:"resourceGroupGuid"`
 	}
 	type listResourceGroupsResponse struct {
 		ResourceGroups []resourceGroup `json:"resource_groups"`
@@ -119,7 +119,7 @@ func TestResourceGroupList(t *testing.T) {
 
 	// list (output json)
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("resource-group", "list", "--json")
-	assert.Contains(t, out.String(), `"resource_guid"`)
+	assert.Contains(t, out.String(), `"resourceGroupGuid"`)
 	assert.Contains(t, out.String(), `"type": "AWS"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
@@ -148,7 +148,7 @@ func TestResourceGroupShow(t *testing.T) {
 
 	t.Run("JSON Output", func(t *testing.T) {
 		out, err, exitcode := LaceworkCLIWithTOMLConfig("resource-group", "show", resourceGroupShowID, "--json")
-		assert.Contains(t, out.String(), `"resource_guid"`)
+		assert.Contains(t, out.String(), `"resourceGroupGuid"`)
 		assert.Contains(t, out.String(), `"`+resourceGroupShowID+`"`)
 		assert.Empty(t, err.String(), "STDERR should be empty")
 		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
@@ -167,7 +167,7 @@ func TestResourceGroupDelete(t *testing.T) {
 	// test each RGv2 type against its default template
 	for i := range api.ResourceGroupTypes {
 		switch i {
-		case api.NoneResourceGroup, api.LwAccountResourceGroup:
+		case api.NoneResourceGroup:
 			// these resource groups are not applicable
 			continue
 		default:

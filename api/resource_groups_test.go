@@ -38,7 +38,8 @@ func TestResourceGroupTypes(t *testing.T) {
 	assert.Equal(t, "CONTAINER", api.ContainerResourceGroup.String(), "wrong resource group type")
 	assert.Equal(t, "GCP", api.GcpResourceGroup.String(), "wrong resource group type")
 	assert.Equal(t, "MACHINE", api.MachineResourceGroup.String(), "wrong resource group type")
-	assert.Equal(t, "LW_ACCOUNT", api.LwAccountResourceGroup.String(), "wrong resource group type")
+	assert.Equal(t, "OCI", api.OciResourceGroup.String(), "wrong resource group type")
+	assert.Equal(t, "KUBERNETES", api.KubernetesResourceGroup.String(), "wrong resource group type")
 }
 
 func TestFindResourceGroupType(t *testing.T) {
@@ -51,25 +52,29 @@ func TestFindResourceGroupType(t *testing.T) {
 	assert.True(t, found, "resource group type should exist")
 	assert.Equal(t, "AWS", groupFound.String(), "wrong resource group type")
 
-	groupFound, found = api.FindResourceGroupType("AWS")
+	groupFound, found = api.FindResourceGroupType("GCP")
 	assert.True(t, found, "resource group type should exist")
-	assert.Equal(t, "AWS", groupFound.String(), "wrong resource group type")
+	assert.Equal(t, "GCP", groupFound.String(), "wrong resource group type")
+
+	groupFound, found = api.FindResourceGroupType("AZURE")
+	assert.True(t, found, "resource group type should exist")
+	assert.Equal(t, "AZURE", groupFound.String(), "wrong resource group type")
 
 	groupFound, found = api.FindResourceGroupType("CONTAINER")
 	assert.True(t, found, "resource group type should exist")
 	assert.Equal(t, "CONTAINER", groupFound.String(), "wrong resource group type")
 
-	groupFound, found = api.FindResourceGroupType("GCP")
-	assert.True(t, found, "resource group type should exist")
-	assert.Equal(t, "GCP", groupFound.String(), "wrong resource group type")
-
 	groupFound, found = api.FindResourceGroupType("MACHINE")
 	assert.True(t, found, "resource group type should exist")
 	assert.Equal(t, "MACHINE", groupFound.String(), "wrong resource group type")
 
-	groupFound, found = api.FindResourceGroupType("LW_ACCOUNT")
+	groupFound, found = api.FindResourceGroupType("OCI")
 	assert.True(t, found, "resource group type should exist")
-	assert.Equal(t, "LW_ACCOUNT", groupFound.String(), "wrong resource group type")
+	assert.Equal(t, "OCI", groupFound.String(), "wrong resource group type")
+
+	groupFound, found = api.FindResourceGroupType("KUBERNETES")
+	assert.True(t, found, "resource group type should exist")
+	assert.Equal(t, "KUBERNETES", groupFound.String(), "wrong resource group type")
 }
 
 func TestResourceGroupGet(t *testing.T) {
@@ -110,7 +115,7 @@ func TestResourceGroupGet(t *testing.T) {
 		err := c.V2.ResourceGroups.Get(resourceGUID, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
-			assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
+			assert.Equal(t, resourceGUID, response.Data.ResourceGroupGuid)
 			assert.Equal(t, "group_name", response.Data.Name)
 			assert.Equal(t, "VANILLA", response.Data.Type)
 		}
@@ -173,7 +178,7 @@ func TestResourceGroupsDelete(t *testing.T) {
 		err := c.V2.ResourceGroups.Get(resourceGUID, &response)
 		assert.Nil(t, err)
 		if assert.NotNil(t, response) {
-			assert.Equal(t, resourceGUID, response.Data.ResourceGuid)
+			assert.Equal(t, resourceGUID, response.Data.ResourceGroupGuid)
 			assert.Equal(t, "group_name", response.Data.Name)
 			assert.Equal(t, "VANILLA", response.Data.Type)
 		}
@@ -195,14 +200,17 @@ func TestResourceGroupsDelete(t *testing.T) {
 
 func TestResourceGroupsList(t *testing.T) {
 	var (
-		awsResourceGUIDs       = []string{intgguid.New(), intgguid.New()}
-		azureResourceGUIDs     = []string{intgguid.New(), intgguid.New()}
-		containerResourceGUIDs = []string{intgguid.New()}
-		gcpResourceGUIDs       = []string{intgguid.New()}
-		machineResourceGUIDs   = []string{intgguid.New()}
-		allGroups              = [][]string{awsResourceGUIDs, azureResourceGUIDs, containerResourceGUIDs, gcpResourceGUIDs, machineResourceGUIDs}
-		allGuids               []string
-		fakeServer             = lacework.MockServer()
+		awsResourceGUIDs        = []string{intgguid.New(), intgguid.New()}
+		azureResourceGUIDs      = []string{intgguid.New(), intgguid.New()}
+		containerResourceGUIDs  = []string{intgguid.New()}
+		gcpResourceGUIDs        = []string{intgguid.New()}
+		machineResourceGUIDs    = []string{intgguid.New()}
+		ociResourceGUIDs        = []string{intgguid.New()}
+		kubernetesResourceGUIDs = []string{intgguid.New()}
+		allGroups               = [][]string{awsResourceGUIDs, azureResourceGUIDs, containerResourceGUIDs,
+			gcpResourceGUIDs, machineResourceGUIDs, ociResourceGUIDs, kubernetesResourceGUIDs}
+		allGuids   []string
+		fakeServer = lacework.MockServer()
 	)
 
 	for _, guids := range allGroups {
@@ -220,6 +228,8 @@ func TestResourceGroupsList(t *testing.T) {
 				generateResourceGroups(containerResourceGUIDs, "CONTAINER"),
 				generateResourceGroups(gcpResourceGUIDs, "GCP"),
 				generateResourceGroups(machineResourceGUIDs, "MACHINE"),
+				generateResourceGroups(ociResourceGUIDs, "OCI"),
+				generateResourceGroups(kubernetesResourceGUIDs, "KUBERNETES"),
 			}
 			fmt.Fprintf(w,
 				generateResourceGroupsResponse(
@@ -241,7 +251,7 @@ func TestResourceGroupsList(t *testing.T) {
 	assert.NotNil(t, response)
 	assert.Equal(t, expectedLen, len(response.Data))
 	for _, d := range response.Data {
-		assert.Contains(t, allGuids, d.ResourceGuid)
+		assert.Contains(t, allGuids, d.ResourceGroupGuid)
 	}
 }
 
@@ -257,13 +267,471 @@ func generateResourceGroups(guids []string, iType string) string {
 			resourceGroups[i] = singleContainerResourceGroup(guid)
 		case api.GcpResourceGroup.String():
 			resourceGroups[i] = singleGcpResourceGroup(guid)
-		case api.LwAccountResourceGroup.String():
-			resourceGroups[i] = singleLwAccountResourceGroup(guid)
 		case api.MachineResourceGroup.String():
 			resourceGroups[i] = singleMachineResourceGroup(guid)
+		case api.OciResourceGroup.String():
+			resourceGroups[i] = singleOciResourceGroup(guid)
+		case api.KubernetesResourceGroup.String():
+			resourceGroups[i] = singleKubernetesResourceGroup(guid)
+
 		}
 	}
 	return strings.Join(resourceGroups, ", ")
+}
+
+func singleAwsResourceGroup(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+		"description": "All Aws Resources",
+        "isDefaultBoolean": true,
+        "resourceGroupGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "AWS",
+        "enabled": 1,
+		"query": {
+			  "filters": {
+				  "filter1": {
+					  "field": "Account",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter2": {
+					  "field": "Organization ID",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter3": {
+					  "field": "Resource Tag",
+					  "operation": "EQUALS",
+					  "key": "*",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter4": {
+					  "field": "Region",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  }
+			  },
+			  "expression": {
+				  "operator": "OR",
+				  "children": [
+					  {
+						  "filterName": "filter1"
+					  },
+					  {
+						  "filterName": "filter2"
+					  },
+					  {
+						  "filterName": "filter3"
+					  },
+					  {
+						  "filterName": "filter4"
+					  }
+				  ]
+			  }
+		  }
+	}
+	`
+}
+
+func singleAzureResourceGroup(id string) string {
+
+	return `
+	{
+        "guid": "` + id + `",
+		"description": "All Azure Resources",
+        "isDefaultBoolean": true,
+        "resourceGroupGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "AZURE",
+        "enabled": 1,
+		"query": {
+			  "filters": {
+				  "filter1": {
+					  "field": "Tenant ID",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter2": {
+					  "field": "Subscription ID",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter3": {
+					  "field": "Resource Tag",
+					  "operation": "EQUALS",
+					  "key": "*",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter4": {
+					  "field": "Region",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter5": {
+					  "field": "Tenant Name",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter6": {
+					  "field": "Subscription Name",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  }
+			  },
+			  "expression": {
+				  "operator": "OR",
+				  "children": [
+					  {
+						  "filterName": "filter1"
+					  },
+					  {
+						  "filterName": "filter2"
+					  },
+					  {
+						  "filterName": "filter3"
+					  },
+					  {
+						  "filterName": "filter4"
+					  },
+					  {
+						  "filterName": "filter5"
+					  },
+					  {
+						  "filterName": "filter6"
+					  }
+				  ]
+			  }
+		  }
+	}
+	`
+}
+
+func singleContainerResourceGroup(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+		"description": "All Container Resources",
+        "isDefaultBoolean": true,
+        "resourceGroupGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "CONTAINER",
+        "enabled": 1,
+		"query": {
+			  "filters": {
+				  "filter1": {
+					  "field": "Container Tag",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ],
+					  "key": "*"
+				  },
+				  "filter2": {
+					  "field": "Container Label",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ],
+					  "key": "*"
+				  },
+				  "filter3": {
+					  "field": "Image Repo",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter4": {
+					  "field": "Image Registry",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				}
+			  },
+			  "expression": {
+				  "operator": "OR",
+				  "children": [
+					  {
+						  "filterName": "filter1"
+					  },
+					  {
+						  "filterName": "filter2"
+					  },
+					  {
+						  "filterName": "filter3"
+					  },
+					  {
+						  "filterName": "filter4"
+					  }
+				  ]
+			  }
+		  }
+	}
+	`
+}
+
+func singleGcpResourceGroup(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+		"description": "All GCP Resources",
+        "isDefaultBoolean": true,
+        "resourceGroupGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "GCP",
+        "enabled": 1,
+		"query": {
+			  "filters": {
+				  "filter1": {
+					  "field": "Organization ID",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter2": {
+					  "field": "Folder",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter3": {
+					  "field": "Project ID",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter4": {
+					  "field": "Resource Label",
+					  "operation": "EQUALS",
+					  "key": "*",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter5": {
+					  "field": "Region",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  },
+				  "filter6": {
+					  "field": "Organization Name",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ]
+				  }
+			  },
+			  "expression": {
+				  "operator": "OR",
+				  "children": [
+					  {
+						  "filterName": "filter1"
+					  },
+					  {
+						  "filterName": "filter2"
+					  },
+					  {
+						  "filterName": "filter3"
+					  },
+					  {
+						  "filterName": "filter4"
+					  },
+					  {
+						  "filterName": "filter5"
+					  },
+					  {
+						  "filterName": "filter5"
+					  }
+				  ]
+			  }
+		  }
+	}
+	`
+}
+
+func singleMachineResourceGroup(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+		"description": "All Machine Resources",
+        "isDefaultBoolean": true,
+        "resourceGroupGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "MACHINE",
+        "enabled": 1,
+		"query": {
+			  "filters": {
+				  "filter1": {
+					  "field": "Machine Tag",
+					  "operation": "EQUALS",
+					  "values": [
+						  "*"
+					  ],
+					  "key": "*"
+				  }
+			  },
+			  "expression": {
+				  "filterName": "filter1"
+			  }
+		  }
+	}
+	`
+}
+
+func singleOciResourceGroup(id string) string {
+	return `
+	{
+        "guid": "` + id + `",
+		"description": "All OCI Resources",
+        "isDefaultBoolean": true,
+        "resourceGroupGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "OCI",
+        "enabled": 1,
+		"query": {
+			 "filters": {
+				 "filter1": {
+					 "field": "Compartment ID",
+					 "operation": "EQUALS",
+					 "values": [
+						 "*"
+					 ]
+				 },
+				 "filter2": {
+					 "field": "Compartment Name",
+					 "operation": "EQUALS",
+					 "values": [
+						 "*"
+					 ]
+				 },
+				 "filter3": {
+					 "field": "Resource Tag",
+					 "operation": "EQUALS",
+					 "key": "*",
+					 "values": [
+						 "*"
+					 ]
+				 },
+				 "filter4": {
+					 "field": "Region",
+					 "operation": "EQUALS",
+					 "values": [
+						 "*"
+					 ]
+				 }
+			 },
+			 "expression": {
+				 "operator": "OR",
+				 "children": [
+					 {
+						 "filterName": "filter1"
+					 },
+					 {
+						 "filterName": "filter2"
+					 },
+					 {
+						 "filterName": "filter3"
+					 },
+					 {
+						 "filterName": "filter4"
+					 }
+				 ]
+			 }
+		 }
+	}
+	`
+}
+
+func singleKubernetesResourceGroup(id string) string {
+
+	return `
+	{
+        "guid": "` + id + `",
+		"description": "All Kubernetes Resources",
+        "isDefaultBoolean": true,
+        "resourceGroupGuid": "` + id + `",
+        "resourceName": "group_name",
+        "resourceType": "KUBERNETES",
+        "enabled": 1,
+		"query": {
+			 "filters": {
+				 "filter1": {
+					 "field": "AWS Account",
+					 "operation": "EQUALS",
+					 "values": [
+						 "*"
+					 ]
+				 },
+				 "filter2": {
+					 "field": "AWS Region",
+					 "operation": "EQUALS",
+					 "values": [
+						 "*"
+					 ]
+				 },
+				 "filter3": {
+					 "field": "Cluster Name",
+					 "operation": "EQUALS",
+					 "values": [
+						 "*"
+					 ]
+				 },
+				 "filter4": {
+					 "field": "Namespace",
+					 "operation": "EQUALS",
+					 "values": [
+						 "*"
+					 ]
+				}
+			 },
+			 "expression": {
+				 "operator": "OR",
+				 "children": [
+					 {
+						 "filterName": "filter1"
+					 },
+					 {
+						 "filterName": "filter2"
+					 },
+					 {
+						 "filterName": "filter3"
+					 },
+					 {
+						 "filterName": "filter4"
+					 }
+				 ]
+			 }
+		 }
+	}
+	`
 }
 
 func generateResourceGroupsResponse(data string) string {
@@ -282,17 +750,16 @@ func generateResourceGroupResponse(data string) string {
 	`
 }
 
-func singleVanillaResourceGroup(id string, iType string, props string) string {
-	if props == "" {
-		props = "{}"
+func singleVanillaResourceGroup(id string, iType string, query string) string {
+	if query == "" {
+		query = "{}"
 	}
 	return `
 	{
-        "guid": "` + id + `",
-        "isDefault": "1",
-        "props": ` + props + `,
-        "resourceGuid": "` + id + `",
-        "resourceName": "group_name",
+        "isDefaultBoolean": true,
+        "query": ` + query + `,
+        "resourceGroupGuid": "` + id + `",
+        "name": "group_name",
         "resourceType": "` + iType + `",
         "enabled": 1
 	}

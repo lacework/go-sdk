@@ -1,0 +1,49 @@
+{
+  "filters": {
+    "filter1": {
+      "field": "AWS Account",
+      "operation": "EQUALS",
+      "values": [
+        "123456789012"
+      ]
+    },
+    "filter2": {
+      "field": "AWS Region",
+      "operation": "EQUALS",
+      "values": [
+        "us-west-2"
+      ]
+    },
+    "filter3": {
+      "field": "Cluster Name",
+      "operation": "EQUALS",
+      "values": [
+        "*"
+      ]
+    },
+    "filter4": {
+      "field": "Namespace",
+      "operation": "EQUALS",
+      "values": [
+        "prod"
+      ]
+    }
+  },
+  "expression": {
+    "operator": "OR",
+    "children": [
+      {
+        "filterName": "filter1"
+      },
+      {
+        "filterName": "filter2"
+      },
+      {
+        "filterName": "filter3"
+      },
+      {
+        "filterName": "filter4"
+      }
+    ]
+  }
+}
