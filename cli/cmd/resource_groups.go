@@ -302,7 +302,7 @@ type resourceGroup struct {
 	ResType          string       `json:"type"`
 	Name             string       `json:"name"`
 	Enabled          int          `json:"enabled"`
-	IsDefaultBoolean bool         `json:"isDefault"`
+	IsDefaultBoolean bool         `json:"isDefaultBoolean"`
 	Query            *api.RGQuery `json:"query"`
 	Description      string       `json:"description,omitempty"`
 	UpdatedTime      *time.Time   `json:"updatedTime,omitempty"`
