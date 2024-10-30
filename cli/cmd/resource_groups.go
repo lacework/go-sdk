@@ -228,61 +228,6 @@ func promptCreateResourceGroup() error {
 	}
 }
 
-//func buildResourceGroupPropsTable(group resourceGroup) string {
-//	props := determineResourceGroupProps(group.ResType, group.Props)
-//
-//	return renderOneLineCustomTable("RESOURCE GROUP PROPS",
-//		renderCustomTable([]string{}, props,
-//			tableFunc(func(t *tablewriter.Table) {
-//				t.SetBorder(false)
-//				t.SetColumnSeparator(" ")
-//				t.SetAutoWrapText(false)
-//				t.SetAlignment(tablewriter.ALIGN_LEFT)
-//			}),
-//		),
-//		tableFunc(func(t *tablewriter.Table) {
-//			t.SetBorder(false)
-//			t.SetAutoWrapText(false)
-//		}),
-//	)
-//}
-
-//func determineResourceGroupProps(resType string, props api.ResourceGroupProps) [][]string {
-//	propsString, err := json.Marshal(props)
-//	if err != nil {
-//		return [][]string{}
-//	}
-//	details := setBaseProps(props)
-//
-//	switch resType {
-//	case api.AwsResourceGroup.String():
-//		details = append(details, setAwsProps(propsString))
-//	case api.AzureResourceGroup.String():
-//		details = append(details, setAzureProps(propsString)...)
-//	case api.ContainerResourceGroup.String():
-//		details = append(details, setContainerProps(propsString)...)
-//	case api.GcpResourceGroup.String():
-//		details = append(details, setGcpProps(propsString)...)
-//	case api.LwAccountResourceGroup.String():
-//		details = append(details, setLwAccountProps(propsString))
-//	case api.MachineResourceGroup.String():
-//		details = append(details, setMachineProps(propsString))
-//	}
-//
-//	return details
-//}
-
-//func setBaseProps(props api.ResourceGroupProps) [][]string {
-//	var (
-//		details [][]string
-//	)
-//	lastUpdated := props.GetBaseProps().LastUpdated
-//	details = append(details, []string{"DESCRIPTION", props.GetBaseProps().Description})
-//	details = append(details, []string{"UPDATED BY", props.GetBaseProps().UpdatedBy})
-//	details = append(details, []string{"LAST UPDATED", lastUpdated.String()})
-//	return details
-//}
-
 func init() {
 	// add the resource-group command
 	rootCmd.AddCommand(resourceGroupsCommand)
