@@ -20,6 +20,7 @@ package api
 
 import (
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -147,12 +148,21 @@ func (svc *ResourceGroupsService) Delete(guid string) error {
 }
 
 func (svc *ResourceGroupsService) Get(guid string, response interface{}) error {
-	var rawResponse ResourceGroupData
+	var rawResponse ResourceGroupResponse
 	err := svc.get(guid, &rawResponse)
 	if err != nil {
 		return err
 	}
 
+	j, err := json.Marshal(rawResponse)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(j, &response)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
