@@ -45,7 +45,7 @@ func main() {
 			support = "Supported"
 		}
 
-		// Output: RESOURCE_GUID:RESOURCE_TYPE:[Supported|Unsupported]
+		// Output: RESOURCE_GROUP_GUID:RESOURCE_TYPE:[Supported|Unsupported]
 		fmt.Printf("%s:%s:%s\n", resourceGuid, resourceType, support)
 	}
 

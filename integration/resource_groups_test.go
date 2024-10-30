@@ -71,7 +71,7 @@ func createResourceGroup(typ string, uid string) (string, error) {
 
 func popResourceGroup() (string, error) {
 	type resourceGroup struct {
-		Id string `json:"resource_guid"`
+		Id string `json:"resourceGroupGuid"`
 	}
 	type listResourceGroupsResponse struct {
 		ResourceGroups []resourceGroup `json:"resource_groups"`
@@ -119,7 +119,7 @@ func TestResourceGroupList(t *testing.T) {
 
 	// list (output json)
 	out, err, exitcode = LaceworkCLIWithTOMLConfig("resource-group", "list", "--json")
-	assert.Contains(t, out.String(), `"resource_guid"`)
+	assert.Contains(t, out.String(), `"resourceGroupGuid"`)
 	assert.Contains(t, out.String(), `"type": "AWS"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
