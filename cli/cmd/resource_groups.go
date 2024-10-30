@@ -75,7 +75,7 @@ Then navigate to Settings > Resource Groups.
 					ResType:          g.Type,
 					Name:             g.Name,
 					Enabled:          g.Enabled,
-					IsDefaultBoolean: *g.IsDefaultBoolean,
+					IsDefaultBoolean: g.IsDefaultBoolean,
 					Query:            g.Query,
 				})
 			}
@@ -90,7 +90,7 @@ Then navigate to Settings > Resource Groups.
 			rows := [][]string{}
 			for _, g := range groups {
 				rows = append(rows, []string{g.Id, g.ResType, g.Name, strconv.Itoa(g.Enabled),
-					strconv.FormatBool(g.IsDefaultBoolean)})
+					strconv.FormatBool(*g.IsDefaultBoolean)})
 			}
 
 			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GROUP ID", "TYPE", "NAME", "STATUS", "DEFAULT"}, rows))
@@ -106,6 +106,7 @@ Then navigate to Settings > Resource Groups.
 		RunE: func(_ *cobra.Command, args []string) error {
 			var response api.ResourceGroupResponse
 			err := cli.LwApi.V2.ResourceGroups.Get(args[0], &response)
+
 			if err != nil {
 				return errors.Wrap(err, "unable to get resource group")
 			}
@@ -115,11 +116,13 @@ Then navigate to Settings > Resource Groups.
 				ResType:          response.Data.Type,
 				Name:             response.Data.Name,
 				Enabled:          response.Data.Enabled,
-				IsDefaultBoolean: *response.Data.IsDefaultBoolean,
+				IsDefaultBoolean: response.Data.IsDefaultBoolean,
 				Query:            response.Data.Query,
 				Description:      response.Data.Description,
 				UpdatedBy:        response.Data.UpdatedBy,
 				UpdatedTime:      response.Data.UpdatedTime,
+				CreatedTime:      response.Data.CreatedTime,
+				CreatedBy:        response.Data.CreatedBy,
 			}
 
 			if cli.JSONOutput() {
@@ -133,10 +136,11 @@ Then navigate to Settings > Resource Groups.
 
 			groupCommon = append(groupCommon,
 				[]string{group.Id, group.ResType, group.Name, group.Description, strconv.Itoa(group.Enabled),
-					strconv.FormatBool(group.IsDefaultBoolean), group.UpdatedBy, group.UpdatedTime.UTC().String()},
+					strconv.FormatBool(*group.IsDefaultBoolean), group.CreatedBy, group.CreatedTime.UTC().String(),
+					group.UpdatedBy, group.UpdatedTime.UTC().String()},
 			)
 			cli.OutputHuman(renderSimpleTable([]string{"RESOURCE GROUP ID", "TYPE", "NAME", "DESCRIPTION", "STATE",
-				"DEFAULT", "UPDATED BY", "UPDATED_TIME"}, groupCommon))
+				"DEFAULT", "CREATED BY", "CREATED TIME", "UPDATED BY", "UPDATED TIME"}, groupCommon))
 
 			return nil
 		},
@@ -290,21 +294,16 @@ func init() {
 	resourceGroupsCommand.AddCommand(resourceGroupsDeleteCommand)
 }
 
-func IsDefault(isDefault int) string {
-	if isDefault == 1 {
-		return "True"
-	}
-	return "False"
-}
-
 type resourceGroup struct {
 	Id               string       `json:"resourceGroupGuid"`
 	ResType          string       `json:"type"`
 	Name             string       `json:"name"`
 	Enabled          int          `json:"enabled"`
-	IsDefaultBoolean bool         `json:"isDefaultBoolean"`
+	IsDefaultBoolean *bool        `json:"isDefaultBoolean"`
 	Query            *api.RGQuery `json:"query"`
 	Description      string       `json:"description,omitempty"`
 	UpdatedTime      *time.Time   `json:"updatedTime,omitempty"`
 	UpdatedBy        string       `json:"updatedBy,omitempty"`
+	CreatedBy        string       `json:"createdBy,omitempty"`
+	CreatedTime      *time.Time   `json:"createdTime,omitempty"`
 }

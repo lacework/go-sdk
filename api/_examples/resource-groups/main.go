@@ -25,12 +25,7 @@ func main() {
 	for _, account := range res.Data {
 		var resourceGuid string
 		resourceType := account.Type
-
-		if account.Props != nil {
-			resourceGuid = account.ResourceGuid
-		} else {
-			resourceGuid = account.ResourceGroupGuid
-		}
+		resourceGuid = account.ResourceGroupGuid
 
 		support := "Unsupported"
 		switch resourceType {
@@ -42,9 +37,11 @@ func main() {
 			support = "Supported"
 		case api.GcpResourceGroup.String():
 			support = "Supported"
-		case api.LwAccountResourceGroup.String():
-			support = "Supported"
 		case api.MachineResourceGroup.String():
+			support = "Supported"
+		case api.OciResourceGroup.String():
+			support = "Supported"
+		case api.KubernetesResourceGroup.String():
 			support = "Supported"
 		}
 
@@ -74,7 +71,7 @@ func main() {
 		},
 	}
 
-	myResourceGroupWithQuery := api.NewResourceGroupWithQuery(
+	myResourceGroupWithQuery := api.NewResourceGroup(
 		"resource-group-with-query-from-golang",
 		api.AwsResourceGroup,
 		"Resource groups in `us` regions",
@@ -91,9 +88,9 @@ func main() {
 	fmt.Printf("Succesfully created resource group \n %+v\n", rgV2Resp)
 
 	println("Updating v2 resource group name")
-	rgV2Resp.Data.NameV2 = "resource-group-with-query-from-golang-updated"
+	rgV2Resp.Data.Name = "resource-group-with-query-from-golang-updated"
 
-	updatedResponse, err := lacework.V2.ResourceGroups.UpdateAws(&rgV2Resp.Data)
+	updatedResponse, err := lacework.V2.ResourceGroups.Update(&rgV2Resp.Data)
 
 	if err != nil {
 		log.Fatal(err)
@@ -106,32 +103,4 @@ func main() {
 		log.Fatal(err)
 	}
 	println("Successfully deleted resource group")
-
-	props := api.LwAccountResourceGroupProps{
-		Description: "All Lacework accounts",
-		LwAccounts:  []string{"tech-ally"},
-	}
-
-	myResourceGroup := api.NewResourceGroup(
-		"resource-group-from-golang",
-		api.LwAccountResourceGroup,
-		props,
-	)
-
-	// LW_ACCOUNT resource groups are only allowed at Organization level,
-	// copy the client to make it an org client
-	orgLwClient, err := api.CopyClient(lacework,
-		api.WithOrgAccess(),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	response, err := orgLwClient.V2.ResourceGroups.Create(myResourceGroup)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Output: Resource Group created: RESOURCE_GUID
-	fmt.Printf("Resource Group created: %s", response.Data.ResourceGuid)
 }
