@@ -148,7 +148,7 @@ func TestResourceGroupShow(t *testing.T) {
 
 	t.Run("JSON Output", func(t *testing.T) {
 		out, err, exitcode := LaceworkCLIWithTOMLConfig("resource-group", "show", resourceGroupShowID, "--json")
-		assert.Contains(t, out.String(), `"resource_guid"`)
+		assert.Contains(t, out.String(), `"resourceGroupGuid"`)
 		assert.Contains(t, out.String(), `"`+resourceGroupShowID+`"`)
 		assert.Empty(t, err.String(), "STDERR should be empty")
 		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
