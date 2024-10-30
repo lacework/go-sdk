@@ -1,0 +1,20 @@
+{
+    "filters": {
+      "filter0": {
+        "field": "Machine Tag",
+        "operation": "EQUALS",
+        "key": "cluster",
+        "values": [
+          "dev"
+        ]
+      }
+    },
+    "expression": {
+      "operator": "OR",
+      "children": [
+        {
+          "filterName": "filter0"
+        }
+      ]
+    }
+  }

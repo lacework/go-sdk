@@ -1,0 +1,40 @@
+{
+  "filters": {
+    "filter0": {
+      "field": "Account",
+      "operation": "EQUALS",
+      "values": [
+        "123456789012"
+      ]
+    },
+    "filter1": {
+      "field": "Resource Tag",
+      "operation": "INCLUDES",
+      "key": "Hostname",
+      "values": [
+        "*"
+      ]
+    },
+    "filter2": {
+      "field": "Region",
+      "operation": "STARTS_WITH",
+      "values": [
+        "ap-south"
+      ]
+    }
+  },
+  "expression": {
+    "operator": "AND",
+    "children": [
+      {
+        "filterName": "filter0"
+      },
+      {
+        "filterName": "filter1"
+      },
+      {
+        "filterName": "filter2"
+      }
+    ]
+  }
+}

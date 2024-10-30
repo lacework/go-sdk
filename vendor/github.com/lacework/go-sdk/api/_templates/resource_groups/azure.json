@@ -1,0 +1,70 @@
+{
+    "filters": {
+      "filter0": {
+        "field": "Subscription ID",
+        "operation": "EQUALS",
+        "values": [
+          "0fe75302-1906-45ec-bde1-79b76899dd74"
+        ]
+      },
+      "filter1": {
+        "field": "Subscription Name",
+        "operation": "STARTS_WITH",
+        "values": [
+          "prod"
+        ]
+      },
+      "filter2": {
+        "field": "Tenant ID",
+        "operation": "EQUALS",
+        "values": [
+          "b329d4bf-4587-4ccf-e132-84e7025fa22d"
+        ]
+      },
+      "filter3": {
+        "field": "Tenant Name",
+        "operation": "INCLUDES",
+        "values": [
+          "*"
+        ]
+      },
+      "filter4": {
+        "field": "Resource Tag",
+        "operation": "EQUALS",
+        "key": "Env",
+        "values": [
+          "dev"
+        ]
+      },
+      "filter5": {
+        "field": "Region",
+        "operation": "EQUALS",
+        "values": [
+          "westus2"
+        ]
+      }
+    },
+    "expression": {
+      "operator": "AND",
+      "children": [
+        {
+          "filterName": "filter0"
+        },
+        {
+          "filterName": "filter1"
+        },
+        {
+          "filterName": "filter2"
+        },
+        {
+          "filterName": "filter3"
+        },
+        {
+          "filterName": "filter4"
+        },
+        {
+          "filterName": "filter5"
+        }
+      ]
+    }
+  }

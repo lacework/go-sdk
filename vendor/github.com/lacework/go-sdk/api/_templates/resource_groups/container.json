@@ -1,0 +1,50 @@
+{
+    "filters": {
+      "filter0": {
+        "field": "Image Tag",
+        "operation": "EQUALS",
+        "values": [
+          "1.17.1"
+        ]
+      },
+      "filter1": {
+        "field": "Container Label",
+        "operation": "INCLUDES",
+        "key": "app",
+        "values": [
+          "*"
+        ]
+      },
+      "filter2": {
+        "field": "Image Repo",
+        "operation": "EQUALS",
+        "values": [
+          "parrotsec/core"
+        ]
+      },
+      "filter3": {
+        "field": "Image Registry",
+        "operation": "EQUALS",
+        "values": [
+          "k8s.gcr.io"
+        ]
+      }
+    },
+    "expression": {
+      "operator": "AND",
+      "children": [
+        {
+          "filterName": "filter0"
+        },
+        {
+          "filterName": "filter1"
+        },
+        {
+          "filterName": "filter2"
+        },
+        {
+          "filterName": "filter3"
+        }
+      ]
+    }
+  }
