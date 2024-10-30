@@ -38,7 +38,7 @@ func createResourceGroup(typ string, uid string) (string, error) {
 		return "", errors.Wrap(err, "error serializing query template")
 	}
 
-	var testResourceGroup api.ResourceGroupDataWithQuery = api.ResourceGroupDataWithQuery{
+	var testResourceGroup api.ResourceGroupData = api.ResourceGroupData{
 		Name:        fmt.Sprintf("CLI_TestCreateResourceGroup_%s", iType.String()+"_"+uid),
 		Type:        iType.String(),
 		Query:       &testQuery,
@@ -61,7 +61,7 @@ func createResourceGroup(typ string, uid string) (string, error) {
 		return "", errors.New("non-zero exit code")
 	}
 
-	var resourceGroupV2Response api.ResourceGroupV2Response
+	var resourceGroupV2Response api.ResourceGroupResponse
 	err = json.Unmarshal(out.Bytes(), &resourceGroupV2Response)
 	if err != nil {
 		return "", err
