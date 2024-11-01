@@ -208,24 +208,7 @@ func promptCreateResourceGroup() error {
 		return err
 	}
 
-	switch group {
-	case "AWS":
-		return createResourceGroup("AWS")
-	case "AZURE":
-		return createResourceGroup("AZURE")
-	case "GCP":
-		return createResourceGroup("GCP")
-	case "CONTAINER":
-		return createResourceGroup("CONTAINER")
-	case "MACHINE":
-		return createResourceGroup("MACHINE")
-	case "OCI":
-		return createResourceGroup("OCI")
-	case "KUBERNETES":
-		return createResourceGroup("KUBERNETES")
-	default:
-		return errors.New("unknown resource group type")
-	}
+	return createResourceGroup(group)
 }
 
 func init() {
