@@ -923,7 +923,7 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 
 		attributes := map[string]interface{}{}
 		// set `access_key`, `secret_key` and `token` for single-account multiple-region Agentless
-		if args.Agentless {
+		if args.Agentless || args.ControlTower {
 			for k, v := range args.ExtraProviderArguments {
 				attributes[k] = v
 			}
