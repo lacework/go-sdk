@@ -19,6 +19,7 @@
 package api_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -128,6 +129,113 @@ func TestResourceGroupGet(t *testing.T) {
 		if assert.NotNil(t, err) {
 			assert.Contains(t, err.Error(), "api/v2/ResourceGroups/UNKNOWN_INTG_GUID")
 			assert.Contains(t, err.Error(), "[404] Not Found")
+		}
+	})
+}
+
+func TestResourceGroupsGetCorrectlyParsersFilterNames(t *testing.T) {
+	var (
+		queryJson = `
+			{
+			"expression": {
+				"children": [
+					{
+						"filterName": "filter_account"
+					},
+					{
+						"filterName": "filter1"
+					},
+					{
+						"filterName": "filter2"
+					},
+					{	
+						"children": [
+							{
+								"filterName": "team_Account"
+							}
+						],
+						"operator": "OR"
+					}
+					
+				],
+				"operator": "AND"
+			},
+			"filters": {
+				"filter1": {
+					"field": "Resource Tag",
+					"key": "Hostname",
+					"operation": "INCLUDES",
+					"values": [
+						"*"
+					]
+				},
+				"filter2": {
+					"field": "Region",
+					"operation": "STARTS_WITH",
+					"values": [
+						"ap-south"
+					]
+				},
+				"filter_account": {
+					"field": "Account",
+					"operation": "EQUALS",
+					"values": [
+						"123456789012"
+					]
+				},
+				"team_Account": {
+					"field": "Account",
+					"operation": "EQUALS",
+					"values": [
+						"123456789012"
+					]
+				}
+			}
+		}
+		`
+		resourceGUID = intgguid.New()
+		vanillaType  = "VANILLA"
+		apiPath      = fmt.Sprintf("ResourceGroups/%s", resourceGUID)
+		vanillaGroup = singleVanillaResourceGroup(resourceGUID, vanillaType, queryJson)
+		fakeServer   = lacework.MockServer()
+	)
+
+	fakeServer.MockToken("TOKEN")
+	defer fakeServer.Close()
+
+	fakeServer.MockAPI(apiPath,
+		func(w http.ResponseWriter, r *http.Request) {
+			if assert.Equal(t, "GET", r.Method, "Get() should be a GET method") {
+				fmt.Fprintf(w, generateResourceGroupResponse(vanillaGroup))
+			}
+		},
+	)
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+
+	assert.Nil(t, err)
+
+	t.Run("when resource groups GET is called. Filter keys are correctly parsed", func(t *testing.T) {
+		var response api.ResourceGroupResponse
+		err := c.V2.ResourceGroups.Get(resourceGUID, &response)
+		assert.Nil(t, err)
+		if assert.NotNil(t, response) {
+			assert.Equal(t, resourceGUID, response.Data.ResourceGroupGuid)
+			assert.Equal(t, "group_name", response.Data.Name)
+			assert.Equal(t, "VANILLA", response.Data.Type)
+			// assert that the filter names in queryjson matach RGQuery
+			var expectedQuery api.RGQuery
+			err = json.Unmarshal([]byte(queryJson), &expectedQuery)
+			assert.Nil(t, err)
+
+			assert.NotNil(t, response.Data.Query.Filters["filter_account"])
+			assert.Equal(t, expectedQuery.Filters["filter_account"], response.Data.Query.Filters["filter_account"])
+
+			assert.NotNil(t, response.Data.Query.Filters["team_Account"])
+			assert.Equal(t, expectedQuery.Filters["team_Account"], response.Data.Query.Filters["team_Account"])
 		}
 	})
 }

@@ -22,6 +22,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -95,14 +96,52 @@ func (svc *ResourceGroupsService) List() (response ResourceGroupsResponse, err e
 		return rawResponse, err
 	}
 
+	err = sanitizeFieldsInRawResponseList(&rawResponse, &response)
+	if err != nil {
+		return rawResponse, err
+	}
+
 	return rawResponse, nil
+}
+
+func sanitizeFieldsInRawResponse(rawResponse *ResourceGroupResponse, response interface{}) error {
+	// update filters keys to match the query template
+	updateFiltersKeys(&rawResponse.Data)
+
+	j, err := json.Marshal(rawResponse)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(j, &response)
+}
+
+func sanitizeFieldsInRawResponseList(rawResponse *ResourceGroupsResponse, response interface{}) error {
+	for i := range rawResponse.Data {
+		// update filters keys to match the query template
+		updateFiltersKeys(&rawResponse.Data[i])
+	}
+
+	j, err := json.Marshal(rawResponse)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(j, &response)
 }
 
 func (svc *ResourceGroupsService) Create(group ResourceGroupData) (
 	response ResourceGroupResponse,
 	err error,
 ) {
-	err = svc.create(group, &response)
+	var rawResponse ResourceGroupResponse
+	err = svc.create(group, &rawResponse)
+	if err != nil {
+		return
+	}
+
+	err = sanitizeFieldsInRawResponse(&rawResponse, &response)
+
 	return
 }
 
@@ -117,12 +156,56 @@ func (svc *ResourceGroupsService) Update(data *ResourceGroupData) (
 	guid := data.ID()
 	data.ResetResourceGUID()
 
-	err = svc.update(guid, data, &response)
+	var rawResponse ResourceGroupResponse
+	err = svc.update(guid, data, &rawResponse)
+
 	if err != nil {
 		return
 	}
 
+	err = sanitizeFieldsInRawResponse(&rawResponse, &response)
+
 	return
+}
+
+func collectFilterNames(children []*RGChild, filterNames map[string]string) {
+	for _, child := range children {
+		if child.FilterName != "" {
+			normalizedKey := strings.ReplaceAll(strings.ToLower(child.FilterName), "_", "")
+			filterNames[normalizedKey] = child.FilterName
+		}
+		if len(child.Children) > 0 {
+			collectFilterNames(child.Children, filterNames)
+		}
+	}
+}
+
+/*
+updateFiltersKeys updates the keys in the Filters map of ResourceGroupData to ensure they match the filter names
+defined in the nested children of the query expression. This is necessary because JSON decoding/encoding can
+convert keys to camel case, causing mismatches. The function normalizes the keys by removing underscores and
+converting them to lower case, then compares them with the filter names. If a mismatch is found, the key is
+updated to the value in RGExpression.Children
+*/
+func updateFiltersKeys(data *ResourceGroupData) {
+	if data.Query == nil || data.Query.Expression == nil {
+		return
+	}
+
+	filterNames := make(map[string]string)
+	collectFilterNames(data.Query.Expression.Children, filterNames)
+
+	updatedFilters := make(map[string]*RGFilter)
+	for key, value := range data.Query.Filters {
+		normalizedKey := strings.ReplaceAll(strings.ToLower(key), "_", "")
+		if _, exists := filterNames[normalizedKey]; exists {
+			updatedFilters[filterNames[normalizedKey]] = value
+		} else {
+			updatedFilters[key] = value
+		}
+	}
+
+	data.Query.Filters = updatedFilters
 }
 
 func (group *ResourceGroupData) ResetResourceGUID() {
@@ -149,20 +232,17 @@ func (svc *ResourceGroupsService) Delete(guid string) error {
 
 func (svc *ResourceGroupsService) Get(guid string, response interface{}) error {
 	var rawResponse ResourceGroupResponse
+
 	err := svc.get(guid, &rawResponse)
 	if err != nil {
 		return err
 	}
 
-	j, err := json.Marshal(rawResponse)
+	err = sanitizeFieldsInRawResponse(&rawResponse, response)
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(j, &response)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
