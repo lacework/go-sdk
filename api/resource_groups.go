@@ -188,6 +188,10 @@ converting them to lower case, then compares them with the filter names. If a mi
 updated to the value in RGExpression.Children
 */
 func updateFiltersKeys(data *ResourceGroupData) {
+	if data.Query == nil || data.Query.Expression == nil {
+		return
+	}
+
 	filterNames := make(map[string]string)
 	collectFilterNames(data.Query.Expression.Children, filterNames)
 
