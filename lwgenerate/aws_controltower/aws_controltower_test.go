@@ -85,7 +85,7 @@ var moduleCloudtrailControlTowerBasic = `terraform {
   required_providers {
     lacework = {
       source  = "lacework/lacework"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
   }
 }
@@ -123,7 +123,7 @@ var moduleCloudtrailControlTowerWithAccountMappings = `terraform {
   required_providers {
     lacework = {
       source  = "lacework/lacework"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
   }
 }

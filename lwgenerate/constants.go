@@ -3,7 +3,7 @@ package lwgenerate
 // TODO update
 const (
 	LaceworkProviderSource  = "lacework/lacework"
-	LaceworkProviderVersion = "~> 1.0"
+	LaceworkProviderVersion = "~> 2.0"
 
 	AwsAgentlessSource               = "lacework/agentless-scanning/aws"
 	AwsAgentlessVersion              = "~> 0.6"
