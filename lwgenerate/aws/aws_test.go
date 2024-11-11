@@ -424,7 +424,7 @@ var requiredProvidersWithCustomBlock = `terraform {
   required_providers {
     lacework = {
       source  = "lacework/lacework"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
   }
   backend "s3" {
@@ -436,7 +436,7 @@ var requiredProviders = `terraform {
   required_providers {
     lacework = {
       source  = "lacework/lacework"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
   }
 }
@@ -569,7 +569,7 @@ var moduleImportAgentless = `terraform {
   required_providers {
     lacework = {
       source  = "lacework/lacework"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
   }
 }
@@ -613,7 +613,7 @@ var moduleImportAgentlessOrganization = `terraform {
   required_providers {
     lacework = {
       source  = "lacework/lacework"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
   }
 }
@@ -740,7 +740,7 @@ var moduleImportConfigWithProviderTags = `terraform {
   required_providers {
     lacework = {
       source  = "lacework/lacework"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
   }
 }
@@ -787,7 +787,7 @@ var moduleImportConfigWithMultipleAccounts = `terraform {
   required_providers {
     lacework = {
       source  = "lacework/lacework"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
   }
 }

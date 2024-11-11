@@ -26,7 +26,7 @@ type GenerateOciTfConfigurationArgs struct {
 type OciTerraformModifier func(c *GenerateOciTfConfigurationArgs)
 
 const (
-	LaceworkProviderVersion = ">= 1.9.0"
+	LaceworkProviderVersion = "~> 2.0"
 )
 
 // Set the Lacework profile to use for integration
