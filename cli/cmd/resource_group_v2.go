@@ -84,9 +84,8 @@ func inputRGQueryFromEditor(resourceType string) *survey.Editor {
 	prompt := &survey.Editor{
 		Message:  fmt.Sprintf("Type a query for the new %s Resource Group", resourceType),
 		FileName: "resourceGroupQuery*.json",
-		Help:     "For examples of a query, refer to: "+
-		          "https://docs.fortinet.com/document/lacework-forticnapp/"+
-			  "latest/api-reference/690087/using-the-resource-groups-api", 
+		Help: `For examples of a query, refer to: https://docs.fortinet.com/document/lacework-forticnapp/` +
+			`latest/api-reference/690087/using-the-resource-groups-api`,
 	}
 	prompt.Default = iType.QueryTemplate()
 	prompt.HideDefault = true
