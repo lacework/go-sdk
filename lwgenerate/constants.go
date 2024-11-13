@@ -3,7 +3,7 @@ package lwgenerate
 // TODO update
 const (
 	LaceworkProviderSource  = "lacework/lacework"
-	LaceworkProviderVersion = "~> 1.0"
+	LaceworkProviderVersion = "~> 2.0"
 
 	AwsAgentlessSource               = "lacework/agentless-scanning/aws"
 	AwsAgentlessVersion              = "~> 0.6"
@@ -19,13 +19,13 @@ const (
 	AwsEksAuditVersion               = "~> 1.0"
 
 	LWAzureConfigSource              = "lacework/config/azure"
-	LWAzureConfigVersion             = "~> 2.0"
+	LWAzureConfigVersion             = "~> 3.0"
 	LWAzureActivityLogSource         = "lacework/activity-log/azure"
-	LWAzureActivityLogVersion        = "~> 2.0"
+	LWAzureActivityLogVersion        = "~> 3.0"
 	LWAzureEntraIdActivityLogSource  = "lacework/microsoft-entra-id-activity-log/azure"
-	LWAzureEntraIdActivityLogVersion = "~> 0.2"
+	LWAzureEntraIdActivityLogVersion = "~> 0.3"
 	LWAzureADSource                  = "lacework/ad-application/azure"
-	LWAzureADVersion                 = "~> 1.0"
+	LWAzureADVersion                 = "~> 2.0"
 
 	GcpAgentlessSource       = "lacework/agentless-scanning/gcp"
 	GcpAgentlessVersion      = "~> 2.0"
