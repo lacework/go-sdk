@@ -1,11 +1,11 @@
 package cmd
 
 import (
+	"github.com/AlecAivazis/survey/v2"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/imdario/mergo"
 	"github.com/spf13/cobra"
 
@@ -190,6 +190,7 @@ the new cloud account. In interactive mode, this command will:
 				azure.WithStorageAccountName(GenerateAzureCommandState.StorageAccountName),
 				azure.WithStorageLocation(GenerateAzureCommandState.StorageLocation),
 				azure.WithActivityLogIntegrationName(GenerateAzureCommandState.ActivityLogIntegrationName),
+				azure.WithActiveDirectoryActivityLogIntegrationName(GenerateAzureCommandState.ActiveDirectoryActivityLogIntegrationName),
 				azure.WithConfigIntegrationName(GenerateAzureCommandState.ConfigIntegrationName),
 				azure.WithEntraIdActivityLogIntegrationName(GenerateAzureCommandState.EntraIdIntegrationName),
 				azure.WithEventHubLocation(GenerateAzureCommandState.EventHubLocation),
@@ -225,6 +226,7 @@ the new cloud account. In interactive mode, this command will:
 			data := azure.NewTerraform(
 				GenerateAzureCommandState.Config,
 				GenerateAzureCommandState.ActivityLog,
+				GenerateAzureCommandState.ActiveDirectoryActivityLog,
 				GenerateAzureCommandState.EntraIdActivityLog,
 				GenerateAzureCommandState.CreateAdIntegration,
 				mods...)
@@ -373,11 +375,23 @@ func initGenerateAzureTfCommandFlags() {
 		false,
 		"enable activity log integration")
 
+	generateAzureTfCommand.PersistentFlags().BoolVar(
+		&GenerateAzureCommandState.ActiveDirectoryActivityLog,
+		"active_directory_activity_log",
+		false,
+		"enable active directory activity log integration")
+
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.ActivityLogIntegrationName,
 		"activity_log_integration_name",
 		"",
 		"specify a custom activity log integration name")
+
+	generateAzureTfCommand.PersistentFlags().StringVar(
+		&GenerateAzureCommandState.ActiveDirectoryActivityLogIntegrationName,
+		"active_directory_activity_log_integration_name",
+		"",
+		"specify a custom active directory activity log integration name")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.EntraIdActivityLog,

@@ -11,6 +11,9 @@ type GenerateAzureTfConfigurationArgs struct {
 	// Should we configure Activity Log integration in LW?
 	ActivityLog bool
 
+	// Should we configure Active Directory Activity Log in LW?
+	ActiveDirectoryActivityLog bool
+
 	// Should we add Config integration in LW?
 	Config bool
 
@@ -25,6 +28,10 @@ type GenerateAzureTfConfigurationArgs struct {
 
 	// If ActivityLog is true, give the user the opportunity to name their integration. Defaults to "TF activity log"
 	ActivityLogIntegrationName string
+
+	// If ActiveDirectoryActivityLog is true, give the user the opportunity to name their integration. Defaults to
+	// "TF active directory activity log"
+	ActiveDirectoryActivityLogIntegrationName string
 
 	// If EntraIdIntegration is true, give the user the opportunity to name their integration.
 	// Defaults to "TF Entra ID activity log"
@@ -123,14 +130,15 @@ type AzureTerraformModifier func(c *GenerateAzureTfConfigurationArgs)
 //
 // Note: Additional configuration details may be set using modifiers of the AzureTerraformModifier type
 func NewTerraform(
-	enableConfig bool, enableActivityLog bool, enableEntraIdActivityLog, createAdIntegration bool,
+	enableConfig bool, enableActivityLog bool, enableActiveDirectoryActivityLog bool, enableEntraIdActivityLog, createAdIntegration bool,
 	mods ...AzureTerraformModifier,
 ) *GenerateAzureTfConfigurationArgs {
 	config := &GenerateAzureTfConfigurationArgs{
-		ActivityLog:         enableActivityLog,
-		Config:              enableConfig,
-		EntraIdActivityLog:  enableEntraIdActivityLog,
-		CreateAdIntegration: createAdIntegration,
+		ActivityLog:                enableActivityLog,
+		ActiveDirectoryActivityLog: enableActiveDirectoryActivityLog,
+		Config:                     enableConfig,
+		EntraIdActivityLog:         enableEntraIdActivityLog,
+		CreateAdIntegration:        createAdIntegration,
 	}
 	for _, m := range mods {
 		m(config)
@@ -187,6 +195,13 @@ func WithExtraBlocks(blocks []*hclwrite.Block) AzureTerraformModifier {
 func WithActivityLogIntegrationName(name string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.ActivityLogIntegrationName = name
+	}
+}
+
+// WithActivityLogIntegrationName Set the Activity Log Integration name to be displayed on the Lacework UI
+func WithActiveDirectoryActivityLogIntegrationName(name string) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.ActiveDirectoryActivityLogIntegrationName = name
 	}
 }
 
