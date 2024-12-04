@@ -13,6 +13,7 @@ provider "azuread" {
 }
 
 provider "azurerm" {
+  subscription_id = "test-subscription"
   features {
   }
 }
