@@ -22,8 +22,7 @@ var (
 	QuestionEnableEntraIdActivityLog = "Enable Azure Entra ID Activity Log Integration?"
 	QuestionEntraIdActivityLogName   = "Specify custom EntraID Activity Log integration name: (optional)"
 	QuestionAddAzureSubscriptionID   = "Set Azure Subscription ID?"
-	QuestionAzureSubscriptionID      = "Specify the Azure Subscription ID to be used to provision " +
-		"Lacework resources: (optional)"
+	QuestionAzureSubscriptionID      = "Specify the Azure Subscription ID to be used to provision Lacework resources:"
 
 	QuestionAzureAnotherAdvancedOpt      = "Configure another advanced integration option"
 	QuestionAzureConfigAdvanced          = "Configure advanced integration options?"
@@ -160,7 +159,7 @@ var (
 
 By default, this command will function interactively, prompting for the required information to setup
 the new cloud account. In interactive mode, this command will:
-		
+
 * Prompt for the required information to setup the integration
 * Generate new Terraform code using the inputs
 * Optionally, run the generated Terraform code:
