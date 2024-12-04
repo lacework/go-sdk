@@ -284,10 +284,7 @@ func TestGenerationAzureRmProviderWithSubscriptionID(t *testing.T) {
 	configWithSubscription, fileErr := getFileContent("test-data/config-with-azurerm-subscription.tf")
 	assert.Nil(t, fileErr)
 
-	hcl, err := azure.NewTerraform(true, false, false, true,
-		azure.WithSubscriptionID("test-subscription"),
-		azure.WithSubscriptionID("test-subscription"),
-	).Generate()
+	hcl, err := azure.NewTerraform(true, false, false, true, azure.WithSubscriptionID("test-subscription")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, configWithSubscription, hcl)
