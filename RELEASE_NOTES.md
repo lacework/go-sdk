@@ -1,11 +1,11 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v2.1.3`.
+Another day, another release. These are the release notes for the version `v2.1.4`.
 
-## Bug Fixes
-* fix: bump lacework provider version to 2.0 (#1678) (Pengyuan Zhao)([a4fd71b5](https://github.com/lacework/go-sdk/commit/a4fd71b5e0139190eb6d5a897d10eea63582d851))
-* fix: Add credentials to control tower accounts (#1675) (Lei Jin)([3e1885d0](https://github.com/lacework/go-sdk/commit/3e1885d0c01af8dc0ad9634ff83c0d31d7f207ff))
+## Documentation Updates
+* docs: Correct resource-group command help text to point to public docs (ggaetz-fortinet)([e610518e](https://github.com/lacework/go-sdk/commit/e610518e73a685f3dd44b5f231dcbfa6ca959373))
 ## Other Changes
-* ci: version bump to v2.1.3-dev (Lacework)([33d32ada](https://github.com/lacework/go-sdk/commit/33d32ada65a4fb396944664e595f69320c5845fe))
+* chore: make subscription_id required for Azure Activity Log and Config (#1681) (Pengyuan Zhao)([0098e71c](https://github.com/lacework/go-sdk/commit/0098e71c8a61273502900d23ef02027f0eb8bb3f))
+* ci: version bump to v2.1.4-dev (Lacework)([3660e7bf](https://github.com/lacework/go-sdk/commit/3660e7bf61ea24704e20de4cd46ba3d87087898e))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
