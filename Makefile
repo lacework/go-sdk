@@ -66,7 +66,7 @@ test: prepare test-only ## Run all go-sdk tests
 .PHONY: test-only
 test-only: ## Run all go-sdk tests only (without prepare)
 	$(eval PACKAGES := $(shell go list ./... | grep -v integration))
-	gotestsum -f testnam --packages="$(PACKAGES)" \
+	gotestsum -f testname --packages="$(PACKAGES)" \
 		-- -v -cover -run=$(regex) -coverprofile=$(COVERAGEOUT) $(PACKAGES)
 
 .PHONY: integration
