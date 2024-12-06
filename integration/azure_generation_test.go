@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	azurePath = "/lacework/azure/"
+	azurePath          = "/lacework/azure/"
+	mockSubscriptionID = "111aaa1a-a1a1-11aa-a111-1aaaa1a11a11"
 )
 
 func expectAzureString(c *expect.Console, str string, runError *error) {
@@ -69,7 +70,8 @@ func TestGenerationAzureSimple(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -111,7 +113,8 @@ func TestGenerationAzureCustomizedOutputLocation(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 				MsgMenu{cmd.AzureAdvancedOptDone, 5},
 				MsgRsp{cmd.QuestionAzureCustomizeOutputLocation, dir},
@@ -151,7 +154,8 @@ func TestGenerationAzureConfigOnly(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -186,7 +190,8 @@ func TestGenerationAzureActivityLogOnly(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -224,7 +229,8 @@ func TestGenerationAzureNoADEnabled(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 				MsgMenu{cmd.AzureAdvancedOptLocation, 2},
 				MsgRsp{cmd.QuestionADApplicationPass, pass},
@@ -270,7 +276,8 @@ func _TestGenerationAzureNamedConfig(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 0},
@@ -315,7 +322,8 @@ func _TestGenerationAzureNamedActivityLog(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 0},
@@ -357,7 +365,8 @@ func TestGenerationAzureAdvancedOptsDone(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 6},
@@ -406,7 +415,8 @@ func TestGenerationAzureWithExistingTerraform(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 				MsgMenu{cmd.AzureAdvancedOptDone, 5},
 				MsgRsp{cmd.QuestionAzureCustomizeOutputLocation, dir},
@@ -446,7 +456,8 @@ func TestGenerationAzureConfigAllSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 				MsgMenu{cmd.AzureAdvancedOptDone, 1},
 				MsgRsp{cmd.QuestionEnableAllSubscriptions, "y"},
@@ -488,7 +499,8 @@ func TestGenerationAzureConfigMgmntGroup(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 2},
@@ -533,7 +545,8 @@ func TestGenerationAzureConfigSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 1},
@@ -578,7 +591,8 @@ func TestGenerationAzureActivityLogSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 1},
@@ -624,7 +638,8 @@ func TestGenerationAzureActivityLogStorageAccount(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 3},
@@ -672,7 +687,8 @@ func TestGenerationAzureActivityLogAllSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 1},
@@ -716,7 +732,8 @@ func TestGenerationAzureActivityLogLocation(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 
 				MsgMenu{cmd.AzureAdvancedOptDone, 2},
@@ -763,7 +780,8 @@ func TestGenerationAzureOverwrite(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -783,7 +801,8 @@ func TestGenerationAzureOverwrite(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{"already exists, overwrite?", "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -820,7 +839,8 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -842,7 +862,8 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{"already exists, overwrite?", "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -873,7 +894,8 @@ func TestGenerationAzureLaceworkProfile(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -900,7 +922,6 @@ func TestGenerationAzureWithSubscriptionID(t *testing.T) {
 	defer os.Setenv("LW_NOCACHE", "")
 	var final string
 	var runError error
-	mockSubscriptionID := "111aaa1a-a1a1-11aa-a111-1aaaa1a11a11"
 
 	// Run CLI
 	tfResult := runGenerateAzureTest(t,
