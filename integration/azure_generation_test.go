@@ -87,7 +87,7 @@ func TestGenerationAzureSimple(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, true, false, true).Generate()
+	buildTf, _ := azure.NewTerraform(true, true, false, true, azure.WithSubscriptionID(mockSubscriptionID)).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -135,7 +135,7 @@ func TestGenerationAzureCustomizedOutputLocation(t *testing.T) {
 	result, _ := os.ReadFile(filepath.FromSlash(fmt.Sprintf("%s/main.tf", dir)))
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, true, false, true).Generate()
+	buildTf, _ := azure.NewTerraform(true, true, false, true, azure.WithSubscriptionID(mockSubscriptionID)).Generate()
 	assert.Equal(t, buildTf, string(result))
 }
 
@@ -171,7 +171,7 @@ func TestGenerationAzureConfigOnly(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, false, false, true).Generate()
+	buildTf, _ := azure.NewTerraform(true, false, false, true, azure.WithSubscriptionID(mockSubscriptionID)).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -207,7 +207,7 @@ func TestGenerationAzureActivityLogOnly(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(false, true, false, true).Generate()
+	buildTf, _ := azure.NewTerraform(false, true, false, true, azure.WithSubscriptionID(mockSubscriptionID)).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -252,6 +252,7 @@ func TestGenerationAzureNoADEnabled(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := azure.NewTerraform(true, true, false, false,
+		azure.WithSubscriptionID(mockSubscriptionID),
 		azure.WithAdApplicationPassword(pass),
 		azure.WithAdServicePrincipalId(principalId),
 		azure.WithAdApplicationId(applicationId),
@@ -300,6 +301,7 @@ func _TestGenerationAzureNamedConfig(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := azure.NewTerraform(true, false, false, true,
+		azure.WithSubscriptionID(mockSubscriptionID),
 		azure.WithConfigIntegrationName(configName),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -346,7 +348,9 @@ func _TestGenerationAzureNamedActivityLog(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := azure.NewTerraform(false, true, false, true,
-		azure.WithActivityLogIntegrationName(activityName)).Generate()
+		azure.WithSubscriptionID(mockSubscriptionID),
+		azure.WithActivityLogIntegrationName(activityName),
+	).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -384,7 +388,7 @@ func TestGenerationAzureAdvancedOptsDone(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
-	buildTf, _ := azure.NewTerraform(true, true, false, true).Generate()
+	buildTf, _ := azure.NewTerraform(true, true, false, true, azure.WithSubscriptionID(mockSubscriptionID)).Generate()
 	assert.Equal(t, buildTf, tfResult)
 }
 
@@ -478,6 +482,7 @@ func TestGenerationAzureConfigAllSubs(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := azure.NewTerraform(true, false, false, true,
+		azure.WithSubscriptionID(mockSubscriptionID),
 		azure.WithAllSubscriptions(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -523,6 +528,7 @@ func TestGenerationAzureConfigMgmntGroup(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := azure.NewTerraform(true, false, false, true,
+		azure.WithSubscriptionID(mockSubscriptionID),
 		azure.WithManagementGroup(true),
 		azure.WithManagementGroupId(mgmtGrpId),
 	).Generate()
@@ -570,6 +576,7 @@ func TestGenerationAzureConfigSubs(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := azure.NewTerraform(true, false, false, true,
+		azure.WithSubscriptionID(mockSubscriptionID),
 		azure.WithSubscriptionIds(testIds),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -616,6 +623,7 @@ func TestGenerationAzureActivityLogSubs(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := azure.NewTerraform(false, true, false, true,
+		azure.WithSubscriptionID(mockSubscriptionID),
 		azure.WithSubscriptionIds(testIds),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -665,6 +673,7 @@ func TestGenerationAzureActivityLogStorageAccount(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := azure.NewTerraform(false, true, false, true,
+		azure.WithSubscriptionID(mockSubscriptionID),
 		azure.WithExistingStorageAccount(true),
 		azure.WithStorageAccountName(storageAccountName),
 		azure.WithStorageAccountResourceGroup(storageResourceGrp),
@@ -711,6 +720,7 @@ func TestGenerationAzureActivityLogAllSubs(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := azure.NewTerraform(false, true, false, true,
+		azure.WithSubscriptionID(mockSubscriptionID),
 		azure.WithAllSubscriptions(true),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -756,6 +766,7 @@ func TestGenerationAzureActivityLogLocation(t *testing.T) {
 
 	// Create the TF directly with lwgenerate and validate same result via CLI
 	buildTf, _ := azure.NewTerraform(false, true, false, true,
+		azure.WithSubscriptionID(mockSubscriptionID),
 		azure.WithStorageLocation(region),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
@@ -912,6 +923,7 @@ func TestGenerationAzureLaceworkProfile(t *testing.T) {
 	assert.Contains(t, final, "Terraform code saved in")
 
 	buildTf, _ := azure.NewTerraform(true, true, false, true,
+		azure.WithSubscriptionID(mockSubscriptionID),
 		azure.WithLaceworkProfile(azProfile),
 	).Generate()
 	assert.Equal(t, buildTf, tfResult)
