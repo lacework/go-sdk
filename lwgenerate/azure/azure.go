@@ -97,6 +97,10 @@ func (args *GenerateAzureTfConfigurationArgs) validate() error {
 		return errors.New("audit log or config integration must be enabled")
 	}
 
+	if (args.ActivityLog || args.Config || args.EntraIdActivityLog) && args.SubscriptionID == "" {
+		return errors.New("subscription_id must be provided")
+	}
+
 	// Validate that active directory settings are correct
 	if !args.CreateAdIntegration && (args.AdApplicationId == "" ||
 		args.AdServicePrincipalId == "" || args.AdApplicationPassword == "") {

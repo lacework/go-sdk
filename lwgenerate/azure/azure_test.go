@@ -22,7 +22,7 @@ func getFileContent(filename string) (string, error) {
 func TestGenerationActivityLogWithoutConfig(t *testing.T) {
 	ActivityLogWithoutConfig, fileErr := getFileContent("test-data/activity_log_without_config.tf")
 	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(false, true, false, true).Generate()
+	hcl, err := azure.NewTerraform(false, true, false, true, azure.WithSubscriptionID("test-subscription")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogWithoutConfig, hcl)
@@ -31,7 +31,7 @@ func TestGenerationActivityLogWithoutConfig(t *testing.T) {
 func TestGenerationActivityLogWithConfig(t *testing.T) {
 	var ActivityLogWithConfig, fileErr = getFileContent("test-data/activity_log_with_config.tf")
 	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(true, true, false, true).Generate()
+	hcl, err := azure.NewTerraform(true, true, false, true, azure.WithSubscriptionID("test-subscription")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogWithConfig, hcl)
@@ -43,7 +43,10 @@ func TestGenerationActivityLogWithConfigAndExtraBlocks(t *testing.T) {
 	assert.Nil(t, fileErr)
 	extraBlock, err := lwgenerate.HclCreateGenericBlock("variable", []string{"var_name"}, nil)
 	assert.NoError(t, err)
-	hcl, err := azure.NewTerraform(true, true, false, true, azure.WithExtraBlocks([]*hclwrite.Block{extraBlock})).Generate()
+	hcl, err := azure.NewTerraform(true, true, false, true,
+		azure.WithSubscriptionID("test-subscription"),
+		azure.WithExtraBlocks([]*hclwrite.Block{extraBlock}),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogWithConfig, hcl)
@@ -52,7 +55,10 @@ func TestGenerationActivityLogWithConfigAndExtraBlocks(t *testing.T) {
 func TestGenerationActivityLogWithConfigAndExtraAzureRMProviderBlocks(t *testing.T) {
 	var ActivityLogWithConfig, fileErr = getFileContent("test-data/activity_log_with_config_provider_args.tf")
 	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(true, true, false, true, azure.WithExtraAZRMArguments(map[string]interface{}{"foo": "bar"})).Generate()
+	hcl, err := azure.NewTerraform(true, true, false, true,
+		azure.WithSubscriptionID("test-subscription"),
+		azure.WithExtraAZRMArguments(map[string]interface{}{"foo": "bar"}),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogWithConfig, hcl)
@@ -61,7 +67,10 @@ func TestGenerationActivityLogWithConfigAndExtraAzureRMProviderBlocks(t *testing
 func TestGenerationActivityLogWithConfigAndExtraAZUReadProviderBlocks(t *testing.T) {
 	var ActivityLogWithConfig, fileErr = getFileContent("test-data/activity_log_with_config_azureadprovider_args.tf")
 	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(true, true, false, true, azure.WithExtraAZReadArguments(map[string]interface{}{"foo": "bar"})).Generate()
+	hcl, err := azure.NewTerraform(true, true, false, true,
+		azure.WithSubscriptionID("test-subscription"),
+		azure.WithExtraAZReadArguments(map[string]interface{}{"foo": "bar"}),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogWithConfig, hcl)
@@ -72,7 +81,10 @@ func TestGenerationActivityLogWithConfigAndCustomBackendBlock(t *testing.T) {
 	assert.NoError(t, err)
 	var ActivityLogWithConfig, fileErr = getFileContent("test-data/activity_log_with_config_root_blocks.tf")
 	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(true, true, false, true, azure.WithExtraRootBlocks([]*hclwrite.Block{customBlock})).Generate()
+	hcl, err := azure.NewTerraform(true, true, false, true,
+		azure.WithSubscriptionID("test-subscription"),
+		azure.WithExtraRootBlocks([]*hclwrite.Block{customBlock}),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogWithConfig, hcl)
@@ -81,7 +93,7 @@ func TestGenerationActivityLogWithConfigAndCustomBackendBlock(t *testing.T) {
 func TestGenerationConfigWithoutActivityLog(t *testing.T) {
 	ConfigWithoutActivityLog, fileErr := getFileContent("test-data/config_without_activity_log.tf")
 	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(true, false, false, true).Generate()
+	hcl, err := azure.NewTerraform(true, false, false, true, azure.WithSubscriptionID("test-subscription")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ConfigWithoutActivityLog, hcl)
@@ -97,6 +109,7 @@ func TestGenerationRenamedConfig(t *testing.T) {
 	RenamedConfig, fileErr := getFileContent("test-data/renamed_config.tf")
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(true, false, false, true,
+		azure.WithSubscriptionID("test-subscription"),
 		azure.WithConfigIntegrationName("Test Config Rename"),
 	).Generate()
 	assert.Nil(t, err)
@@ -108,6 +121,7 @@ func TestGenerationRenamedActivityLog(t *testing.T) {
 	RenamedActivityLog, fileErr := getFileContent("test-data/renamed_activity_log.tf")
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(false, true, false, true,
+		azure.WithSubscriptionID("test-subscription"),
 		azure.WithActivityLogIntegrationName("Test Activity Log Rename"),
 	).Generate()
 	assert.Nil(t, err)
@@ -119,6 +133,7 @@ func TestGenerationRenamedConfigAndActivityLog(t *testing.T) {
 	RenamedConfigAndActivityLog, fileErr := getFileContent("test-data/renamed_config_and_activity_log.tf")
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(true, true, false, true,
+		azure.WithSubscriptionID("test-subscription"),
 		azure.WithConfigIntegrationName("Test Config Rename"),
 		azure.WithActivityLogIntegrationName("Test Activity Log Rename"),
 	).Generate()
@@ -129,6 +144,7 @@ func TestGenerationRenamedConfigAndActivityLog(t *testing.T) {
 
 func TestGenerationNoActiveDirectorySettings(t *testing.T) {
 	hcl, err := azure.NewTerraform(true, true, false, false,
+		azure.WithSubscriptionID("test-subscription"),
 		azure.WithConfigIntegrationName("Test Config Rename"),
 		azure.WithActivityLogIntegrationName("Test Activity Log Rename"),
 	).Generate()
@@ -140,6 +156,7 @@ func TestGenerationCustomActiveDirectory(t *testing.T) {
 	CustomADDetails, fileErr := getFileContent("test-data/customer-ad-details.tf")
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(true, true, false, false,
+		azure.WithSubscriptionID("test-subscription"),
 		azure.WithConfigIntegrationName("Test Config Rename"),
 		azure.WithActivityLogIntegrationName("Test Activity Log Rename"),
 		azure.WithAdApplicationPassword("AD-Test-Password"),
@@ -155,6 +172,7 @@ func TestGenerationActivityLogWithExistingStorageAccount(t *testing.T) {
 	ActivityLogWithStorage, fileErr := getFileContent("test-data/activity-log-with-existing-storage.tf")
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(false, true, false, true,
+		azure.WithSubscriptionID("test-subscription"),
 		azure.WithExistingStorageAccount(true),
 		azure.WithStorageAccountName("Test-Storage-Account-Name"),
 		azure.WithStorageAccountResourceGroup("Test-Storage-Account-Resource-Group"),
@@ -168,6 +186,7 @@ func TestGenerationActivityLogWithAllSubscriptions(t *testing.T) {
 	ActivityLogAllSubs, fileErr := getFileContent("test-data/activity-log-with-all-subscriptions.tf")
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(false, true, false, true,
+		azure.WithSubscriptionID("test-subscription"),
 		azure.WithAllSubscriptions(true),
 	).Generate()
 	assert.Nil(t, err)
@@ -179,6 +198,7 @@ func TestGenerationConfigWithAllSubscriptions(t *testing.T) {
 	ConfigAllSubs, fileErr := getFileContent("test-data/config-with-all-subscriptions.tf")
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(true, false, false, true,
+		azure.WithSubscriptionID("test-subscription"),
 		azure.WithAllSubscriptions(true),
 	).Generate()
 	assert.Nil(t, err)
@@ -190,6 +210,7 @@ func TestGenerationConfigWithManagementGroup(t *testing.T) {
 	ConfigWithMgmtGroup, fileErr := getFileContent("test-data/config-with-management-group.tf")
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(true, false, false, true,
+		azure.WithSubscriptionID("test-subscription"),
 		azure.WithManagementGroup(true),
 		azure.WithManagementGroupId("test-management-group-1"),
 	).Generate()
@@ -200,6 +221,7 @@ func TestGenerationConfigWithManagementGroup(t *testing.T) {
 
 func TestGenerationConfigWithManagementGroupError(t *testing.T) {
 	hcl, err := azure.NewTerraform(true, false, false, true,
+		azure.WithSubscriptionID("test-subscription"),
 		azure.WithManagementGroup(true),
 	).Generate()
 	assert.NotNil(t, err)
@@ -212,6 +234,7 @@ func TestGenerationActivityLogWithSubscriptionsList(t *testing.T) {
 	assert.Nil(t, fileErr)
 	testIds := []string{"test-id-1", "test-id-2", "test-id-3"}
 	hcl, err := azure.NewTerraform(false, true, false, true,
+		azure.WithSubscriptionID("test-subscription"),
 		azure.WithSubscriptionIds(testIds),
 	).Generate()
 	assert.Nil(t, err)
@@ -224,6 +247,7 @@ func TestGenerationConfigWithSubscriptionsList(t *testing.T) {
 	assert.Nil(t, fileErr)
 	testIds := []string{"test-id-1", "test-id-2", "test-id-3"}
 	hcl, err := azure.NewTerraform(true, false, false, true,
+		azure.WithSubscriptionID("test-subscription"),
 		azure.WithSubscriptionIds(testIds),
 	).Generate()
 	assert.Nil(t, err)
@@ -235,6 +259,7 @@ func TestGenerationLocation(t *testing.T) {
 	ActivityLogLocation, fileErr := getFileContent("test-data/activity-log-with-location.tf")
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(false, true, false, true,
+		azure.WithSubscriptionID("test-subscription"),
 		azure.WithStorageLocation("West US 2"),
 	).Generate()
 	assert.Nil(t, err)
@@ -246,7 +271,10 @@ func TestGenerationWithLaceworkProvider(t *testing.T) {
 	laceworkProfile, fileErr := getFileContent("test-data/activity-log-with-lacework-profile.tf")
 	assert.Nil(t, fileErr)
 
-	hcl, err := azure.NewTerraform(false, true, false, true, azure.WithLaceworkProfile("test-profile")).Generate()
+	hcl, err := azure.NewTerraform(false, true, false, true,
+		azure.WithSubscriptionID("test-subscription"),
+		azure.WithLaceworkProfile("test-profile"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, laceworkProfile, hcl)
@@ -265,7 +293,7 @@ func TestGenerationAzureRmProviderWithSubscriptionID(t *testing.T) {
 func TestGenerationEntraIDActivityLog(t *testing.T) {
 	ActivityLogEntraID, fileErr := getFileContent("test-data/entra-id-activity-log-no-custom-input.tf")
 	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(false, false, true, true).Generate()
+	hcl, err := azure.NewTerraform(false, false, true, true, azure.WithSubscriptionID("test-subscription")).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogEntraID, hcl)
@@ -274,7 +302,12 @@ func TestGenerationEntraIDActivityLog(t *testing.T) {
 func TestGenerationEntraIDActivityLogExistingActiveDirectoryApp(t *testing.T) {
 	ActivityLogEntraID, fileErr := getFileContent("test-data/entra-id-activity-log-existing-ad-app.tf")
 	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(false, false, true, false, azure.WithAdApplicationId("testID"), azure.WithAdApplicationPassword("pass"), azure.WithAdServicePrincipalId("principal")).Generate()
+	hcl, err := azure.NewTerraform(false, false, true, false,
+		azure.WithSubscriptionID("test-subscription"),
+		azure.WithAdApplicationId("testID"),
+		azure.WithAdApplicationPassword("pass"),
+		azure.WithAdServicePrincipalId("principal"),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogEntraID, hcl)
@@ -283,7 +316,11 @@ func TestGenerationEntraIDActivityLogExistingActiveDirectoryApp(t *testing.T) {
 func TestGenerationEntraIDActivityLogEventHubLocationAndPartition(t *testing.T) {
 	ActivityLogEntraID, fileErr := getFileContent("test-data/entra-id-activity-log-event-hub-location-and-partition.tf")
 	assert.Nil(t, fileErr)
-	hcl, err := azure.NewTerraform(false, false, true, true, azure.WithEventHubLocation("West US 2"), azure.WithEventHubPartitionCount(2)).Generate()
+	hcl, err := azure.NewTerraform(false, false, true, true,
+		azure.WithSubscriptionID("test-subscription"),
+		azure.WithEventHubLocation("West US 2"),
+		azure.WithEventHubPartitionCount(2),
+	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, ActivityLogEntraID, hcl)

@@ -66,7 +66,7 @@ test: prepare test-only ## Run all go-sdk tests
 .PHONY: test-only
 test-only: ## Run all go-sdk tests only (without prepare)
 	$(eval PACKAGES := $(shell go list ./... | grep -v integration))
-	gotestsum -f testname --rerun-fails=3 --packages="$(PACKAGES)" \
+	gotestsum -f testname --packages="$(PACKAGES)" \
 		-- -v -cover -run=$(regex) -coverprofile=$(COVERAGEOUT) $(PACKAGES)
 
 .PHONY: integration
@@ -85,7 +85,7 @@ integration-generation-only: ## Run integration tests
 
 .PHONY: integration-only
 integration-only: install-tools ## Run integration tests
-	PATH="$(PWD)/bin:${PATH}" gotestsum -f testname  --rerun-fails=3 --packages="github.com/lacework/go-sdk/v2/integration" \
+	PATH="$(PWD)/bin:${PATH}" gotestsum -f testname --packages="github.com/lacework/go-sdk/v2/integration" \
 		-- -v github.com/lacework/go-sdk/v2/integration -timeout 30m -tags="$(INTEGRATION_TEST_TAGS)" -run=$(regex)
 
 .PHONY: integration-only-subset
@@ -94,7 +94,7 @@ integration-only-subset: install-tools ## Run a subset of integration tests
 	$(eval END := $(shell echo 5+$(index)*5 | bc))
 	$(eval LENGTH := ${words $(INTEGRATION_TEST_TAGS)})
 	if [ ${START} -le ${LENGTH} ]; then \
-		PATH="$(PWD)/bin:${PATH}" gotestsum -f testname  --rerun-fails=3 --packages="github.com/lacework/go-sdk/v2/integration" \
+		PATH="$(PWD)/bin:${PATH}" gotestsum -f testname --packages="github.com/lacework/go-sdk/v2/integration" \
 			-- -v github.com/lacework/go-sdk/v2/integration -timeout 30m \
 			-tags="${wordlist $(START), $(END), $(INTEGRATION_TEST_TAGS)}" -run=$(regex) \
 		exit 1; \

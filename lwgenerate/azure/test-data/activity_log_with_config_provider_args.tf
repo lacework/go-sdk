@@ -11,7 +11,8 @@ provider "azuread" {
 }
 
 provider "azurerm" {
-  foo = "bar"
+  foo             = "bar"
+  subscription_id = "test-subscription"
   features {
   }
 }
