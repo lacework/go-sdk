@@ -1368,7 +1368,8 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			"lacework_aws_agentless_scanning_global",
 			lwgenerate.AwsAgentlessSource,
 			lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
-			lwgenerate.HclModuleWithAttributes(map[string]interface{}{"global": true, "regional": true, "use_aws_flow_log": false}),
+			lwgenerate.HclModuleWithAttributes(map[string]interface{}{"global": true,
+				"regional": true, "use_aws_flow_log": false}),
 			lwgenerate.HclModuleWithProviderDetails(
 				map[string]string{"aws": "aws.main"},
 			),
