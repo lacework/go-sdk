@@ -587,10 +587,11 @@ provider "aws" {
 }
 
 module "lacework_aws_agentless_scanning_global" {
-  source   = "lacework/agentless-scanning/aws"
-  version  = "~> 0.6"
-  global   = true
-  regional = true
+  source           = "lacework/agentless-scanning/aws"
+  version          = "~> 0.6"
+  global           = true
+  regional         = true
+  use_aws_flow_log = false
 
   providers = {
     aws = aws.main
@@ -602,6 +603,7 @@ module "lacework_aws_agentless_scanning_region_scanning-1-us-east-1" {
   version                 = "~> 0.6"
   global_module_reference = module.lacework_aws_agentless_scanning_global
   regional                = true
+  use_aws_flow_log        = false
 
   providers = {
     aws = aws.scanning-1-us-east-1

@@ -1368,7 +1368,8 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			"lacework_aws_agentless_scanning_global",
 			lwgenerate.AwsAgentlessSource,
 			lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
-			lwgenerate.HclModuleWithAttributes(map[string]interface{}{"global": true, "regional": true}),
+			lwgenerate.HclModuleWithAttributes(map[string]interface{}{"global": true,
+				"regional": true, "use_aws_flow_log": false}),
 			lwgenerate.HclModuleWithProviderDetails(
 				map[string]string{"aws": "aws.main"},
 			),
@@ -1389,6 +1390,8 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 				lwgenerate.HclModuleWithAttributes(
 					map[string]interface{}{
 						"regional": true,
+						// Disable aws_flow_log creation due to https://lacework.atlassian.net/browse/GROW-3001
+						"use_aws_flow_log": false,
 						"global_module_reference": lwgenerate.CreateSimpleTraversal(
 							[]string{"module", "lacework_aws_agentless_scanning_global"},
 						),
