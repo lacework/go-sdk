@@ -32,6 +32,18 @@ brew install lacework/tap/lacework-cli
 ```
 choco install lacework-cli
 ```
+
+### Azure Cloud Shell:
+
+1. In Cloud Shell, switch to Bash.
+2. Run the following commands:
+   ```
+   mkdir -p "$HOME"/bin  
+
+   curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash -s -- -d "$HOME"/bin 
+   ```
+3. Exit and reconnect to Cloud Shell.
+
 ## Quick Configuration
 
 The `lacework configure` command is the fastest way to set up your Lacework
