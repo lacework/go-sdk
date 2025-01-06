@@ -1,11 +1,12 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v2.1.4`.
+Another day, another release. These are the release notes for the version `v2.1.5`.
 
+## Bug Fixes
+* fix: Disable aws_vpc_log creation in go-sdk (#1684) (Lei Jin)([25d43ec1](https://github.com/lacework/go-sdk/commit/25d43ec1e495ad19cc3f2fbaa8a365404d2eb0a4))
 ## Documentation Updates
-* docs: Correct resource-group command help text to point to public docs (ggaetz-fortinet)([e610518e](https://github.com/lacework/go-sdk/commit/e610518e73a685f3dd44b5f231dcbfa6ca959373))
+* docs: Add Azure Cloud Shell installation instructions (#1685) (ggaetz-fortinet)([45729d99](https://github.com/lacework/go-sdk/commit/45729d99d4726d49049ace5b8f6087d47ef9f60f))
 ## Other Changes
-* chore: make subscription_id required for Azure Activity Log and Config (#1681) (Pengyuan Zhao)([0098e71c](https://github.com/lacework/go-sdk/commit/0098e71c8a61273502900d23ef02027f0eb8bb3f))
-* ci: version bump to v2.1.4-dev (Lacework)([3660e7bf](https://github.com/lacework/go-sdk/commit/3660e7bf61ea24704e20de4cd46ba3d87087898e))
+* ci: version bump to v2.1.5-dev (Lacework)([e050b05a](https://github.com/lacework/go-sdk/commit/e050b05ac958f14d8d607bddab60c7e0e5630366))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
