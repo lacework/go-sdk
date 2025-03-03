@@ -210,7 +210,7 @@ func status(apiInfo *ApiInfo, hostInfo *HostInfo) Status {
 				return Installed
 			}
 		} else {
-			return InstalledDeprecated
+			return Installed
 		}
 	}
 
