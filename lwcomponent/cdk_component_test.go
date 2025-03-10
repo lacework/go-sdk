@@ -92,7 +92,7 @@ func TestNewCDKComponent(t *testing.T) {
 
 		component := lwcomponent.NewCDKComponent(nil, hostInfo)
 
-		assert.Equal(t, lwcomponent.InstalledDeprecated, component.Status)
+		assert.Equal(t, lwcomponent.Installed, component.Status)
 	})
 
 	t.Run("Installed Deprecated API", func(t *testing.T) {
