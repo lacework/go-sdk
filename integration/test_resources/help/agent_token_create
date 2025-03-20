@@ -1,7 +1,7 @@
 Create a new agent access token
 
 Usage:
-  lacework agent token create <name> [description] [flags]
+  lacework agent token create <name> [description] [os] [flags]
 
 Flags:
   -h, --help   help for create

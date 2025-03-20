@@ -9,7 +9,7 @@ hide_title: true
 Create a new agent access token
 
 ```
-lacework agent token create <name> [description] [flags]
+lacework agent token create <name> [description] [os] [flags]
 ```
 
 ### Options
