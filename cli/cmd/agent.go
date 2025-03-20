@@ -91,9 +91,9 @@ complete, the old token can safely be disabled without interrupting Lacework ser
 	}
 
 	agentTokenCreateCmd = &cobra.Command{
-		Use:   "create <name> [description]",
+		Use:   "create <name> [description] [os]",
 		Short: "Create a new agent access token",
-		Args:  cobra.RangeArgs(1, 2),
+		Args:  cobra.RangeArgs(1, 3),
 		RunE:  createAgentToken,
 	}
 
@@ -319,11 +319,21 @@ func updateAgentToken(_ *cobra.Command, args []string) error {
 
 func createAgentToken(_ *cobra.Command, args []string) error {
 	var desc string
-	if len(args) == 2 {
+	var osType string
+
+	switch len(args) {
+	case 1:
+		// No description or OS type provided
+	case 2:
 		desc = args[1]
+	case 3:
+		desc = args[1]
+		osType = args[2]
+	default:
+		return errors.New("invalid arguments")
 	}
 
-	response, err := cli.LwApi.V2.AgentAccessTokens.Create(args[0], desc)
+	response, err := cli.LwApi.V2.AgentAccessTokens.Create(args[0], desc, osType)
 	if err != nil {
 		return errors.Wrap(err, "unable to create agent access token")
 	}

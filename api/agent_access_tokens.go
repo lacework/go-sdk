@@ -38,7 +38,7 @@ func (svc *AgentAccessTokensService) List() (response AgentAccessTokensResponse,
 }
 
 // Create creates a single Agent Access Token
-func (svc *AgentAccessTokensService) Create(alias, desc string) (
+func (svc *AgentAccessTokensService) Create(alias, desc string, osType string) (
 	response AgentAccessTokenResponse,
 	err error,
 ) {
@@ -54,6 +54,7 @@ func (svc *AgentAccessTokensService) Create(alias, desc string) (
 			Enabled:    1,
 			Props: &AgentAccessTokenProps{
 				Description: desc,
+				OS: osType,
 			},
 		},
 		&response,
@@ -154,6 +155,7 @@ func (t AgentAccessToken) PrettyState() string {
 type AgentAccessTokenProps struct {
 	CreatedTime time.Time `json:"createdTime,omitempty"`
 	Description string    `json:"description,omitempty"`
+	OS      	string	  `json:"os,omitempty"`
 }
 
 type AgentAccessTokenResponse struct {
