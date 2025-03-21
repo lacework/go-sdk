@@ -320,7 +320,7 @@ func updateAgentToken(_ *cobra.Command, args []string) error {
 func createAgentToken(_ *cobra.Command, args []string) error {
 	var desc string
 	var osType string
-	
+
 	if len(args) >= 2 {
 		desc = args[1]
 	}
