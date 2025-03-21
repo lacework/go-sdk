@@ -320,17 +320,12 @@ func updateAgentToken(_ *cobra.Command, args []string) error {
 func createAgentToken(_ *cobra.Command, args []string) error {
 	var desc string
 	var osType string
-
-	switch len(args) {
-	case 1:
-		// No description or OS type provided
-	case 2:
+	
+	if len(args) >= 2 {
 		desc = args[1]
-	case 3:
-		desc = args[1]
+	}
+	if len(args) == 3 {
 		osType = args[2]
-	default:
-		return errors.New("invalid arguments")
 	}
 
 	response, err := cli.LwApi.V2.AgentAccessTokens.Create(args[0], desc, osType)
