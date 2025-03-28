@@ -87,7 +87,7 @@ func TestCatalogNewCatalog(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("installed", func(t *testing.T) {
+	t.Run("installed when ApiInfo is nil", func(t *testing.T) {
 		fakeServer := lacework.MockServer()
 		defer fakeServer.Close()
 
@@ -394,9 +394,9 @@ func TestCatalogGetComponent(t *testing.T) {
 		assert.Equal(t, version, ver.String())
 	})
 
-	t.Run("installed deprecated", func(t *testing.T) {
+	t.Run("installed when ApiInfo is nil", func(t *testing.T) {
 		var (
-			name    = "installed deprecated"
+			name    = "installed"
 			version = "1.1.0"
 		)
 
@@ -411,7 +411,7 @@ func TestCatalogGetComponent(t *testing.T) {
 		component, err := catalog.GetComponent(name)
 		assert.NotNil(t, component)
 		assert.Nil(t, err)
-		assert.Equal(t, lwcomponent.InstalledDeprecated, component.Status)
+		assert.Equal(t, lwcomponent.Installed, component.Status)
 
 		ver := component.InstalledVersion()
 		assert.Equal(t, version, ver.String())
