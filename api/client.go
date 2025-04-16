@@ -78,7 +78,7 @@ func (fn clientFunc) apply(c *Client) error {
 //	}
 func NewClient(account string, opts ...Option) (*Client, error) {
 	if account == "" {
-		return nil, errors.New("account cannot be empty")
+		return nil, errors.New("account cannot be empty.")
 	}
 
 	// verify if the user provided the full qualified domain name
