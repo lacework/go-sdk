@@ -16,7 +16,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.21.x
+          go-version: 1.24.x
 
       - name: Run linting
         id: update
@@ -80,7 +80,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.21.x
+          go-version: 1.24.x
 
       - name: Build cross-platform binaries
         run: |
