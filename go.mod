@@ -1,8 +1,6 @@
 module github.com/lacework/go-sdk/v2
 
-go 1.23.0
-
-toolchain go1.23.8
+go 1.24
 
 require (
 	aead.dev/minisign v0.2.0
