@@ -26,7 +26,8 @@ import (
 	oslogin "cloud.google.com/go/oslogin/apiv1"
 	osloginpb "cloud.google.com/go/oslogin/apiv1/osloginpb"
 	"golang.org/x/crypto/ssh"
-	osloginpb_common "google.golang.org/genproto/googleapis/cloud/oslogin/common"
+
+	osloginpb_common "cloud.google.com/go/oslogin/common/commonpb"
 )
 
 type GCPRunner struct {
