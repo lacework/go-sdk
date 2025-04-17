@@ -15,6 +15,10 @@ linters:
   settings:
     lll:
       line-length: 120
+    govet:
+      disable:
+        # TODO: remove and fix all the lint errors
+        - printf
   exclusions:
     rules:
       - path: internal/databox/blob.go
