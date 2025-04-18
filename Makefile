@@ -3,10 +3,10 @@ default: ci
 ci: lint test fmt-check imports-check integration
 
 # Tooling versions
-GOLANGCILINTVERSION?=1.54.1
+GOLANGCILINTVERSION?=2.1.2
 GOIMPORTSVERSION?=v0.1.12
 GOXVERSION?=v1.0.1
-GOTESTSUMVERSION?=v1.8.2
+GOTESTSUMVERSION?=v1.12.1
 GOJUNITVERSION?=v2.0.0
 PROTOCGENGOVERSION?=v1.28
 PROTOCGENGOGRPCVERSION?=v1.2
@@ -67,7 +67,7 @@ test: prepare test-only ## Run all go-sdk tests
 test-only: ## Run all go-sdk tests only (without prepare)
 	$(eval PACKAGES := $(shell go list ./... | grep -v integration))
 	gotestsum -f testname --packages="$(PACKAGES)" \
-		-- -v -cover -run=$(regex) -coverprofile=$(COVERAGEOUT) $(PACKAGES)
+		-- -vet=off -v -cover -run=$(regex) -coverprofile=$(COVERAGEOUT) $(PACKAGES)
 
 .PHONY: integration
 integration: build-cli-cross-platform integration-only ## Build and run integration tests

@@ -1,6 +1,7 @@
 package archive
 
 import (
+	"mime"
 	"os"
 	"path/filepath"
 	"strings"
@@ -42,6 +43,11 @@ func FileIsTar(file string) (isTar bool, err error) {
 	mtype, err := detectFileType(file)
 	if err != nil {
 		return
+	}
+	// github.com/gabriel-vasile/mimetype detects somtimes tar files as application/octet-stream
+	if mtype == "application/octet-stream" {
+		ext := filepath.Ext(file)
+		mtype = mime.TypeByExtension(ext)
 	}
 	isTar = mtype == "application/x-tar"
 	return

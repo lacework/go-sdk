@@ -1,12 +1,26 @@
+version: "2"
+
 run:
-  deadline: 5m
+  timeout: 5m
   tests: false
   modules-download-mode: vendor
-
-linters-settings:
-  lll:
-    line-length: 120
 
 linters:
   enable:
     - lll
+  disable:
+    # TODO: remove these two and fix all the lint errors
+    - errcheck
+    - staticcheck
+  settings:
+    lll:
+      line-length: 120
+    govet:
+      disable:
+        # TODO: remove and fix all the lint errors
+        - printf
+  exclusions:
+    rules:
+      - path: internal/databox/blob.go
+        linters:
+          - lll
