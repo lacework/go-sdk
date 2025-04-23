@@ -1,5 +1,5 @@
-# aead.dev/minisign v0.2.0
-## explicit; go 1.16
+# aead.dev/minisign v0.3.0
+## explicit; go 1.21
 aead.dev/minisign
 # cloud.google.com/go v0.116.0
 ## explicit; go 1.21

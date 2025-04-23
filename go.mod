@@ -3,7 +3,7 @@ module github.com/lacework/go-sdk/v2
 go 1.24.0
 
 require (
-	aead.dev/minisign v0.2.0
+	aead.dev/minisign v0.3.0
 	cloud.google.com/go/compute v1.29.0
 	cloud.google.com/go/compute/metadata v0.6.0
 	cloud.google.com/go/oslogin v1.14.2
