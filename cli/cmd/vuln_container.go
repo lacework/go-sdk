@@ -19,9 +19,13 @@
 package cmd
 
 import (
+	"github.com/lacework/go-sdk/v2/api"
 	"github.com/lacework/go-sdk/v2/internal/array"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
+	"sort"
+	"strings"
+	"time"
 )
 
 func init() {
@@ -120,7 +124,9 @@ func setPollFlag(cmds ...*flag.FlagSet) {
 	}
 }
 
-func getContainerRegistries() ([]string, error) {
+// Returns registry domains from the customer's container registry integrations
+// This will not return registries scanned by inline and proxy scanner integrations
+func getPlatformScannerIntegrationContainerRegistries() ([]string, error) {
 	var (
 		registries            = make([]string, 0)
 		regsIntegrations, err = cli.LwApi.V2.ContainerRegistries.List()
@@ -138,5 +144,66 @@ func getContainerRegistries() ([]string, error) {
 		registries = append(registries, i.ContainerRegistryDomain())
 	}
 
+	return registries, nil
+}
+
+func getContainerRegistries() ([]string, error) {
+	var (
+		registries = make([]string, 0)
+	)
+	// Get registry domains from container registry integrations
+	registries, err := getPlatformScannerIntegrationContainerRegistries()
+	if err != nil {
+		cli.Log.Debugw("error trying to retrieve configured registries", "error", err)
+	}
+
+	// Build filter to fetch all container evaluations in the last 7 days. 7 days is an api limitation
+	// This is required to find registries that are only scanned by proxy and inline scanner since these
+	// integrations don't include the registry domain.
+	end := time.Now()
+	start := end.Add(-24 * 7 * time.Hour)
+	filter := api.SearchFilter{
+		TimeFilter: &api.TimeFilter{
+			StartTime: &start,
+			EndTime:   &end,
+		},
+		Returns: []string{"evalCtx"},
+		Filters: []api.Filter{
+			{
+				Expression: "not_in",
+				Field:      "evalCtx.image_info.registry",
+				Values:     registries,
+			},
+		},
+	}
+	registryMap := map[string]bool{}
+	for {
+		response, err := cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(filter)
+		if err != nil {
+			return registries, errors.Wrap(err, "unable to search for container registries")
+		}
+		// Use a map to get distinct registries from response
+		for _, ctr := range response.Data {
+			registryMap[strings.TrimSpace(ctr.EvalCtx.ImageInfo.Registry)] = true
+		}
+		// Convert map to slice
+		for reg := range registryMap {
+			registries = append(registries, reg)
+		}
+		// If we hit the 500,000 total row limit from the api, create a filter for registries we haven't seen yet
+		if len(response.Data) == 500000 {
+			filter.Filters = []api.Filter{
+				{
+					Expression: "not_in",
+					Field:      "evalCtx.image_info.registry",
+					Values:     registries,
+				},
+			}
+			continue
+		}
+		break
+	}
+	// Sort registries alphabetically
+	sort.Strings(registries)
 	return registries, nil
 }
