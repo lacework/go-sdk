@@ -298,8 +298,8 @@ func buildVulnHostsDetailsTableCSV(filteredCves map[string]VulnCveSummary) ([]st
 	}
 
 	rows := hostVulnCVEsTableForHostViewCSV(filteredCves)
-	return []string{"CVE ID", "Severity", "Score", "Package", "Package Namespace", "Current Version",
-		"Fix Version", "Pkg Status", "First Seen", "Last Status Update", "Vuln Status"}, rows
+	return []string{"CVE ID", "Severity", "CVSSv2", "CVSSv3", "Package", "Package Namespace",
+		"Current Version", "Fix Version", "Pkg Status", "First Seen", "Last Status Update", "Vuln Status"}, rows
 }
 
 func buildVulnHostsDetailsTable(filteredCves map[string]VulnCveSummary) string {
