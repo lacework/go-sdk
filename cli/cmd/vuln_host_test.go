@@ -1588,7 +1588,7 @@ func mockHostVulnerabilityAssessment() api.VulnerabilitiesHostResponse {
 	return assessment
 }
 
-var expectedCSVHostDetailsTable = `CVE ID,Severity,Score,Package,Package Namespace,Current Version,Fix Version,Pkg Status,First Seen,Last Status Update,Vuln Status
+var expectedCSVHostDetailsTable = `CVE ID,Severity,CVSSv2,CVSSv3,Package,Package Namespace,Current Version,Fix Version,Pkg Status,First Seen,Last Status Update,Vuln Status
 CVE-2022-33741,High,3.6,7.1,linux-aws,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,,,2022-09-16 03:00:00 +0000 UTC,2022-09-17 03:00:00 +0000 UTC,
 CVE-2022-27782,Medium,5.0,7.5,curl,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,7.58.0-2ubuntu3.18,,2022-05-12 03:00:00 +0000 UTC,2022-05-13 03:00:00 +0000 UTC,
 CVE-2022-30787,Medium,4.6,6.7,ntfs-3g,ubuntu:18.04,1:2017.3.23-2ubuntu0.18.04.2,1:2017.3.23-2ubuntu0.18.04.4,,2022-06-08 03:00:00 +0000 UTC,2022-06-09 03:00:00 +0000 UTC,
