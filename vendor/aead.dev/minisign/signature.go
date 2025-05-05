@@ -10,15 +10,14 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 )
 
-// SignatureFromFile reads a new Signature from the
-// given file.
-func SignatureFromFile(file string) (Signature, error) {
-	bytes, err := ioutil.ReadFile(file)
+// SignatureFromFile reads a Signature from the given file.
+func SignatureFromFile(filename string) (Signature, error) {
+	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return Signature{}, err
 	}
@@ -35,20 +34,20 @@ func SignatureFromFile(file string) (Signature, error) {
 //
 // A signature is generated when signing a message with
 // a private key:
-//   signature = Sign(privateKey, message)
+//
+//	signature = Sign(privateKey, message)
 //
 // The signature of a message can then be verified with the
 // corresponding public key:
-//   if Verify(publicKey, message, signature) {
-//      // => signature is valid
-//      // => message has been signed with correspoding private key
-//   }
 //
+//	if Verify(publicKey, message, signature) {
+//	   // => signature is valid
+//	   // => message has been signed with correspoding private key
+//	}
 type Signature struct {
 	_ [0]func() // enforce named assignment and prevent direct comparison
 
-	// Algorithm is the signature algorithm. It is either
-	// EdDSA or HashEdDSA.
+	// Algorithm is the signature algorithm. It is either EdDSA or HashEdDSA.
 	Algorithm uint16
 
 	// KeyID may be the 64 bit ID of the private key that was used
@@ -88,25 +87,7 @@ type Signature struct {
 // In contrast to MarshalText, String does not fail if s is
 // not a valid minisign signature.
 func (s Signature) String() string {
-	var buffer strings.Builder
-	buffer.WriteString("untrusted comment: ")
-	buffer.WriteString(s.UntrustedComment)
-	buffer.WriteByte('\n')
-
-	var signature [2 + 8 + ed25519.SignatureSize]byte
-	binary.LittleEndian.PutUint16(signature[:2], s.Algorithm)
-	binary.LittleEndian.PutUint64(signature[2:10], s.KeyID)
-	copy(signature[10:], s.Signature[:])
-
-	buffer.WriteString(base64.StdEncoding.EncodeToString(signature[:]))
-	buffer.WriteByte('\n')
-
-	buffer.WriteString("trusted comment: ")
-	buffer.WriteString(s.TrustedComment)
-	buffer.WriteByte('\n')
-
-	buffer.WriteString(base64.StdEncoding.EncodeToString(s.CommentSignature[:]))
-	return buffer.String()
+	return string(encodeSignature(&s))
 }
 
 // Equal reports whether s and x have equivalent values.
@@ -122,18 +103,18 @@ func (s Signature) Equal(x Signature) bool {
 
 // MarshalText returns a textual representation of the Signature s.
 //
-// It returns an error if s cannot be a valid signature - e.g.
-// because the signature algorithm is neither EdDSA nor HashEdDSA.
+// It returns an error if s cannot be a valid signature, for example.
+// when s.Algorithm is neither EdDSA nor HashEdDSA.
 func (s Signature) MarshalText() ([]byte, error) {
 	if s.Algorithm != EdDSA && s.Algorithm != HashEdDSA {
 		return nil, errors.New("minisign: invalid signature algorithm " + strconv.Itoa(int(s.Algorithm)))
 	}
-	return []byte(s.String()), nil
+	return encodeSignature(&s), nil
 }
 
-// UnmarshalText parses text as textual-encoded signature.
-// It returns an error if text is not a well-formed minisign
-// signature.
+// UnmarshalText decodes a textual representation of a signature into s.
+//
+// It returns an error in case of a malformed signature.
 func (s *Signature) UnmarshalText(text []byte) error {
 	segments := strings.SplitN(string(text), "\n", 4)
 	if len(segments) != 4 {
@@ -183,4 +164,33 @@ func (s *Signature) UnmarshalText(text []byte) error {
 	copy(s.Signature[:], rawSignature[10:])
 	copy(s.CommentSignature[:], commentSignature)
 	return nil
+}
+
+// encodeSignature encodes s into its textual representation.
+func encodeSignature(s *Signature) []byte {
+	var signature [2 + 8 + ed25519.SignatureSize]byte
+	binary.LittleEndian.PutUint16(signature[:], s.Algorithm)
+	binary.LittleEndian.PutUint64(signature[2:], s.KeyID)
+	copy(signature[10:], s.Signature[:])
+
+	b := make([]byte, 0, 228+len(s.TrustedComment)+len(s.UntrustedComment)) // Size of a signature in text format
+	b = append(b, "untrusted comment: "...)
+	b = append(b, s.UntrustedComment...)
+	b = append(b, '\n')
+
+	// TODO(aead): use base64.StdEncoding.EncodeAppend once Go1.21 is dropped
+	n := len(b)
+	b = b[:n+base64.StdEncoding.EncodedLen(len(signature))]
+	base64.StdEncoding.Encode(b[n:], signature[:])
+	b = append(b, '\n')
+
+	b = append(b, "trusted comment: "...)
+	b = append(b, s.TrustedComment...)
+	b = append(b, '\n')
+
+	// TODO(aead): use base64.StdEncoding.EncodeAppend once Go1.21 is dropped
+	n = len(b)
+	b = b[:n+base64.StdEncoding.EncodedLen(len(s.CommentSignature))]
+	base64.StdEncoding.Encode(b[n:], s.CommentSignature[:])
+	return append(b, '\n')
 }
