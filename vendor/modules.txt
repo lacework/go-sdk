@@ -241,7 +241,7 @@ github.com/cpuguy83/go-md2man/v2/md2man
 # github.com/cyphar/filepath-securejoin v0.2.5
 ## explicit; go 1.13
 github.com/cyphar/filepath-securejoin
-# github.com/davecgh/go-spew v1.1.1
+# github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 ## explicit
 github.com/davecgh/go-spew/spew
 # github.com/emirpasic/gods v1.18.1
@@ -261,8 +261,8 @@ github.com/facebookgo/limitgroup
 # github.com/facebookgo/muster v0.0.0-20150708232844-fd3d7953fd52
 ## explicit
 github.com/facebookgo/muster
-# github.com/fatih/color v1.13.0
-## explicit; go 1.13
+# github.com/fatih/color v1.16.0
+## explicit; go 1.17
 github.com/fatih/color
 # github.com/fatih/structs v1.1.0
 ## explicit
@@ -418,8 +418,8 @@ github.com/googleapis/gax-go/v2/internal
 github.com/googleapis/gax-go/v2/internallog
 github.com/googleapis/gax-go/v2/internallog/internal
 github.com/googleapis/gax-go/v2/iterator
-# github.com/hashicorp/consul/sdk v0.13.1
-## explicit; go 1.19
+# github.com/hashicorp/consul/sdk v0.16.2
+## explicit; go 1.22.12
 github.com/hashicorp/consul/sdk/testutil/retry
 # github.com/hashicorp/go-cleanhttp v0.5.2
 ## explicit; go 1.13
@@ -499,7 +499,7 @@ github.com/kyokomi/emoji/v2
 # github.com/mattn/go-colorable v0.1.13
 ## explicit; go 1.15
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.18
+# github.com/mattn/go-isatty v0.0.20
 ## explicit; go 1.15
 github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.9
@@ -544,7 +544,7 @@ github.com/pjbgf/sha1cd/ubc
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
-# github.com/pmezard/go-difflib v1.0.0
+# github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 ## explicit
 github.com/pmezard/go-difflib/difflib
 # github.com/russross/blackfriday/v2 v2.1.0
@@ -592,6 +592,7 @@ github.com/spf13/viper/internal/features
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
+github.com/stretchr/testify/require
 # github.com/subosito/gotenv v1.6.0
 ## explicit; go 1.18
 github.com/subosito/gotenv
