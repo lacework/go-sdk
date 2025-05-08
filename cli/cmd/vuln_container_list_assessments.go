@@ -210,7 +210,7 @@ func applyVulnCtrFilters(assessments []vulnerabilityAssessmentSummary) (filtered
 //     all registries, repositories, local scanners, etc. (This is a memory
 //     utilization improvement)
 //  2. If no filter by registries and/or repos, then fetch all data from all
-//     registries and all local scanners, we purposely split them in two search
+//     registries and scanner types, we purposely split them into four search
 //     requests since there could be so much data that we get to the 500,000 rows
 //     if data and we could potentially miss some information
 //  3. Either 1) or 2) will generate a tree of unique container vulnerability
@@ -253,52 +253,67 @@ func listVulnCtrAssessments(
 	}
 
 	if len(filter.Filters) == 0 {
-		// if not, then we need to fetch information from 1) all
-		// container registries and 2) local scanners in two separate
-		// searches since platform scanners might have way too much
-		// data which may cause losing the local scanners data
-		//
-		// find all container registries
+		// If not, fetch all container assessments. We need to break up the api requests by scanner type
+		// This is to avoid the api 500,000 total row limit.
+
+		// TODO: we currently only have the eval_details API, which returns 1 row per package/vulnerability
+		// Vuln already has a table that comes pre-aggregated, which would vastly improve performance and
+		// reduce the number of rows returned by teh API
+
 		// cli.StartProgress("Fetching container registries...")
-		registries, err := getContainerRegistries()
 		// cli.StopProgress()
+		filter.Filters = []api.Filter{
+			{
+				Expression: "eq",
+				Field:      "evalCtx.request_source",
+				Value:      "PLATFORM_SCANNER",
+			},
+		}
+		response, err := cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(*filter)
+		fmt.Println("platform size: ", len(response.Data))
 		if err != nil {
-			return nil, err
+			return assessments, errors.Wrap(err, "unable to search for container assessments")
 		}
-		cli.Log.Infow("container registries found", "count", len(registries))
-
-		if len(registries) != 0 {
-			// 1) search for all assessments from configured container registries
-			filter.Filters = []api.Filter{
-				{
-					Expression: "in",
-					Field:      "evalCtx.image_info.registry",
-					Values:     registries,
-				},
-			}
-			response, err := cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(*filter)
-			if err != nil {
-				return assessments, errors.Wrap(err, "unable to search for container assessments")
-			}
-
-			treeOfContainerVuln.ParseData(response.Data)
-
-			// 2) search for assessments from local scanners, that is, non container registries
-			filter.Filters = []api.Filter{
-				{
-					Expression: "not_in",
-					Field:      "evalCtx.image_info.registry",
-					Values:     registries,
-				},
-			}
-		} else {
-			response, err := cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(*filter)
-			if err != nil {
-				return assessments, errors.Wrap(err, "unable to search for container assessments")
-			}
-
-			treeOfContainerVuln.ParseData(response.Data)
+		treeOfContainerVuln.ParseData(response.Data)
+		filter.Filters = []api.Filter{
+			{
+				Expression: "eq",
+				Field:      "evalCtx.request_source",
+				Value:      "INLINE_SCANNER",
+			},
 		}
+		response, err = cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(*filter)
+		fmt.Println("inline size: ", len(response.Data))
+		if err != nil {
+			return assessments, errors.Wrap(err, "unable to search for container assessments")
+		}
+		treeOfContainerVuln.ParseData(response.Data)
+		filter.Filters = []api.Filter{
+			{
+				Expression: "eq",
+				Field:      "evalCtx.request_source",
+				Value:      "PROXY_SCANNER",
+			},
+		}
+		response, err = cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(*filter)
+		fmt.Println("proxy size: ", len(response.Data))
+		if err != nil {
+			return assessments, errors.Wrap(err, "unable to search for container assessments")
+		}
+		treeOfContainerVuln.ParseData(response.Data)
+		filter.Filters = []api.Filter{
+			{
+				Expression: "eq",
+				Field:      "evalCtx.request_source",
+				Value:      "AGENTLESS_SCANNER",
+			},
+		}
+		response, err = cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(*filter)
+		fmt.Println("agentless size: ", len(response.Data))
+		if err != nil {
+			return assessments, errors.Wrap(err, "unable to search for container assessments")
+		}
+		treeOfContainerVuln.ParseData(response.Data)
 	} else {
 		response, err := cli.LwApi.V2.Vulnerabilities.Containers.SearchAllPages(*filter)
 		if err != nil {
