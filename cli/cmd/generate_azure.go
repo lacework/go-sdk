@@ -604,8 +604,11 @@ func promptAzureEntraIdQuestions(config *azure.GenerateAzureTfConfigurationArgs)
 			Response: &config.EventHubLocation,
 		},
 		{
-			Icon:     IconEntraID,
-			Prompt:   &survey.Input{Message: QuestionEventHubPartitionCount, Default: strconv.Itoa(config.EventHubPartitionCount)},
+			Icon: IconEntraID,
+			Prompt: &survey.Input{
+				Message: QuestionEventHubPartitionCount,
+				Default: strconv.Itoa(config.EventHubPartitionCount),
+			},
 			Response: &config.EventHubPartitionCount,
 		},
 	}); err != nil {
@@ -710,8 +713,12 @@ func promptCustomizeAzureStorageLoggingRegion(config *azure.GenerateAzureTfConfi
 	var region string
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Icon:     IconActivityLog,
-			Prompt:   &survey.Input{Message: QuestionStorageLocation, Default: config.StorageLocation, Help: "Enter a valid Azure region (e.g., 'East US', 'West Europe')"},
+			Icon: IconActivityLog,
+			Prompt: &survey.Input{
+				Message: QuestionStorageLocation,
+				Default: config.StorageLocation,
+				Help:    "Enter a valid Azure region (e.g., 'East US', 'West Europe')",
+			},
 			Response: &region,
 			Opts:     []survey.AskOpt{survey.WithValidator(validateAzureLocation)},
 		},
@@ -1054,8 +1061,12 @@ func promptAzureActivityLogQuestions(config *azure.GenerateAzureTfConfigurationA
 	var region string
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Icon:     IconActivityLog,
-			Prompt:   &survey.Input{Message: QuestionStorageLocation, Default: config.StorageLocation, Help: "Enter a valid Azure region (e.g., 'East US', 'West Europe')"},
+			Icon: IconActivityLog,
+			Prompt: &survey.Input{
+				Message: QuestionStorageLocation,
+				Default: config.StorageLocation,
+				Help:    "Enter a valid Azure region (e.g., 'East US', 'West Europe')",
+			},
 			Response: &region,
 			Opts:     []survey.AskOpt{survey.WithValidator(validateAzureLocation)},
 		},
