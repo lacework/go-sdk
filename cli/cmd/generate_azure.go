@@ -55,7 +55,7 @@ var (
 	QuestionAzureRegion                 = "Specify the Azure region to be used by Storage Account logging"
 	QuestionStorageAccountName          = "Specify existing Storage Account name"
 	QuestionStorageAccountResourceGroup = "Specify existing Storage Account Resource Group"
-	QuestionStorageLocation             = "Specify Azure region where Storage Account for logging resides"
+	QuestionStorageLocation             = "Specify Azure region where Storage Account for logging resides (optional)"
 
 	// Subscriptions
 	QuestionEnableAllSubscriptions = "Enable all subscriptions?"
@@ -372,6 +372,9 @@ func (a *AzureGenerateCommandExtraState) writeCache() {
 
 func validateAzureLocation(val interface{}) error {
 	if str, ok := val.(string); ok {
+		if str == "" {
+			return nil
+		}
 		if !validAzureLocations[str] {
 			return errors.New("invalid Azure region. Please use a valid Azure region like 'East US', 'West Europe', etc.")
 		}
@@ -725,9 +728,6 @@ func promptCustomizeAzureStorageLoggingRegion(config *azure.GenerateAzureTfConfi
 	}); err != nil {
 		return err
 	}
-	if err := validateAzureLocation(region); err != nil {
-		return err
-	}
 	config.StorageLocation = region
 	return nil
 }
@@ -946,6 +946,11 @@ func promptAzureGenerate(
 		}
 	}
 
+	// Validate one of config or activity log was enabled; otherwise error out
+	if !config.Config && !config.ActivityLog && !config.EntraIdActivityLog {
+		return errors.New("must enable at least one of: Configuration or Activity Log integration")
+	}
+
 	// Ask AD integration
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
@@ -963,11 +968,6 @@ func promptAzureGenerate(
 		if err := promptAzureAdIntegrationQuestions(config); err != nil {
 			return err
 		}
-	}
-
-	// Validate one of config or activity log was enabled; otherwise error out
-	if !config.Config && !config.ActivityLog && !config.EntraIdActivityLog {
-		return errors.New("must enable at least one of: Configuration or Activity Log integration")
 	}
 
 	// Ask subscription ID first as it's common to all integrations
@@ -1057,7 +1057,7 @@ func promptAzureActivityLogQuestions(config *azure.GenerateAzureTfConfigurationA
 		}
 	}
 
-	// Always ask for storage location with validation
+	// Ask for storage location with validation
 	var region string
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
