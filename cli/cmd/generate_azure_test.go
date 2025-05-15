@@ -19,13 +19,17 @@ func TestGenerationActivityLogWithConfig(t *testing.T) {
 	toggleAzureNonInteractive()
 	defer toggleAzureNonInteractive()
 
-	data := azure.GenerateAzureTfConfigurationArgs{}
-	data.Config = true
-	data.ActivityLog = true
-	data.CreateAdIntegration = true
+	data := azure.GenerateAzureTfConfigurationArgs{
+		Config:                     true,
+		ActivityLog:                true,
+		CreateAdIntegration:        true,
+		SubscriptionID:             "test-subscription",
+		StorageLocation:            "East US",
+		ConfigIntegrationName:      "Test Config",
+		ActivityLogIntegrationName: "Test Activity Log",
+	}
 	err := promptAzureGenerate(&data, &AzureGenerateCommandExtraState{Output: "/tmp"})
 	assert.Nil(t, err)
-
 }
 
 func TestMissingValidEntity(t *testing.T) {
@@ -38,7 +42,7 @@ func TestMissingValidEntity(t *testing.T) {
 
 	err := promptAzureGenerate(&data, &AzureGenerateCommandExtraState{Output: "/tmp"})
 	assert.Error(t, err)
-	assert.Equal(t, "must enable activity log or config", err.Error())
+	assert.Equal(t, "must enable at least one of: Configuration or Activity Log integration", err.Error())
 }
 
 func TestValidStorageLocations(t *testing.T) {
@@ -52,10 +56,10 @@ func TestValidStorageLocations(t *testing.T) {
 func TestInvalidStorageLocations(t *testing.T) {
 	err := validateAzureLocation("Mars")
 	assert.Error(t, err)
-	assert.Equal(t, "invalid Azure region prvovided", err.Error())
+	assert.Equal(t, "invalid Azure region. Please use a valid Azure region like 'East US', 'West Europe', etc.", err.Error())
 	err = validateAzureLocation("Jupiter")
 	assert.Error(t, err)
-	assert.Equal(t, "invalid Azure region prvovided", err.Error())
+	assert.Equal(t, "invalid Azure region. Please use a valid Azure region like 'East US', 'West Europe', etc.", err.Error())
 }
 
 func TestAzureGenerationCache(t *testing.T) {

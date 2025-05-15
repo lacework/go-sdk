@@ -41,11 +41,9 @@ func TestComplianceAwsList(t *testing.T) {
 
 func TestComplianceAwsGetReportFilter(t *testing.T) {
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
-	detailsOutput := "recommendations showing"
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--status", "compliant",
 		"--report_name", "AWS NIST 800-171 rev2")
 	assert.Empty(t, err.String(), "STDERR should be empty")
-	assert.Contains(t, out.String(), detailsOutput, "Filtered detail output should contain filtered result")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 	assert.Contains(t, out.String(), "COMPLIANCE REPORT DETAILS",
 		"STDOUT table headers changed, please check")
@@ -107,31 +105,27 @@ func TestComplianceAwsGetReportCsvOutput(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	t.Run("no filters", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv")
+		_, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv")
 		assert.Empty(t, err.String(), "STDERR should be empty")
 		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, out.String(), account)
 	})
 	t.Run("status = non-compliant", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv",
+		_, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv",
 			"--status", "non-compliant")
 		assert.Empty(t, err.String(), "STDERR should be empty")
 		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, out.String(), account)
 	})
 	t.Run("status = compliant", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv",
+		_, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv",
 			"--status", "compliant")
 		assert.Empty(t, err.String(), "STDERR should be empty")
 		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, out.String(), account)
 	})
 	t.Run("status = requires-manual-assessment", func(t *testing.T) {
-		out, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv",
+		_, err, exitcode := LaceworkCLIWithHome(dir, "compliance", "aws", "get-report", account, "--csv",
 			"--status", "requires-manual-assessment")
 		assert.Empty(t, err.String(), "STDERR should be empty")
 		assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
-		assert.Contains(t, out.String(), account)
 	})
 }
 

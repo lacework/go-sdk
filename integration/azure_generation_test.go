@@ -41,9 +41,8 @@ func TestGenerationAzureErrorOnNoSelection(t *testing.T) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgOnly{"ERROR collecting/confirming parameters: must enable activity log or config"},
+				MsgOnly{"ERROR collecting/confirming parameters: must enable at least one of: Configuration or Activity Log integration"},
 			})
 		},
 		"generate",
@@ -67,9 +66,14 @@ func TestGenerationAzureSimple(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
@@ -110,9 +114,14 @@ func TestGenerationAzureCustomizedOutputLocation(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
@@ -151,9 +160,11 @@ func TestGenerationAzureConfigOnly(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
@@ -188,8 +199,11 @@ func TestGenerationAzureActivityLogOnly(t *testing.T) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
@@ -226,17 +240,20 @@ func TestGenerationAzureNoADEnabled(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "n"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
-				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
-				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
-				MsgMenu{cmd.AzureAdvancedOptLocation, 2},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "n"},
 				MsgRsp{cmd.QuestionADApplicationPass, pass},
 				MsgRsp{cmd.QuestionADApplicationId, applicationId},
 				MsgRsp{cmd.QuestionADServicePrincpleId, principalId},
-				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -274,18 +291,14 @@ func _TestGenerationAzureNamedConfig(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, configName},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
-				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
-
-				MsgMenu{cmd.AzureAdvancedOptDone, 0},
-
-				MsgRsp{cmd.QuestionAzureConfigName, configName},
-
-				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -366,13 +379,17 @@ func TestGenerationAzureAdvancedOptsDone(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
-
 				MsgMenu{cmd.AzureAdvancedOptDone, 6},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -416,9 +433,14 @@ func TestGenerationAzureWithExistingTerraform(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
@@ -457,15 +479,16 @@ func TestGenerationAzureConfigAllSubs(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
 				MsgMenu{cmd.AzureAdvancedOptDone, 1},
 				MsgRsp{cmd.QuestionEnableAllSubscriptions, "y"},
-
 				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -501,18 +524,15 @@ func TestGenerationAzureConfigMgmntGroup(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
-				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
-				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
-				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
-				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
-
-				MsgMenu{cmd.AzureAdvancedOptDone, 2},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
 				MsgRsp{cmd.QuestionEnableManagementGroup, "y"},
 				MsgRsp{cmd.QuestionManagementGroupId, mgmtGrpId},
-
-				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -548,17 +568,16 @@ func TestGenerationAzureConfigSubs(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
-
 				MsgMenu{cmd.AzureAdvancedOptDone, 1},
-
 				MsgRsp{cmd.QuestionEnableAllSubscriptions, "n"},
-
 				MsgRsp{cmd.QuestionSubscriptionIds, strings.Join(testIds[:], ",")},
 				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
@@ -596,17 +615,17 @@ func TestGenerationAzureActivityLogSubs(t *testing.T) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
-
 				MsgMenu{cmd.AzureAdvancedOptDone, 1},
 				MsgRsp{cmd.QuestionEnableAllSubscriptions, "n"},
-
 				MsgRsp{cmd.QuestionSubscriptionIds, strings.Join(testIds[:], ",")},
-
 				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -644,20 +663,16 @@ func TestGenerationAzureActivityLogStorageAccount(t *testing.T) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
-				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
-				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
-				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
-				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
-
-				MsgMenu{cmd.AzureAdvancedOptDone, 3},
-
+				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "y"},
-
 				MsgRsp{cmd.QuestionStorageAccountName, storageAccountName},
 				MsgRsp{cmd.QuestionStorageAccountResourceGroup, storageResourceGrp},
-
-				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -694,16 +709,16 @@ func TestGenerationAzureActivityLogAllSubs(t *testing.T) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
-
 				MsgMenu{cmd.AzureAdvancedOptDone, 1},
-
 				MsgRsp{cmd.QuestionEnableAllSubscriptions, "y"},
-
 				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -740,17 +755,14 @@ func TestGenerationAzureActivityLogLocation(t *testing.T) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, region},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
-				MsgRsp{cmd.QuestionAzureConfigAdvanced, "y"},
-
-				MsgMenu{cmd.AzureAdvancedOptDone, 2},
-
-				MsgRsp{cmd.QuestionStorageLocation, region},
-
-				MsgRsp{cmd.QuestionAzureAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -788,9 +800,14 @@ func TestGenerationAzureOverwrite(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
@@ -809,9 +826,14 @@ func TestGenerationAzureOverwrite(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
@@ -847,9 +869,14 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
@@ -870,9 +897,14 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
@@ -902,9 +934,14 @@ func TestGenerationAzureLaceworkProfile(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
@@ -940,9 +977,14 @@ func TestGenerationAzureWithSubscriptionID(t *testing.T) {
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
 				MsgRsp{cmd.QuestionAzureEnableConfig, "y"},
+				MsgRsp{cmd.QuestionAzureConfigName, ""},
+				MsgRsp{cmd.QuestionEnableManagementGroup, "n"},
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
-				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
 				MsgRsp{cmd.QuestionAddAzureSubscriptionID, "y"},
 				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
 				MsgRsp{cmd.QuestionAzureConfigAdvanced, "n"},
