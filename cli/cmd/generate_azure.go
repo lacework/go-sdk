@@ -18,64 +18,51 @@ import (
 const (
 	IconAzureConfig = "[Configuration]"
 	IconActivityLog = "[Activity Log]"
-	IconEntraID     = "[Entra ID]"
-	IconAD          = "[Active Directory]"
-	IconCommon      = "[Common]"
+	IconEntraID     = "[Entra ID Activity Log]"
+	IconAD          = "[Active Directory Application]"
 )
 
 var (
 	// Define question text here so they can be reused in testing
 	// Core questions
-	QuestionAzureEnableConfig        = "Enable Azure configuration integration?"
-	QuestionAzureConfigName          = "Specify custom configuration integration name: (optional)"
-	QuestionEnableActivityLog        = "Enable Azure Activity Log Integration?"
-	QuestionActivityLogName          = "Specify custom Activity Log integration name: (optional)"
-	QuestionEnableEntraIdActivityLog = "Enable Azure Entra ID Activity Log Integration?"
-	QuestionEntraIdActivityLogName   = "Specify custom EntraID Activity Log integration name: (optional)"
-	QuestionAddAzureSubscriptionID   = "Set Azure Subscription ID?"
-	QuestionAzureSubscriptionID      = "Specify the Azure Subscription ID to be used to provision Lacework resources:"
+	QuestionAzureEnableConfig        = "Enable Configuration integration?"
+	QuestionAzureConfigName          = "Custom Configuration integration name: (optional)"
+	QuestionEnableActivityLog        = "Enable Activity Log Integration?"
+	QuestionActivityLogName          = "Custom Activity Log integration name: (optional)"
+	QuestionEnableEntraIdActivityLog = "Enable Entra ID Activity Log Integration?"
+	QuestionEntraIdActivityLogName   = "Custom EntraID Activity Log integration name: (optional)"
+	QuestionAzureSubscriptionID      = "Subscription ID to be used to provision Lacework resources:"
 
 	// Advanced options
-	QuestionAzureAnotherAdvancedOpt      = "Configure another advanced integration option"
-	QuestionAzureConfigAdvanced          = "Configure advanced integration options?"
-	QuestionAzureCustomizeOutputLocation = "Provide the location for the output to be written:"
+	QuestionAzureCustomizeOutputLocation = "Provide the location for the output to be written: (optional)"
 
 	// EntraID Activity Log
-	QuestionEventHubLocation       = "Specify Azure region where the event hub for logging will reside"
-	QuestionEventHubPartitionCount = "Specify the number of partitions in the event hub for logging"
+	QuestionEventHubLocation       = "Region where the event hub for logging will reside:"
+	QuestionEventHubPartitionCount = "Number of partitions in the event hub for logging:"
 
 	// Active Directory
-	QuestionEnableAdIntegration = "Create Active Directory Integration?"
-	QuestionADApplicationPass   = "Specify the password of an existing Active Directory application"
-	QuestionADApplicationId     = "Specify the ID of an existing Active Directory application"
-	QuestionADServicePrincpleId = "Specify the Service Principle ID of an existing Active Directory application"
+	QuestionEnableAdIntegration = "Create Active Directory Application?"
+	QuestionADApplicationPass   = "Password of an existing Active Directory application:"
+	QuestionADApplicationId     = "ID of an existing Active Directory application:"
+	QuestionADServicePrincpleId = "Service Principle ID of an existing Active Directory application:"
 
 	// Storage Account
 	QuestionUseExistingStorageAccount   = "Use an existing Storage Account?"
-	QuestionAzureRegion                 = "Specify the Azure region to be used by Storage Account logging"
-	QuestionStorageAccountName          = "Specify existing Storage Account name"
-	QuestionStorageAccountResourceGroup = "Specify existing Storage Account Resource Group"
-	QuestionStorageLocation             = "Specify Azure region where Storage Account for logging resides (optional)"
+	QuestionAzureRegion                 = "Region to be used by Storage Account logging:"
+	QuestionStorageAccountName          = "Existing Storage Account name:"
+	QuestionStorageAccountResourceGroup = "Existing Storage Account Resource Group:"
+	QuestionStorageLocation             = "Region where Storage Account for logging resides: (optional)"
 
 	// Subscriptions
 	QuestionEnableAllSubscriptions = "Enable all subscriptions?"
-	QuestionSubscriptionIds        = "Specify list of subscription ids to enable logging"
+	QuestionSubscriptionIds        = "List of subscription ids to enable logging:"
 
 	// Management Group
 	QuestionEnableManagementGroup = "Enable Management Group level Integration?"
-	QuestionManagementGroupId     = "Specify Management Group ID"
+	QuestionManagementGroupId     = "Management Group ID:"
 
 	// Select options
-	AzureAdvancedOptDone       = "Done"
-	AdvancedAdIntegration      = "Configure Lacework integration with an existing Active Directory (optional)"
-	AzureExistingStorageAcount = "Configure Storage Account (optional)"
 	AzureSubscriptions         = "Configure Subscriptions (optional)"
-	AzureManagmentGroup        = "Configure Management Group (optional)"
-	AzureStorageGroup          = "Configure Storage Group (optional)"
-	AzureUserIntegrationNames  = "Customize integration name(s)"
-	AzureAdvancedOptLocation   = "Customize output location (optional)"
-	AzureRegionStorage         = "Customize Azure region for Storage Account (optional)"
-	AzureEntraIdAdvancedOpt    = "Configure Entra ID activity log integration advanced options"
 
 	// Regex patterns for validation
 	AzureSubscriptionIDRegex = `^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`
@@ -354,7 +341,6 @@ the new cloud account. In interactive mode, this command will:
 )
 
 type AzureGenerateCommandExtraState struct {
-	AskAdvanced    bool
 	Output         string
 	TerraformApply bool
 }
@@ -541,57 +527,6 @@ func initGenerateAzureTfCommandFlags() {
 	)
 }
 
-func promptAzureIntegrationNameQuestions(config *azure.GenerateAzureTfConfigurationArgs) error {
-
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Icon:     IconAzureConfig,
-			Prompt:   &survey.Input{Message: QuestionAzureConfigName, Default: config.ConfigIntegrationName},
-			Response: &config.ConfigIntegrationName,
-		},
-		{
-			Icon:     IconActivityLog,
-			Prompt:   &survey.Input{Message: QuestionActivityLogName, Default: config.ActivityLogIntegrationName},
-			Response: &config.ActivityLogIntegrationName,
-		},
-		{
-			Icon:     IconEntraID,
-			Prompt:   &survey.Input{Message: QuestionEntraIdActivityLogName, Default: config.EntraIdIntegrationName},
-			Response: &config.EntraIdIntegrationName,
-		},
-	}); err != nil {
-		return err
-	}
-	return nil
-}
-
-func promptAzureStorageAccountQuestions(config *azure.GenerateAzureTfConfigurationArgs) error {
-
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Icon:     IconActivityLog,
-			Prompt:   &survey.Confirm{Message: QuestionUseExistingStorageAccount, Default: config.ExistingStorageAccount},
-			Response: &config.ExistingStorageAccount,
-		},
-		{
-			Icon:     IconActivityLog,
-			Prompt:   &survey.Input{Message: QuestionStorageAccountName, Default: config.StorageAccountName},
-			Required: true,
-			Response: &config.StorageAccountName,
-		},
-		{
-			Icon:     IconActivityLog,
-			Prompt:   &survey.Input{Message: QuestionStorageAccountResourceGroup, Default: config.StorageAccountResourceGroup},
-			Required: true,
-			Response: &config.StorageAccountResourceGroup,
-		},
-	}); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func promptAzureEntraIdQuestions(config *azure.GenerateAzureTfConfigurationArgs) error {
 	// Ask for Entra ID integration name
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
@@ -601,10 +536,15 @@ func promptAzureEntraIdQuestions(config *azure.GenerateAzureTfConfigurationArgs)
 			Response: &config.EntraIdIntegrationName,
 		},
 		{
-			Icon:     IconEntraID,
-			Prompt:   &survey.Input{Message: QuestionEventHubLocation, Default: config.EventHubLocation},
+			Icon: IconEntraID,
+			Prompt: &survey.Input{
+				Message: QuestionEventHubLocation,
+				Default: config.EventHubLocation,
+				Help:    "Enter a valid region (e.g., 'East US', 'West Europe')",
+			},
 			Required: true,
 			Response: &config.EventHubLocation,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAzureLocation)},
 		},
 		{
 			Icon: IconEntraID,
@@ -622,10 +562,24 @@ func promptAzureEntraIdQuestions(config *azure.GenerateAzureTfConfigurationArgs)
 }
 
 func promptAzureSubscriptionQuestions(config *azure.GenerateAzureTfConfigurationArgs) error {
+	// First ask if user wants to configure subscription options
+	configureSubscriptions := false
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Confirm{Message: AzureSubscriptions, Default: false},
+			Response: &configureSubscriptions,
+		},
+	}); err != nil {
+		return err
+	}
+
+	// Only proceed with subscription questions if user wants to configure
+	if !configureSubscriptions {
+		return nil
+	}
 
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Icon:     IconAzureConfig,
 			Prompt:   &survey.Confirm{Message: QuestionEnableAllSubscriptions, Default: config.AllSubscriptions},
 			Response: &config.AllSubscriptions,
 		},
@@ -635,7 +589,6 @@ func promptAzureSubscriptionQuestions(config *azure.GenerateAzureTfConfiguration
 	var idList string
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Icon:     IconAzureConfig,
 			Prompt:   &survey.Input{Message: QuestionSubscriptionIds, Default: strings.Join(config.SubscriptionIds, ",")},
 			Checks:   []*bool{allSubscriptionsDisabled(config)},
 			Required: true,
@@ -701,7 +654,6 @@ func promptCustomizeAzureOutputLocation(extraState *AzureGenerateCommandExtraSta
 
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Icon:     IconCommon,
 			Prompt:   &survey.Input{Message: QuestionAzureCustomizeOutputLocation, Default: extraState.Output},
 			Response: &extraState.Output,
 		},
@@ -712,153 +664,20 @@ func promptCustomizeAzureOutputLocation(extraState *AzureGenerateCommandExtraSta
 	return nil
 }
 
-func promptCustomizeAzureStorageLoggingRegion(config *azure.GenerateAzureTfConfigurationArgs) error {
-	var region string
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Icon: IconActivityLog,
-			Prompt: &survey.Input{
-				Message: QuestionStorageLocation,
-				Default: config.StorageLocation,
-				Help:    "Enter a valid Azure region (e.g., 'East US', 'West Europe')",
-			},
-			Response: &region,
-			Opts:     []survey.AskOpt{survey.WithValidator(validateAzureLocation)},
-		},
-	}); err != nil {
-		return err
-	}
-	config.StorageLocation = region
-	return nil
-}
-
 func askAzureSubscriptionID(config *azure.GenerateAzureTfConfigurationArgs) error {
-	var addSubscription bool
-
 	// if subscription has been set by --subscription_id flag do not prompt
 	if config.SubscriptionID != "" {
 		return nil
 	}
 
-	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Icon:     IconCommon,
-		Prompt:   &survey.Confirm{Message: QuestionAddAzureSubscriptionID, Default: true},
-		Response: &addSubscription,
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Input{Message: QuestionAzureSubscriptionID},
+			Response: &config.SubscriptionID,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateAzureSubscriptionID)},
+		},
 	}); err != nil {
 		return err
-	}
-
-	if addSubscription {
-		if err := survey.AskOne(&survey.Input{
-			Message: IconCommon + " " + QuestionAzureSubscriptionID,
-		}, &config.SubscriptionID, survey.WithValidator(validateAzureSubscriptionID)); err != nil {
-			return err
-		}
-	} else {
-		return errors.New("subscription_id must be provided")
-	}
-
-	return nil
-}
-
-func askAdvancedAzureOptions(
-	config *azure.GenerateAzureTfConfigurationArgs, extraState *AzureGenerateCommandExtraState,
-) error {
-	answer := ""
-
-	// Prompt for options
-	for answer != AzureAdvancedOptDone {
-
-		// Set the initial options
-		options := []string{AzureUserIntegrationNames, AzureSubscriptions}
-		// Only ask about Active Directory information if one was requested to be created
-		if !config.CreateAdIntegration {
-			options = append(options, AdvancedAdIntegration)
-		}
-
-		// Only show Region Storage options in the case of Activity Log integration
-		if config.ActivityLog {
-			options = append(options, AzureRegionStorage)
-			options = append(options, AzureExistingStorageAcount)
-		}
-
-		// Only show management options in the case of Config integration
-		if config.Config {
-			options = append(options, AzureManagmentGroup)
-		}
-
-		// Only show Entra ID options in the case of Entra ID integration
-		if config.EntraIdActivityLog {
-			options = append(options, AzureEntraIdAdvancedOpt)
-		}
-
-		options = append(options, AzureAdvancedOptLocation, AzureAdvancedOptDone)
-		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Icon: IconCommon,
-			Prompt: &survey.Select{
-				Message: "Which options would you like to enable?",
-				Options: options,
-			},
-			Response: &answer,
-		}); err != nil {
-			return err
-		}
-
-		// Based on response, prompt for actions
-		switch answer {
-		case AzureUserIntegrationNames:
-			if err := promptAzureIntegrationNameQuestions(config); err != nil {
-				return err
-			}
-		case AzureExistingStorageAcount:
-			if err := promptAzureStorageAccountQuestions(config); err != nil {
-				return err
-			}
-		case AzureEntraIdAdvancedOpt:
-			if err := promptAzureEntraIdQuestions(config); err != nil {
-				return err
-			}
-		case AzureSubscriptions:
-			if err := promptAzureSubscriptionQuestions(config); err != nil {
-				return err
-			}
-		case AzureManagmentGroup:
-			if err := promptAzureManagementGroupQuestions(config); err != nil {
-				return err
-			}
-		case AdvancedAdIntegration:
-			if err := promptAzureAdIntegrationQuestions(config); err != nil {
-				return err
-			}
-		case AzureRegionStorage:
-			if err := promptCustomizeAzureStorageLoggingRegion(config); err != nil {
-				return err
-			}
-		case AzureAdvancedOptLocation:
-			if err := promptCustomizeAzureOutputLocation(extraState); err != nil {
-				return err
-			}
-			return nil
-		}
-
-		// Re-prompt if not done
-		innerAskAgain := true
-		if answer == AzureAdvancedOptDone {
-			innerAskAgain = false
-		}
-
-		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Icon:     IconCommon,
-			Checks:   []*bool{&innerAskAgain},
-			Prompt:   &survey.Confirm{Message: QuestionAzureAnotherAdvancedOpt, Default: false},
-			Response: &innerAskAgain,
-		}); err != nil {
-			return err
-		}
-
-		if !innerAskAgain {
-			answer = AzureAdvancedOptDone
-		}
 	}
 
 	return nil
@@ -889,7 +708,17 @@ func promptAzureGenerate(
 		defer extraState.writeCache()
 	}
 
-	// Ask Configuration integration first
+	// Ask subscription ID first as it's common to all integrations
+	if err := askAzureSubscriptionID(config); err != nil {
+		return err
+	}
+
+	// Ask about subscriptions configuration
+	if err := promptAzureSubscriptionQuestions(config); err != nil {
+		return err
+	}
+
+	// Ask Configuration integration
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
 			{
@@ -970,25 +799,9 @@ func promptAzureGenerate(
 		}
 	}
 
-	// Ask subscription ID first as it's common to all integrations
-	if err := askAzureSubscriptionID(config); err != nil {
+	// Ask about output location
+	if err := promptCustomizeAzureOutputLocation(extraState); err != nil {
 		return err
-	}
-
-	// Find out if the customer wants to specify more advanced features
-	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Icon:     IconCommon,
-		Prompt:   &survey.Confirm{Message: QuestionAzureConfigAdvanced, Default: extraState.AskAdvanced},
-		Response: &extraState.AskAdvanced,
-	}); err != nil {
-		return err
-	}
-
-	// Keep prompting for advanced options until they say done
-	if extraState.AskAdvanced {
-		if err := askAdvancedAzureOptions(config, extraState); err != nil {
-			return err
-		}
 	}
 
 	return nil
