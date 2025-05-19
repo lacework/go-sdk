@@ -62,7 +62,7 @@ var (
 	QuestionManagementGroupId     = "Management Group ID:"
 
 	// Select options
-	AzureSubscriptions         = "Configure Subscriptions (optional)"
+	AzureSubscriptions = "Configure Subscriptions (optional)"
 
 	// Regex patterns for validation
 	AzureSubscriptionIDRegex = `^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`
