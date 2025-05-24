@@ -55,10 +55,10 @@ func TestGenerationSimple(t *testing.T) {
 	tfResult := runGkeGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpProjectID, gkeProjId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionGkeProjectID, gkeProjId},
+				MsgRsp{cmd.QuestionGkeOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGkeServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGkeConfigureAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -83,11 +83,11 @@ func TestGenerationOrg(t *testing.T) {
 	tfResult := runGkeGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpProjectID, gkeProjId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "y"},
-				MsgRsp{cmd.QuestionGcpOrganizationID, gkeOrgId},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionGkeProjectID, gkeProjId},
+				MsgRsp{cmd.QuestionGkeOrganizationIntegration, "y"},
+				MsgRsp{cmd.QuestionGkeOrganizationID, gkeOrgId},
+				MsgRsp{cmd.QuestionGkeServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGkeConfigureAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -132,10 +132,10 @@ func TestGenerationSACredsGke(t *testing.T) {
 	tfResult := runGkeGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpProjectID, gkeProjId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, serviceAccountFilePath},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionGkeProjectID, gkeProjId},
+				MsgRsp{cmd.QuestionGkeOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGkeServiceAccountCredsPath, serviceAccountFilePath},
+				MsgRsp{cmd.QuestionGkeConfigureAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -163,14 +163,14 @@ func TestGenerationExistingSink(t *testing.T) {
 	tfResult := runGkeGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpProjectID, gkeProjId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
+				MsgRsp{cmd.QuestionGkeProjectID, gkeProjId},
+				MsgRsp{cmd.QuestionGkeOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGkeServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGkeConfigureAdvanced, "y"},
 				MsgMenu{cmd.GkeAdvancedOpt, 0},
-				MsgRsp{cmd.QuestionGcpUseExistingSink, "y"},
-				MsgRsp{cmd.QuestionGcpExistingSinkName, "sink"},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGkeUseExistingSink, "y"},
+				MsgRsp{cmd.QuestionGkeExistingSinkName, "sink"},
+				MsgRsp{cmd.QuestionGkeAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -198,14 +198,14 @@ func _TestGenerationGkeAdvancedOptsUseExistingSA(t *testing.T) {
 	tfResult := runGkeGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpProjectID, gkeProjId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
+				MsgRsp{cmd.QuestionGkeProjectID, gkeProjId},
+				MsgRsp{cmd.QuestionGkeOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGkeServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGkeConfigureAdvanced, "y"},
 				MsgMenu{cmd.GkeAdvancedOpt, 1},
 				MsgRsp{cmd.QuestionExistingServiceAccountName, "SA_1"},
 				MsgRsp{cmd.QuestionExistingServiceAccountPrivateKey, "cGFzc3dvcmRNY1Bhc3N3b3JkRmFjZQ=="},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGkeAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -236,13 +236,13 @@ func TestGenerationCustomizedConfigurationIntegrationNameGke(t *testing.T) {
 	tfResult := runGkeGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpProjectID, gkeProjId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
+				MsgRsp{cmd.QuestionGkeProjectID, gkeProjId},
+				MsgRsp{cmd.QuestionGkeOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGkeServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGkeConfigureAdvanced, "y"},
 				MsgMenu{cmd.GkeAdvancedOpt, 2},
 				MsgRsp{cmd.QuestionGkeIntegrationName, "customIntegrationName"},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGkeAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -277,13 +277,13 @@ func TestGenerationCustomizedOutputLocationGke(t *testing.T) {
 	runGkeGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpProjectID, gkeProjId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
+				MsgRsp{cmd.QuestionGkeProjectID, gkeProjId},
+				MsgRsp{cmd.QuestionGkeOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGkeServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGkeConfigureAdvanced, "y"},
 				MsgMenu{cmd.GkeAdvancedOpt, 3},
-				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, dir},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGkeCustomizeOutputLocation, dir},
+				MsgRsp{cmd.QuestionGkeAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -311,10 +311,10 @@ func TestGenerationAdvancedOptsDoneGke(t *testing.T) {
 	tfResult := runGkeGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpProjectID, gkeProjId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
+				MsgRsp{cmd.QuestionGkeProjectID, gkeProjId},
+				MsgRsp{cmd.QuestionGkeOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGkeServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGkeConfigureAdvanced, "y"},
 				MsgMenu{cmd.GkeAdvancedOpt, 4},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -350,13 +350,13 @@ func TestGenerationWithGkeExistingTerraformGke(t *testing.T) {
 	runGkeGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpProjectID, gkeProjId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
+				MsgRsp{cmd.QuestionGkeProjectID, gkeProjId},
+				MsgRsp{cmd.QuestionGkeOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGkeServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGkeConfigureAdvanced, "y"},
 				MsgMenu{cmd.GkeAdvancedOpt, 3},
-				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, dir},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGkeCustomizeOutputLocation, dir},
+				MsgRsp{cmd.QuestionGkeAnotherAdvancedOpt, "n"},
 				MsgRsp{fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), "n"},
 			})
 		},
@@ -384,10 +384,10 @@ func TestGenerateGkePrefixAndWait(t *testing.T) {
 	tfResult := runGkeGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpProjectID, gkeProjId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionGkeProjectID, gkeProjId},
+				MsgRsp{cmd.QuestionGkeOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGkeServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionGkeConfigureAdvanced, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
