@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -15,10 +14,15 @@ import (
 // Describes the modifications made to your Reserved Instances. If no parameter is
 // specified, information about all your Reserved Instances modification requests
 // is returned. If a modification ID is specified, only information about the
-// specific modification is returned. For more information, see Modifying Reserved
-// Instances
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-modifying.html) in the
-// Amazon EC2 User Guide.
+// specific modification is returned.
+//
+// For more information, see [Modify Reserved Instances] in the Amazon EC2 User Guide.
+//
+// The order of the elements in the response, including those within nested
+// structures, might vary. Applications should not assume the elements appear in a
+// particular order.
+//
+// [Modify Reserved Instances]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-modifying.html
 func (c *Client) DescribeReservedInstancesModifications(ctx context.Context, params *DescribeReservedInstancesModificationsInput, optFns ...func(*Options)) (*DescribeReservedInstancesModificationsOutput, error) {
 	if params == nil {
 		params = &DescribeReservedInstancesModificationsInput{}
@@ -39,48 +43,38 @@ type DescribeReservedInstancesModificationsInput struct {
 
 	// One or more filters.
 	//
-	// * client-token - The idempotency token for the
-	// modification request.
+	//   - client-token - The idempotency token for the modification request.
 	//
-	// * create-date - The time when the modification request
-	// was created.
+	//   - create-date - The time when the modification request was created.
 	//
-	// * effective-date - The time when the modification becomes
-	// effective.
+	//   - effective-date - The time when the modification becomes effective.
 	//
-	// * modification-result.reserved-instances-id - The ID for the
-	// Reserved Instances created as part of the modification request. This ID is only
-	// available when the status of the modification is fulfilled.
+	//   - modification-result.reserved-instances-id - The ID for the Reserved
+	//   Instances created as part of the modification request. This ID is only available
+	//   when the status of the modification is fulfilled .
 	//
-	// *
-	// modification-result.target-configuration.availability-zone - The Availability
-	// Zone for the new Reserved Instances.
+	//   - modification-result.target-configuration.availability-zone - The
+	//   Availability Zone for the new Reserved Instances.
 	//
-	// *
-	// modification-result.target-configuration.instance-count  - The number of new
-	// Reserved Instances.
+	//   - modification-result.target-configuration.availability-zone-id - The ID of
+	//   the Availability Zone for the new Reserved Instances.
 	//
-	// * modification-result.target-configuration.instance-type -
-	// The instance type of the new Reserved Instances.
+	//   - modification-result.target-configuration.instance-count - The number of new
+	//   Reserved Instances.
 	//
-	// *
-	// modification-result.target-configuration.platform - The network platform of the
-	// new Reserved Instances (EC2-Classic | EC2-VPC).
+	//   - modification-result.target-configuration.instance-type - The instance type
+	//   of the new Reserved Instances.
 	//
-	// * reserved-instances-id - The
-	// ID of the Reserved Instances modified.
+	//   - reserved-instances-id - The ID of the Reserved Instances modified.
 	//
-	// * reserved-instances-modification-id -
-	// The ID of the modification request.
+	//   - reserved-instances-modification-id - The ID of the modification request.
 	//
-	// * status - The status of the Reserved
-	// Instances modification request (processing | fulfilled | failed).
+	//   - status - The status of the Reserved Instances modification request (
+	//   processing | fulfilled | failed ).
 	//
-	// *
-	// status-message - The reason for the status.
+	//   - status-message - The reason for the status.
 	//
-	// * update-date - The time when the
-	// modification request was last updated.
+	//   - update-date - The time when the modification request was last updated.
 	Filters []types.Filter
 
 	// The token to retrieve the next page of results.
@@ -109,6 +103,9 @@ type DescribeReservedInstancesModificationsOutput struct {
 }
 
 func (c *Client) addOperationDescribeReservedInstancesModificationsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeReservedInstancesModifications{}, middleware.After)
 	if err != nil {
 		return err
@@ -117,34 +114,41 @@ func (c *Client) addOperationDescribeReservedInstancesModificationsMiddlewares(s
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeReservedInstancesModifications"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -153,7 +157,22 @@ func (c *Client) addOperationDescribeReservedInstancesModificationsMiddlewares(s
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeReservedInstancesModifications(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -165,16 +184,23 @@ func (c *Client) addOperationDescribeReservedInstancesModificationsMiddlewares(s
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// DescribeReservedInstancesModificationsAPIClient is a client that implements the
-// DescribeReservedInstancesModifications operation.
-type DescribeReservedInstancesModificationsAPIClient interface {
-	DescribeReservedInstancesModifications(context.Context, *DescribeReservedInstancesModificationsInput, ...func(*Options)) (*DescribeReservedInstancesModificationsOutput, error)
-}
-
-var _ DescribeReservedInstancesModificationsAPIClient = (*Client)(nil)
 
 // DescribeReservedInstancesModificationsPaginatorOptions is the paginator options
 // for DescribeReservedInstancesModifications
@@ -230,6 +256,9 @@ func (p *DescribeReservedInstancesModificationsPaginator) NextPage(ctx context.C
 	params := *p.params
 	params.NextToken = p.nextToken
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeReservedInstancesModifications(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -249,11 +278,18 @@ func (p *DescribeReservedInstancesModificationsPaginator) NextPage(ctx context.C
 	return result, nil
 }
 
+// DescribeReservedInstancesModificationsAPIClient is a client that implements the
+// DescribeReservedInstancesModifications operation.
+type DescribeReservedInstancesModificationsAPIClient interface {
+	DescribeReservedInstancesModifications(context.Context, *DescribeReservedInstancesModificationsInput, ...func(*Options)) (*DescribeReservedInstancesModificationsOutput, error)
+}
+
+var _ DescribeReservedInstancesModificationsAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeReservedInstancesModifications(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeReservedInstancesModifications",
 	}
 }

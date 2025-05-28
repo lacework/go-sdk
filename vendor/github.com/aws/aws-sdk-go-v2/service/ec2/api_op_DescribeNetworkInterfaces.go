@@ -7,18 +7,23 @@ import (
 	"errors"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
 	smithytime "github.com/aws/smithy-go/time"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	smithywaiter "github.com/aws/smithy-go/waiter"
-	"github.com/jmespath/go-jmespath"
 	"time"
 )
 
-// Describes one or more of your network interfaces.
+// Describes the specified network interfaces or all your network interfaces.
+//
+// If you have a large number of network interfaces, the operation fails unless
+// you use pagination or one of the following filters: group-id , mac-address ,
+// private-dns-name , private-ip-address , subnet-id , or vpc-id .
+//
+// We strongly recommend using only paginated requests. Unpaginated requests are
+// susceptible to throttling and timeouts.
 func (c *Client) DescribeNetworkInterfaces(ctx context.Context, params *DescribeNetworkInterfacesInput, optFns ...func(*Options)) (*DescribeNetworkInterfacesOutput, error) {
 	if params == nil {
 		params = &DescribeNetworkInterfacesInput{}
@@ -39,160 +44,148 @@ type DescribeNetworkInterfacesInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// One or more filters.
 	//
-	// * addresses.private-ip-address - The private IPv4
-	// addresses associated with the network interface.
+	//   - association.allocation-id - The allocation ID returned when you allocated
+	//   the Elastic IP address (IPv4) for your network interface.
 	//
-	// * addresses.primary - Whether
-	// the private IPv4 address is the primary IP address associated with the network
-	// interface.
+	//   - association.association-id - The association ID returned when the network
+	//   interface was associated with an IPv4 address.
 	//
-	// * addresses.association.public-ip - The association ID returned when
-	// the network interface was associated with the Elastic IP address (IPv4).
+	//   - addresses.association.owner-id - The owner ID of the addresses associated
+	//   with the network interface.
 	//
-	// *
-	// addresses.association.owner-id - The owner ID of the addresses associated with
-	// the network interface.
+	//   - addresses.association.public-ip - The association ID returned when the
+	//   network interface was associated with the Elastic IP address (IPv4).
 	//
-	// * association.association-id - The association ID
-	// returned when the network interface was associated with an IPv4 address.
+	//   - addresses.primary - Whether the private IPv4 address is the primary IP
+	//   address associated with the network interface.
 	//
-	// *
-	// association.allocation-id - The allocation ID returned when you allocated the
-	// Elastic IP address (IPv4) for your network interface.
+	//   - addresses.private-ip-address - The private IPv4 addresses associated with
+	//   the network interface.
 	//
-	// * association.ip-owner-id
-	// - The owner of the Elastic IP address (IPv4) associated with the network
-	// interface.
+	//   - association.ip-owner-id - The owner of the Elastic IP address (IPv4)
+	//   associated with the network interface.
 	//
-	// * association.public-ip - The address of the Elastic IP address
-	// (IPv4) bound to the network interface.
+	//   - association.public-ip - The address of the Elastic IP address (IPv4) bound
+	//   to the network interface.
 	//
-	// * association.public-dns-name - The
-	// public DNS name for the network interface (IPv4).
+	//   - association.public-dns-name - The public DNS name for the network interface
+	//   (IPv4).
 	//
-	// * attachment.attachment-id -
-	// The ID of the interface attachment.
+	//   - attachment.attach-time - The time that the network interface was attached to
+	//   an instance.
 	//
-	// * attachment.attach-time - The time that
-	// the network interface was attached to an instance.
+	//   - attachment.attachment-id - The ID of the interface attachment.
 	//
-	// *
-	// attachment.delete-on-termination - Indicates whether the attachment is deleted
-	// when an instance is terminated.
+	//   - attachment.delete-on-termination - Indicates whether the attachment is
+	//   deleted when an instance is terminated.
 	//
-	// * attachment.device-index - The device index to
-	// which the network interface is attached.
+	//   - attachment.device-index - The device index to which the network interface is
+	//   attached.
 	//
-	// * attachment.instance-id - The ID of
-	// the instance to which the network interface is attached.
+	//   - attachment.instance-id - The ID of the instance to which the network
+	//   interface is attached.
 	//
-	// *
-	// attachment.instance-owner-id - The owner ID of the instance to which the network
-	// interface is attached.
+	//   - attachment.instance-owner-id - The owner ID of the instance to which the
+	//   network interface is attached.
 	//
-	// * attachment.status - The status of the attachment
-	// (attaching | attached | detaching | detached).
+	//   - attachment.status - The status of the attachment ( attaching | attached |
+	//   detaching | detached ).
 	//
-	// * availability-zone - The
-	// Availability Zone of the network interface.
+	//   - availability-zone - The Availability Zone of the network interface.
 	//
-	// * description - The description of
-	// the network interface.
+	//   - description - The description of the network interface.
 	//
-	// * group-id - The ID of a security group associated with
-	// the network interface.
+	//   - group-id - The ID of a security group associated with the network interface.
 	//
-	// * group-name - The name of a security group associated
-	// with the network interface.
+	//   - ipv6-addresses.ipv6-address - An IPv6 address associated with the network
+	//   interface.
 	//
-	// * ipv6-addresses.ipv6-address - An IPv6 address
-	// associated with the network interface.
+	//   - interface-type - The type of network interface ( api_gateway_managed |
+	//   aws_codestar_connections_managed | branch | ec2_instance_connect_endpoint |
+	//   efa | efa-only | efs | gateway_load_balancer | gateway_load_balancer_endpoint
+	//   | global_accelerator_managed | interface | iot_rules_managed | lambda |
+	//   load_balancer | nat_gateway | network_load_balancer | quicksight |
+	//   transit_gateway | trunk | vpc_endpoint ).
 	//
-	// * interface-type - The type of network
-	// interface (api_gateway_managed | aws_codestar_connections_managed | branch | efa
-	// | gateway_load_balancer | gateway_load_balancer_endpoint |
-	// global_accelerator_managed | interface | iot_rules_managed | lambda |
-	// load_balancer | nat_gateway | network_load_balancer | quicksight |
-	// transit_gateway | trunk | vpc_endpoint).
+	//   - mac-address - The MAC address of the network interface.
 	//
-	// * mac-address - The MAC address of the
-	// network interface.
+	//   - network-interface-id - The ID of the network interface.
 	//
-	// * network-interface-id - The ID of the network interface.
+	//   - operator.managed - A Boolean that indicates whether this is a managed
+	//   network interface.
 	//
-	// *
-	// owner-id - The Amazon Web Services account ID of the network interface owner.
+	//   - operator.principal - The principal that manages the network interface. Only
+	//   valid for managed network interfaces, where managed is true .
 	//
-	// *
-	// private-ip-address - The private IPv4 address or addresses of the network
-	// interface.
+	//   - owner-id - The Amazon Web Services account ID of the network interface owner.
 	//
-	// * private-dns-name - The private DNS name of the network interface
-	// (IPv4).
+	//   - private-dns-name - The private DNS name of the network interface (IPv4).
 	//
-	// * requester-id - The alias or Amazon Web Services account ID of the
-	// principal or service that created the network interface.
+	//   - private-ip-address - The private IPv4 address or addresses of the network
+	//   interface.
 	//
-	// * requester-managed -
-	// Indicates whether the network interface is being managed by an Amazon Web
-	// Service (for example, Amazon Web Services Management Console, Auto Scaling, and
-	// so on).
+	//   - requester-id - The alias or Amazon Web Services account ID of the principal
+	//   or service that created the network interface.
 	//
-	// * source-dest-check - Indicates whether the network interface performs
-	// source/destination checking. A value of true means checking is enabled, and
-	// false means checking is disabled. The value must be false for the network
-	// interface to perform network address translation (NAT) in your VPC.
+	//   - requester-managed - Indicates whether the network interface is being managed
+	//   by an Amazon Web Services service (for example, Amazon Web Services Management
+	//   Console, Auto Scaling, and so on).
 	//
-	// * status -
-	// The status of the network interface. If the network interface is not attached to
-	// an instance, the status is available; if a network interface is attached to an
-	// instance the status is in-use.
+	//   - source-dest-check - Indicates whether the network interface performs
+	//   source/destination checking. A value of true means checking is enabled, and
+	//   false means checking is disabled. The value must be false for the network
+	//   interface to perform network address translation (NAT) in your VPC.
 	//
-	// * subnet-id - The ID of the subnet for the
-	// network interface.
+	//   - status - The status of the network interface. If the network interface is
+	//   not attached to an instance, the status is available ; if a network interface
+	//   is attached to an instance the status is in-use .
 	//
-	// * tag: - The key/value combination of a tag assigned to the
-	// resource. Use the tag key in the filter name and the tag value as the filter
-	// value. For example, to find all resources that have a tag with the key Owner and
-	// the value TeamA, specify tag:Owner for the filter name and TeamA for the filter
-	// value.
+	//   - subnet-id - The ID of the subnet for the network interface.
 	//
-	// * tag-key - The key of a tag assigned to the resource. Use this filter
-	// to find all resources assigned a tag with a specific key, regardless of the tag
-	// value.
+	//   - tag : - The key/value combination of a tag assigned to the resource. Use the
+	//   tag key in the filter name and the tag value as the filter value. For example,
+	//   to find all resources that have a tag with the key Owner and the value TeamA ,
+	//   specify tag:Owner for the filter name and TeamA for the filter value.
 	//
-	// * vpc-id - The ID of the VPC for the network interface.
+	//   - tag-key - The key of a tag assigned to the resource. Use this filter to find
+	//   all resources assigned a tag with a specific key, regardless of the tag value.
+	//
+	//   - vpc-id - The ID of the VPC for the network interface.
 	Filters []types.Filter
 
-	// The maximum number of items to return for this request. The request returns a
-	// token that you can specify in a subsequent call to get the next set of results.
-	// You cannot specify this parameter and the network interface IDs parameter in the
-	// same request.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. You cannot
+	// specify this parameter and the network interface IDs parameter in the same
+	// request. For more information, see [Pagination].
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	MaxResults *int32
 
-	// The network interface IDs. Default: Describes all your network interfaces.
+	// The network interface IDs.
+	//
+	// Default: Describes all your network interfaces.
 	NetworkInterfaceIds []string
 
-	// The token to retrieve the next page of results.
+	// The token returned from a previous paginated request. Pagination continues from
+	// the end of the items returned by the previous request.
 	NextToken *string
 
 	noSmithyDocumentSerde
 }
 
-// Contains the output of DescribeNetworkInterfaces.
 type DescribeNetworkInterfacesOutput struct {
 
-	// Information about one or more network interfaces.
+	// Information about the network interfaces.
 	NetworkInterfaces []types.NetworkInterface
 
-	// The token to use to retrieve the next page of results. This value is null when
-	// there are no more results to return.
+	// The token to include in another request to get the next page of items. This
+	// value is null when there are no more items to return.
 	NextToken *string
 
 	// Metadata pertaining to the operation's result.
@@ -202,6 +195,9 @@ type DescribeNetworkInterfacesOutput struct {
 }
 
 func (c *Client) addOperationDescribeNetworkInterfacesMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeNetworkInterfaces{}, middleware.After)
 	if err != nil {
 		return err
@@ -210,34 +206,41 @@ func (c *Client) addOperationDescribeNetworkInterfacesMiddlewares(stack *middlew
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeNetworkInterfaces"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -246,7 +249,22 @@ func (c *Client) addOperationDescribeNetworkInterfacesMiddlewares(stack *middlew
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeNetworkInterfaces(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -258,24 +276,234 @@ func (c *Client) addOperationDescribeNetworkInterfacesMiddlewares(stack *middlew
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
-// DescribeNetworkInterfacesAPIClient is a client that implements the
-// DescribeNetworkInterfaces operation.
-type DescribeNetworkInterfacesAPIClient interface {
-	DescribeNetworkInterfaces(context.Context, *DescribeNetworkInterfacesInput, ...func(*Options)) (*DescribeNetworkInterfacesOutput, error)
+// NetworkInterfaceAvailableWaiterOptions are waiter options for
+// NetworkInterfaceAvailableWaiter
+type NetworkInterfaceAvailableWaiterOptions struct {
+
+	// Set of options to modify how an operation is invoked. These apply to all
+	// operations invoked for this client. Use functional options on operation call to
+	// modify this list for per operation behavior.
+	//
+	// Passing options here is functionally equivalent to passing values to this
+	// config's ClientOptions field that extend the inner client's APIOptions directly.
+	APIOptions []func(*middleware.Stack) error
+
+	// Functional options to be passed to all operations invoked by this client.
+	//
+	// Function values that modify the inner APIOptions are applied after the waiter
+	// config's own APIOptions modifiers.
+	ClientOptions []func(*Options)
+
+	// MinDelay is the minimum amount of time to delay between retries. If unset,
+	// NetworkInterfaceAvailableWaiter will use default minimum delay of 20 seconds.
+	// Note that MinDelay must resolve to a value lesser than or equal to the MaxDelay.
+	MinDelay time.Duration
+
+	// MaxDelay is the maximum amount of time to delay between retries. If unset or
+	// set to zero, NetworkInterfaceAvailableWaiter will use default max delay of 120
+	// seconds. Note that MaxDelay must resolve to value greater than or equal to the
+	// MinDelay.
+	MaxDelay time.Duration
+
+	// LogWaitAttempts is used to enable logging for waiter retry attempts
+	LogWaitAttempts bool
+
+	// Retryable is function that can be used to override the service defined
+	// waiter-behavior based on operation output, or returned error. This function is
+	// used by the waiter to decide if a state is retryable or a terminal state.
+	//
+	// By default service-modeled logic will populate this option. This option can
+	// thus be used to define a custom waiter state with fall-back to service-modeled
+	// waiter state mutators.The function returns an error in case of a failure state.
+	// In case of retry state, this function returns a bool value of true and nil
+	// error, while in case of success it returns a bool value of false and nil error.
+	Retryable func(context.Context, *DescribeNetworkInterfacesInput, *DescribeNetworkInterfacesOutput, error) (bool, error)
 }
 
-var _ DescribeNetworkInterfacesAPIClient = (*Client)(nil)
+// NetworkInterfaceAvailableWaiter defines the waiters for
+// NetworkInterfaceAvailable
+type NetworkInterfaceAvailableWaiter struct {
+	client DescribeNetworkInterfacesAPIClient
+
+	options NetworkInterfaceAvailableWaiterOptions
+}
+
+// NewNetworkInterfaceAvailableWaiter constructs a NetworkInterfaceAvailableWaiter.
+func NewNetworkInterfaceAvailableWaiter(client DescribeNetworkInterfacesAPIClient, optFns ...func(*NetworkInterfaceAvailableWaiterOptions)) *NetworkInterfaceAvailableWaiter {
+	options := NetworkInterfaceAvailableWaiterOptions{}
+	options.MinDelay = 20 * time.Second
+	options.MaxDelay = 120 * time.Second
+	options.Retryable = networkInterfaceAvailableStateRetryable
+
+	for _, fn := range optFns {
+		fn(&options)
+	}
+	return &NetworkInterfaceAvailableWaiter{
+		client:  client,
+		options: options,
+	}
+}
+
+// Wait calls the waiter function for NetworkInterfaceAvailable waiter. The
+// maxWaitDur is the maximum wait duration the waiter will wait. The maxWaitDur is
+// required and must be greater than zero.
+func (w *NetworkInterfaceAvailableWaiter) Wait(ctx context.Context, params *DescribeNetworkInterfacesInput, maxWaitDur time.Duration, optFns ...func(*NetworkInterfaceAvailableWaiterOptions)) error {
+	_, err := w.WaitForOutput(ctx, params, maxWaitDur, optFns...)
+	return err
+}
+
+// WaitForOutput calls the waiter function for NetworkInterfaceAvailable waiter
+// and returns the output of the successful operation. The maxWaitDur is the
+// maximum wait duration the waiter will wait. The maxWaitDur is required and must
+// be greater than zero.
+func (w *NetworkInterfaceAvailableWaiter) WaitForOutput(ctx context.Context, params *DescribeNetworkInterfacesInput, maxWaitDur time.Duration, optFns ...func(*NetworkInterfaceAvailableWaiterOptions)) (*DescribeNetworkInterfacesOutput, error) {
+	if maxWaitDur <= 0 {
+		return nil, fmt.Errorf("maximum wait time for waiter must be greater than zero")
+	}
+
+	options := w.options
+	for _, fn := range optFns {
+		fn(&options)
+	}
+
+	if options.MaxDelay <= 0 {
+		options.MaxDelay = 120 * time.Second
+	}
+
+	if options.MinDelay > options.MaxDelay {
+		return nil, fmt.Errorf("minimum waiter delay %v must be lesser than or equal to maximum waiter delay of %v.", options.MinDelay, options.MaxDelay)
+	}
+
+	ctx, cancelFn := context.WithTimeout(ctx, maxWaitDur)
+	defer cancelFn()
+
+	logger := smithywaiter.Logger{}
+	remainingTime := maxWaitDur
+
+	var attempt int64
+	for {
+
+		attempt++
+		apiOptions := options.APIOptions
+		start := time.Now()
+
+		if options.LogWaitAttempts {
+			logger.Attempt = attempt
+			apiOptions = append([]func(*middleware.Stack) error{}, options.APIOptions...)
+			apiOptions = append(apiOptions, logger.AddLogger)
+		}
+
+		out, err := w.client.DescribeNetworkInterfaces(ctx, params, func(o *Options) {
+			baseOpts := []func(*Options){
+				addIsWaiterUserAgent,
+			}
+			o.APIOptions = append(o.APIOptions, apiOptions...)
+			for _, opt := range baseOpts {
+				opt(o)
+			}
+			for _, opt := range options.ClientOptions {
+				opt(o)
+			}
+		})
+
+		retryable, err := options.Retryable(ctx, params, out, err)
+		if err != nil {
+			return nil, err
+		}
+		if !retryable {
+			return out, nil
+		}
+
+		remainingTime -= time.Since(start)
+		if remainingTime < options.MinDelay || remainingTime <= 0 {
+			break
+		}
+
+		// compute exponential backoff between waiter retries
+		delay, err := smithywaiter.ComputeDelay(
+			attempt, options.MinDelay, options.MaxDelay, remainingTime,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error computing waiter delay, %w", err)
+		}
+
+		remainingTime -= delay
+		// sleep for the delay amount before invoking a request
+		if err := smithytime.SleepWithContext(ctx, delay); err != nil {
+			return nil, fmt.Errorf("request cancelled while waiting, %w", err)
+		}
+	}
+	return nil, fmt.Errorf("exceeded max wait time for NetworkInterfaceAvailable waiter")
+}
+
+func networkInterfaceAvailableStateRetryable(ctx context.Context, input *DescribeNetworkInterfacesInput, output *DescribeNetworkInterfacesOutput, err error) (bool, error) {
+
+	if err == nil {
+		v1 := output.NetworkInterfaces
+		var v2 []types.NetworkInterfaceStatus
+		for _, v := range v1 {
+			v3 := v.Status
+			v2 = append(v2, v3)
+		}
+		expectedValue := "available"
+		match := len(v2) > 0
+		for _, v := range v2 {
+			if string(v) != expectedValue {
+				match = false
+				break
+			}
+		}
+
+		if match {
+			return false, nil
+		}
+	}
+
+	if err != nil {
+		var apiErr smithy.APIError
+		ok := errors.As(err, &apiErr)
+		if !ok {
+			return false, fmt.Errorf("expected err to be of type smithy.APIError, got %w", err)
+		}
+
+		if "InvalidNetworkInterfaceID.NotFound" == apiErr.ErrorCode() {
+			return false, fmt.Errorf("waiter state transitioned to Failure")
+		}
+	}
+
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
 
 // DescribeNetworkInterfacesPaginatorOptions is the paginator options for
 // DescribeNetworkInterfaces
 type DescribeNetworkInterfacesPaginatorOptions struct {
-	// The maximum number of items to return for this request. The request returns a
-	// token that you can specify in a subsequent call to get the next set of results.
-	// You cannot specify this parameter and the network interface IDs parameter in the
-	// same request.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. You cannot
+	// specify this parameter and the network interface IDs parameter in the same
+	// request. For more information, see [Pagination].
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -337,6 +565,9 @@ func (p *DescribeNetworkInterfacesPaginator) NextPage(ctx context.Context, optFn
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeNetworkInterfaces(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -356,201 +587,18 @@ func (p *DescribeNetworkInterfacesPaginator) NextPage(ctx context.Context, optFn
 	return result, nil
 }
 
-// NetworkInterfaceAvailableWaiterOptions are waiter options for
-// NetworkInterfaceAvailableWaiter
-type NetworkInterfaceAvailableWaiterOptions struct {
-
-	// Set of options to modify how an operation is invoked. These apply to all
-	// operations invoked for this client. Use functional options on operation call to
-	// modify this list for per operation behavior.
-	APIOptions []func(*middleware.Stack) error
-
-	// MinDelay is the minimum amount of time to delay between retries. If unset,
-	// NetworkInterfaceAvailableWaiter will use default minimum delay of 20 seconds.
-	// Note that MinDelay must resolve to a value lesser than or equal to the MaxDelay.
-	MinDelay time.Duration
-
-	// MaxDelay is the maximum amount of time to delay between retries. If unset or set
-	// to zero, NetworkInterfaceAvailableWaiter will use default max delay of 120
-	// seconds. Note that MaxDelay must resolve to value greater than or equal to the
-	// MinDelay.
-	MaxDelay time.Duration
-
-	// LogWaitAttempts is used to enable logging for waiter retry attempts
-	LogWaitAttempts bool
-
-	// Retryable is function that can be used to override the service defined
-	// waiter-behavior based on operation output, or returned error. This function is
-	// used by the waiter to decide if a state is retryable or a terminal state. By
-	// default service-modeled logic will populate this option. This option can thus be
-	// used to define a custom waiter state with fall-back to service-modeled waiter
-	// state mutators.The function returns an error in case of a failure state. In case
-	// of retry state, this function returns a bool value of true and nil error, while
-	// in case of success it returns a bool value of false and nil error.
-	Retryable func(context.Context, *DescribeNetworkInterfacesInput, *DescribeNetworkInterfacesOutput, error) (bool, error)
+// DescribeNetworkInterfacesAPIClient is a client that implements the
+// DescribeNetworkInterfaces operation.
+type DescribeNetworkInterfacesAPIClient interface {
+	DescribeNetworkInterfaces(context.Context, *DescribeNetworkInterfacesInput, ...func(*Options)) (*DescribeNetworkInterfacesOutput, error)
 }
 
-// NetworkInterfaceAvailableWaiter defines the waiters for
-// NetworkInterfaceAvailable
-type NetworkInterfaceAvailableWaiter struct {
-	client DescribeNetworkInterfacesAPIClient
-
-	options NetworkInterfaceAvailableWaiterOptions
-}
-
-// NewNetworkInterfaceAvailableWaiter constructs a NetworkInterfaceAvailableWaiter.
-func NewNetworkInterfaceAvailableWaiter(client DescribeNetworkInterfacesAPIClient, optFns ...func(*NetworkInterfaceAvailableWaiterOptions)) *NetworkInterfaceAvailableWaiter {
-	options := NetworkInterfaceAvailableWaiterOptions{}
-	options.MinDelay = 20 * time.Second
-	options.MaxDelay = 120 * time.Second
-	options.Retryable = networkInterfaceAvailableStateRetryable
-
-	for _, fn := range optFns {
-		fn(&options)
-	}
-	return &NetworkInterfaceAvailableWaiter{
-		client:  client,
-		options: options,
-	}
-}
-
-// Wait calls the waiter function for NetworkInterfaceAvailable waiter. The
-// maxWaitDur is the maximum wait duration the waiter will wait. The maxWaitDur is
-// required and must be greater than zero.
-func (w *NetworkInterfaceAvailableWaiter) Wait(ctx context.Context, params *DescribeNetworkInterfacesInput, maxWaitDur time.Duration, optFns ...func(*NetworkInterfaceAvailableWaiterOptions)) error {
-	_, err := w.WaitForOutput(ctx, params, maxWaitDur, optFns...)
-	return err
-}
-
-// WaitForOutput calls the waiter function for NetworkInterfaceAvailable waiter and
-// returns the output of the successful operation. The maxWaitDur is the maximum
-// wait duration the waiter will wait. The maxWaitDur is required and must be
-// greater than zero.
-func (w *NetworkInterfaceAvailableWaiter) WaitForOutput(ctx context.Context, params *DescribeNetworkInterfacesInput, maxWaitDur time.Duration, optFns ...func(*NetworkInterfaceAvailableWaiterOptions)) (*DescribeNetworkInterfacesOutput, error) {
-	if maxWaitDur <= 0 {
-		return nil, fmt.Errorf("maximum wait time for waiter must be greater than zero")
-	}
-
-	options := w.options
-	for _, fn := range optFns {
-		fn(&options)
-	}
-
-	if options.MaxDelay <= 0 {
-		options.MaxDelay = 120 * time.Second
-	}
-
-	if options.MinDelay > options.MaxDelay {
-		return nil, fmt.Errorf("minimum waiter delay %v must be lesser than or equal to maximum waiter delay of %v.", options.MinDelay, options.MaxDelay)
-	}
-
-	ctx, cancelFn := context.WithTimeout(ctx, maxWaitDur)
-	defer cancelFn()
-
-	logger := smithywaiter.Logger{}
-	remainingTime := maxWaitDur
-
-	var attempt int64
-	for {
-
-		attempt++
-		apiOptions := options.APIOptions
-		start := time.Now()
-
-		if options.LogWaitAttempts {
-			logger.Attempt = attempt
-			apiOptions = append([]func(*middleware.Stack) error{}, options.APIOptions...)
-			apiOptions = append(apiOptions, logger.AddLogger)
-		}
-
-		out, err := w.client.DescribeNetworkInterfaces(ctx, params, func(o *Options) {
-			o.APIOptions = append(o.APIOptions, apiOptions...)
-		})
-
-		retryable, err := options.Retryable(ctx, params, out, err)
-		if err != nil {
-			return nil, err
-		}
-		if !retryable {
-			return out, nil
-		}
-
-		remainingTime -= time.Since(start)
-		if remainingTime < options.MinDelay || remainingTime <= 0 {
-			break
-		}
-
-		// compute exponential backoff between waiter retries
-		delay, err := smithywaiter.ComputeDelay(
-			attempt, options.MinDelay, options.MaxDelay, remainingTime,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("error computing waiter delay, %w", err)
-		}
-
-		remainingTime -= delay
-		// sleep for the delay amount before invoking a request
-		if err := smithytime.SleepWithContext(ctx, delay); err != nil {
-			return nil, fmt.Errorf("request cancelled while waiting, %w", err)
-		}
-	}
-	return nil, fmt.Errorf("exceeded max wait time for NetworkInterfaceAvailable waiter")
-}
-
-func networkInterfaceAvailableStateRetryable(ctx context.Context, input *DescribeNetworkInterfacesInput, output *DescribeNetworkInterfacesOutput, err error) (bool, error) {
-
-	if err == nil {
-		pathValue, err := jmespath.Search("NetworkInterfaces[].Status", output)
-		if err != nil {
-			return false, fmt.Errorf("error evaluating waiter state: %w", err)
-		}
-
-		expectedValue := "available"
-		var match = true
-		listOfValues, ok := pathValue.([]interface{})
-		if !ok {
-			return false, fmt.Errorf("waiter comparator expected list got %T", pathValue)
-		}
-
-		if len(listOfValues) == 0 {
-			match = false
-		}
-		for _, v := range listOfValues {
-			value, ok := v.(types.NetworkInterfaceStatus)
-			if !ok {
-				return false, fmt.Errorf("waiter comparator expected types.NetworkInterfaceStatus value, got %T", pathValue)
-			}
-
-			if string(value) != expectedValue {
-				match = false
-			}
-		}
-
-		if match {
-			return false, nil
-		}
-	}
-
-	if err != nil {
-		var apiErr smithy.APIError
-		ok := errors.As(err, &apiErr)
-		if !ok {
-			return false, fmt.Errorf("expected err to be of type smithy.APIError, got %w", err)
-		}
-
-		if "InvalidNetworkInterfaceID.NotFound" == apiErr.ErrorCode() {
-			return false, fmt.Errorf("waiter state transitioned to Failure")
-		}
-	}
-
-	return true, nil
-}
+var _ DescribeNetworkInterfacesAPIClient = (*Client)(nil)
 
 func newServiceMetadataMiddleware_opDescribeNetworkInterfaces(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeNetworkInterfaces",
 	}
 }

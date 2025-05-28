@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -32,13 +31,13 @@ type DescribeIpamPoolsInput struct {
 
 	// A check for whether you have the required permissions for the action without
 	// actually making the request and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
-	// One or more filters for the request. For more information about filtering, see
-	// Filtering CLI output
-	// (https://docs.aws.amazon.com/cli/latest/userguide/cli-usage-filter.html).
+	// One or more filters for the request. For more information about filtering, see [Filtering CLI output].
+	//
+	// [Filtering CLI output]: https://docs.aws.amazon.com/cli/latest/userguide/cli-usage-filter.html
 	Filters []types.Filter
 
 	// The IDs of the IPAM pools you would like information on.
@@ -69,6 +68,9 @@ type DescribeIpamPoolsOutput struct {
 }
 
 func (c *Client) addOperationDescribeIpamPoolsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeIpamPools{}, middleware.After)
 	if err != nil {
 		return err
@@ -77,34 +79,41 @@ func (c *Client) addOperationDescribeIpamPoolsMiddlewares(stack *middleware.Stac
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeIpamPools"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -113,7 +122,22 @@ func (c *Client) addOperationDescribeIpamPoolsMiddlewares(stack *middleware.Stac
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeIpamPools(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -125,16 +149,23 @@ func (c *Client) addOperationDescribeIpamPoolsMiddlewares(stack *middleware.Stac
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// DescribeIpamPoolsAPIClient is a client that implements the DescribeIpamPools
-// operation.
-type DescribeIpamPoolsAPIClient interface {
-	DescribeIpamPools(context.Context, *DescribeIpamPoolsInput, ...func(*Options)) (*DescribeIpamPoolsOutput, error)
-}
-
-var _ DescribeIpamPoolsAPIClient = (*Client)(nil)
 
 // DescribeIpamPoolsPaginatorOptions is the paginator options for DescribeIpamPools
 type DescribeIpamPoolsPaginatorOptions struct {
@@ -199,6 +230,9 @@ func (p *DescribeIpamPoolsPaginator) NextPage(ctx context.Context, optFns ...fun
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeIpamPools(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -218,11 +252,18 @@ func (p *DescribeIpamPoolsPaginator) NextPage(ctx context.Context, optFns ...fun
 	return result, nil
 }
 
+// DescribeIpamPoolsAPIClient is a client that implements the DescribeIpamPools
+// operation.
+type DescribeIpamPoolsAPIClient interface {
+	DescribeIpamPools(context.Context, *DescribeIpamPoolsInput, ...func(*Options)) (*DescribeIpamPoolsOutput, error)
+}
+
+var _ DescribeIpamPoolsAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeIpamPools(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeIpamPools",
 	}
 }

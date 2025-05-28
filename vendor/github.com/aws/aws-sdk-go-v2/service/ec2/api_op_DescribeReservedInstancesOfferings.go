@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -16,12 +15,19 @@ import (
 // Reserved Instances, you purchase the right to launch instances for a period of
 // time. During that time period, you do not receive insufficient capacity errors,
 // and you pay a lower usage rate than the rate charged for On-Demand instances for
-// the actual time used. If you have listed your own Reserved Instances for sale in
-// the Reserved Instance Marketplace, they will be excluded from these results.
-// This is to ensure that you do not purchase your own Reserved Instances. For more
-// information, see Reserved Instance Marketplace
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html) in
-// the Amazon EC2 User Guide.
+// the actual time used.
+//
+// If you have listed your own Reserved Instances for sale in the Reserved
+// Instance Marketplace, they will be excluded from these results. This is to
+// ensure that you do not purchase your own Reserved Instances.
+//
+// For more information, see [Sell in the Reserved Instance Marketplace] in the Amazon EC2 User Guide.
+//
+// The order of the elements in the response, including those within nested
+// structures, might vary. Applications should not assume the elements appear in a
+// particular order.
+//
+// [Sell in the Reserved Instance Marketplace]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html
 func (c *Client) DescribeReservedInstancesOfferings(ctx context.Context, params *DescribeReservedInstancesOfferingsInput, optFns ...func(*Options)) (*DescribeReservedInstancesOfferingsOutput, error) {
 	if params == nil {
 		params = &DescribeReservedInstancesOfferingsInput{}
@@ -41,53 +47,54 @@ func (c *Client) DescribeReservedInstancesOfferings(ctx context.Context, params 
 type DescribeReservedInstancesOfferingsInput struct {
 
 	// The Availability Zone in which the Reserved Instance can be used.
+	//
+	// Either AvailabilityZone or AvailabilityZoneId can be specified, but not both.
 	AvailabilityZone *string
+
+	// The ID of the Availability Zone.
+	//
+	// Either AvailabilityZone or AvailabilityZoneId can be specified, but not both.
+	AvailabilityZoneId *string
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// One or more filters.
 	//
-	// * availability-zone - The Availability Zone where the
-	// Reserved Instance can be used.
+	//   - availability-zone - The Availability Zone where the Reserved Instance can be
+	//   used.
 	//
-	// * duration - The duration of the Reserved
-	// Instance (for example, one year or three years), in seconds (31536000 |
-	// 94608000).
+	//   - availability-zone-id - The ID of the Availability Zone where the Reserved
+	//   Instance can be used.
 	//
-	// * fixed-price - The purchase price of the Reserved Instance (for
-	// example, 9800.0).
+	//   - duration - The duration of the Reserved Instance (for example, one year or
+	//   three years), in seconds ( 31536000 | 94608000 ).
 	//
-	// * instance-type - The instance type that is covered by the
-	// reservation.
+	//   - fixed-price - The purchase price of the Reserved Instance (for example,
+	//   9800.0).
 	//
-	// * marketplace - Set to true to show only Reserved Instance
-	// Marketplace offerings. When this filter is not used, which is the default
-	// behavior, all offerings from both Amazon Web Services and the Reserved Instance
-	// Marketplace are listed.
+	//   - instance-type - The instance type that is covered by the reservation.
 	//
-	// * product-description - The Reserved Instance product
-	// platform description. Instances that include (Amazon VPC) in the product
-	// platform description will only be displayed to EC2-Classic account holders and
-	// are for use with Amazon VPC. (Linux/UNIX | Linux/UNIX (Amazon VPC) | SUSE Linux
-	// | SUSE Linux (Amazon VPC) | Red Hat Enterprise Linux | Red Hat Enterprise Linux
-	// (Amazon VPC) | Red Hat Enterprise Linux with HA (Amazon VPC) | Windows | Windows
-	// (Amazon VPC) | Windows with SQL Server Standard | Windows with SQL Server
-	// Standard (Amazon VPC) | Windows with SQL Server Web |  Windows with SQL Server
-	// Web (Amazon VPC) | Windows with SQL Server Enterprise | Windows with SQL Server
-	// Enterprise (Amazon VPC))
+	//   - marketplace - Set to true to show only Reserved Instance Marketplace
+	//   offerings. When this filter is not used, which is the default behavior, all
+	//   offerings from both Amazon Web Services and the Reserved Instance Marketplace
+	//   are listed.
 	//
-	// * reserved-instances-offering-id - The Reserved
-	// Instances offering ID.
+	//   - product-description - The Reserved Instance product platform description (
+	//   Linux/UNIX | Linux with SQL Server Standard | Linux with SQL Server Web |
+	//   Linux with SQL Server Enterprise | SUSE Linux | Red Hat Enterprise Linux |
+	//   Red Hat Enterprise Linux with HA | Windows | Windows with SQL Server Standard
+	//   | Windows with SQL Server Web | Windows with SQL Server Enterprise ).
 	//
-	// * scope - The scope of the Reserved Instance
-	// (Availability Zone or Region).
+	//   - reserved-instances-offering-id - The Reserved Instances offering ID.
 	//
-	// * usage-price - The usage price of the Reserved
-	// Instance, per hour (for example, 0.84).
+	//   - scope - The scope of the Reserved Instance ( Availability Zone or Region ).
+	//
+	//   - usage-price - The usage price of the Reserved Instance, per hour (for
+	//   example, 0.84).
 	Filters []types.Filter
 
 	// Include Reserved Instance Marketplace offerings in the response.
@@ -95,38 +102,46 @@ type DescribeReservedInstancesOfferingsInput struct {
 
 	// The tenancy of the instances covered by the reservation. A Reserved Instance
 	// with a tenancy of dedicated is applied to instances that run in a VPC on
-	// single-tenant hardware (i.e., Dedicated Instances). Important: The host value
-	// cannot be used with this parameter. Use the default or dedicated values only.
+	// single-tenant hardware (i.e., Dedicated Instances).
+	//
+	// Important: The host value cannot be used with this parameter. Use the default
+	// or dedicated values only.
+	//
 	// Default: default
 	InstanceTenancy types.Tenancy
 
-	// The instance type that the reservation will cover (for example, m1.small). For
-	// more information, see Instance types
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html) in the
-	// Amazon EC2 User Guide.
+	// The instance type that the reservation will cover (for example, m1.small ). For
+	// more information, see [Amazon EC2 instance types]in the Amazon EC2 User Guide.
+	//
+	// [Amazon EC2 instance types]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html
 	InstanceType types.InstanceType
 
 	// The maximum duration (in seconds) to filter when searching for offerings.
+	//
 	// Default: 94608000 (3 years)
 	MaxDuration *int64
 
-	// The maximum number of instances to filter when searching for offerings. Default:
-	// 20
+	// The maximum number of instances to filter when searching for offerings.
+	//
+	// Default: 20
 	MaxInstanceCount *int32
 
 	// The maximum number of results to return for the request in a single page. The
 	// remaining results of the initial request can be seen by sending another request
-	// with the returned NextToken value. The maximum is 100. Default: 100
+	// with the returned NextToken value. The maximum is 100.
+	//
+	// Default: 100
 	MaxResults *int32
 
 	// The minimum duration (in seconds) to filter when searching for offerings.
+	//
 	// Default: 2592000 (1 month)
 	MinDuration *int64
 
 	// The token to retrieve the next page of results.
 	NextToken *string
 
-	// The offering class of the Reserved Instance. Can be standard or convertible.
+	// The offering class of the Reserved Instance. Can be standard or convertible .
 	OfferingClass types.OfferingClassType
 
 	// The Reserved Instance offering type. If you are using tools that predate the
@@ -161,6 +176,9 @@ type DescribeReservedInstancesOfferingsOutput struct {
 }
 
 func (c *Client) addOperationDescribeReservedInstancesOfferingsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeReservedInstancesOfferings{}, middleware.After)
 	if err != nil {
 		return err
@@ -169,34 +187,41 @@ func (c *Client) addOperationDescribeReservedInstancesOfferingsMiddlewares(stack
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeReservedInstancesOfferings"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -205,7 +230,22 @@ func (c *Client) addOperationDescribeReservedInstancesOfferingsMiddlewares(stack
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeReservedInstancesOfferings(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -217,23 +257,32 @@ func (c *Client) addOperationDescribeReservedInstancesOfferingsMiddlewares(stack
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// DescribeReservedInstancesOfferingsAPIClient is a client that implements the
-// DescribeReservedInstancesOfferings operation.
-type DescribeReservedInstancesOfferingsAPIClient interface {
-	DescribeReservedInstancesOfferings(context.Context, *DescribeReservedInstancesOfferingsInput, ...func(*Options)) (*DescribeReservedInstancesOfferingsOutput, error)
-}
-
-var _ DescribeReservedInstancesOfferingsAPIClient = (*Client)(nil)
 
 // DescribeReservedInstancesOfferingsPaginatorOptions is the paginator options for
 // DescribeReservedInstancesOfferings
 type DescribeReservedInstancesOfferingsPaginatorOptions struct {
 	// The maximum number of results to return for the request in a single page. The
 	// remaining results of the initial request can be seen by sending another request
-	// with the returned NextToken value. The maximum is 100. Default: 100
+	// with the returned NextToken value. The maximum is 100.
+	//
+	// Default: 100
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -296,6 +345,9 @@ func (p *DescribeReservedInstancesOfferingsPaginator) NextPage(ctx context.Conte
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeReservedInstancesOfferings(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -315,11 +367,18 @@ func (p *DescribeReservedInstancesOfferingsPaginator) NextPage(ctx context.Conte
 	return result, nil
 }
 
+// DescribeReservedInstancesOfferingsAPIClient is a client that implements the
+// DescribeReservedInstancesOfferings operation.
+type DescribeReservedInstancesOfferingsAPIClient interface {
+	DescribeReservedInstancesOfferings(context.Context, *DescribeReservedInstancesOfferingsInput, ...func(*Options)) (*DescribeReservedInstancesOfferingsOutput, error)
+}
+
+var _ DescribeReservedInstancesOfferingsAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeReservedInstancesOfferings(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeReservedInstancesOfferings",
 	}
 }

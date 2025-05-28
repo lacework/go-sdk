@@ -6,24 +6,28 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Returns information about the access key IDs associated with the specified IAM
-// user. If there is none, the operation returns an empty list. Although each user
-// is limited to a small number of keys, you can still paginate the results using
-// the MaxItems and Marker parameters. If the UserName is not specified, the user
-// name is determined implicitly based on the Amazon Web Services access key ID
-// used to sign the request. If a temporary access key is used, then UserName is
-// required. If a long-term key is assigned to the user, then UserName is not
-// required. This operation works for access keys under the Amazon Web Services
-// account. Consequently, you can use this operation to manage Amazon Web Services
-// account root user credentials even if the Amazon Web Services account has no
-// associated users. To ensure the security of your Amazon Web Services account,
-// the secret access key is accessible only during key and user creation.
+// user. If there is none, the operation returns an empty list.
+//
+// Although each user is limited to a small number of keys, you can still paginate
+// the results using the MaxItems and Marker parameters.
+//
+// If the UserName is not specified, the user name is determined implicitly based
+// on the Amazon Web Services access key ID used to sign the request. If a
+// temporary access key is used, then UserName is required. If a long-term key is
+// assigned to the user, then UserName is not required.
+//
+// This operation works for access keys under the Amazon Web Services account. If
+// the Amazon Web Services account has no associated users, the root user returns
+// it's own access key IDs by running this command.
+//
+// To ensure the security of your Amazon Web Services account, the secret access
+// key is accessible only during key and user creation.
 func (c *Client) ListAccessKeys(ctx context.Context, params *ListAccessKeysInput, optFns ...func(*Options)) (*ListAccessKeysOutput, error) {
 	if params == nil {
 		params = &ListAccessKeysInput{}
@@ -49,17 +53,22 @@ type ListAccessKeysInput struct {
 
 	// Use this only when paginating results to indicate the maximum number of items
 	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true. If you do not include this
-	// parameter, the number of items defaults to 100. Note that IAM might return fewer
-	// results, even when there are more results available. In that case, the
-	// IsTruncated response element returns true, and Marker contains a value to
-	// include in the subsequent call that tells the service where to continue from.
+	// specify, the IsTruncated response element is true .
+	//
+	// If you do not include this parameter, the number of items defaults to 100. Note
+	// that IAM might return fewer results, even when there are more results available.
+	// In that case, the IsTruncated response element returns true , and Marker
+	// contains a value to include in the subsequent call that tells the service where
+	// to continue from.
 	MaxItems *int32
 
-	// The name of the user. This parameter allows (through its regex pattern
-	// (http://wikipedia.org/wiki/regex)) a string of characters consisting of upper
+	// The name of the user.
+	//
+	// This parameter allows (through its [regex pattern]) a string of characters consisting of upper
 	// and lowercase alphanumeric characters with no spaces. You can also include any
 	// of the following characters: _+=,.@-
+	//
+	// [regex pattern]: http://wikipedia.org/wiki/regex
 	UserName *string
 
 	noSmithyDocumentSerde
@@ -77,11 +86,11 @@ type ListAccessKeysOutput struct {
 	// were truncated, you can make a subsequent pagination request using the Marker
 	// request parameter to retrieve more items. Note that IAM might return fewer than
 	// the MaxItems number of results even when there are more results available. We
-	// recommend that you check IsTruncated after every call to ensure that you receive
-	// all your results.
+	// recommend that you check IsTruncated after every call to ensure that you
+	// receive all your results.
 	IsTruncated bool
 
-	// When IsTruncated is true, this element is present and contains the value to use
+	// When IsTruncated is true , this element is present and contains the value to use
 	// for the Marker parameter in a subsequent pagination request.
 	Marker *string
 
@@ -92,6 +101,9 @@ type ListAccessKeysOutput struct {
 }
 
 func (c *Client) addOperationListAccessKeysMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpListAccessKeys{}, middleware.After)
 	if err != nil {
 		return err
@@ -100,34 +112,41 @@ func (c *Client) addOperationListAccessKeysMiddlewares(stack *middleware.Stack, 
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ListAccessKeys"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -136,7 +155,22 @@ func (c *Client) addOperationListAccessKeysMiddlewares(stack *middleware.Stack, 
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opListAccessKeys(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -148,26 +182,35 @@ func (c *Client) addOperationListAccessKeysMiddlewares(stack *middleware.Stack, 
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// ListAccessKeysAPIClient is a client that implements the ListAccessKeys
-// operation.
-type ListAccessKeysAPIClient interface {
-	ListAccessKeys(context.Context, *ListAccessKeysInput, ...func(*Options)) (*ListAccessKeysOutput, error)
-}
-
-var _ ListAccessKeysAPIClient = (*Client)(nil)
 
 // ListAccessKeysPaginatorOptions is the paginator options for ListAccessKeys
 type ListAccessKeysPaginatorOptions struct {
 	// Use this only when paginating results to indicate the maximum number of items
 	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true. If you do not include this
-	// parameter, the number of items defaults to 100. Note that IAM might return fewer
-	// results, even when there are more results available. In that case, the
-	// IsTruncated response element returns true, and Marker contains a value to
-	// include in the subsequent call that tells the service where to continue from.
+	// specify, the IsTruncated response element is true .
+	//
+	// If you do not include this parameter, the number of items defaults to 100. Note
+	// that IAM might return fewer results, even when there are more results available.
+	// In that case, the IsTruncated response element returns true , and Marker
+	// contains a value to include in the subsequent call that tells the service where
+	// to continue from.
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -228,6 +271,9 @@ func (p *ListAccessKeysPaginator) NextPage(ctx context.Context, optFns ...func(*
 	}
 	params.MaxItems = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.ListAccessKeys(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -247,11 +293,18 @@ func (p *ListAccessKeysPaginator) NextPage(ctx context.Context, optFns ...func(*
 	return result, nil
 }
 
+// ListAccessKeysAPIClient is a client that implements the ListAccessKeys
+// operation.
+type ListAccessKeysAPIClient interface {
+	ListAccessKeys(context.Context, *ListAccessKeysInput, ...func(*Options)) (*ListAccessKeysOutput, error)
+}
+
+var _ ListAccessKeysAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opListAccessKeys(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "iam",
 		OperationName: "ListAccessKeys",
 	}
 }

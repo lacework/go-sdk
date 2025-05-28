@@ -6,15 +6,18 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Describes one or more of your network ACLs. For more information, see Network
-// ACLs (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_ACLs.html) in the
-// Amazon Virtual Private Cloud User Guide.
+// Describes your network ACLs. The default is to describe all your network ACLs.
+// Alternatively, you can specify specific network ACL IDs or filter the results to
+// include only the network ACLs that match specific criteria.
+//
+// For more information, see [Network ACLs] in the Amazon VPC User Guide.
+//
+// [Network ACLs]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html
 func (c *Client) DescribeNetworkAcls(ctx context.Context, params *DescribeNetworkAclsInput, optFns ...func(*Options)) (*DescribeNetworkAclsOutput, error) {
 	if params == nil {
 		params = &DescribeNetworkAclsInput{}
@@ -34,82 +37,72 @@ type DescribeNetworkAclsInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
-	// One or more filters.
+	// The filters.
 	//
-	// * association.association-id - The ID of an association ID
-	// for the ACL.
+	//   - association.association-id - The ID of an association ID for the ACL.
 	//
-	// * association.network-acl-id - The ID of the network ACL involved
-	// in the association.
+	//   - association.network-acl-id - The ID of the network ACL involved in the
+	//   association.
 	//
-	// * association.subnet-id - The ID of the subnet involved in
-	// the association.
+	//   - association.subnet-id - The ID of the subnet involved in the association.
 	//
-	// * default - Indicates whether the ACL is the default network
-	// ACL for the VPC.
+	//   - default - Indicates whether the ACL is the default network ACL for the VPC.
 	//
-	// * entry.cidr - The IPv4 CIDR range specified in the entry.
+	//   - entry.cidr - The IPv4 CIDR range specified in the entry.
 	//
-	// *
-	// entry.icmp.code - The ICMP code specified in the entry, if any.
+	//   - entry.icmp.code - The ICMP code specified in the entry, if any.
 	//
-	// *
-	// entry.icmp.type - The ICMP type specified in the entry, if any.
+	//   - entry.icmp.type - The ICMP type specified in the entry, if any.
 	//
-	// *
-	// entry.ipv6-cidr - The IPv6 CIDR range specified in the entry.
+	//   - entry.ipv6-cidr - The IPv6 CIDR range specified in the entry.
 	//
-	// *
-	// entry.port-range.from - The start of the port range specified in the entry.
+	//   - entry.port-range.from - The start of the port range specified in the entry.
 	//
-	// *
-	// entry.port-range.to - The end of the port range specified in the entry.
+	//   - entry.port-range.to - The end of the port range specified in the entry.
 	//
-	// *
-	// entry.protocol - The protocol specified in the entry (tcp | udp | icmp or a
-	// protocol number).
+	//   - entry.protocol - The protocol specified in the entry ( tcp | udp | icmp or a
+	//   protocol number).
 	//
-	// * entry.rule-action - Allows or denies the matching traffic
-	// (allow | deny).
+	//   - entry.rule-action - Allows or denies the matching traffic ( allow | deny ).
 	//
-	// * entry.egress - A Boolean that indicates the type of rule.
-	// Specify true for egress rules, or false for ingress rules.
+	//   - entry.egress - A Boolean that indicates the type of rule. Specify true for
+	//   egress rules, or false for ingress rules.
 	//
-	// * entry.rule-number
-	// - The number of an entry (in other words, rule) in the set of ACL entries.
+	//   - entry.rule-number - The number of an entry (in other words, rule) in the set
+	//   of ACL entries.
 	//
-	// *
-	// network-acl-id - The ID of the network ACL.
+	//   - network-acl-id - The ID of the network ACL.
 	//
-	// * owner-id - The ID of the Amazon
-	// Web Services account that owns the network ACL.
+	//   - owner-id - The ID of the Amazon Web Services account that owns the network
+	//   ACL.
 	//
-	// * tag: - The key/value
-	// combination of a tag assigned to the resource. Use the tag key in the filter
-	// name and the tag value as the filter value. For example, to find all resources
-	// that have a tag with the key Owner and the value TeamA, specify tag:Owner for
-	// the filter name and TeamA for the filter value.
+	//   - tag - The key/value combination of a tag assigned to the resource. Use the
+	//   tag key in the filter name and the tag value as the filter value. For example,
+	//   to find all resources that have a tag with the key Owner and the value TeamA ,
+	//   specify tag:Owner for the filter name and TeamA for the filter value.
 	//
-	// * tag-key - The key of a tag
-	// assigned to the resource. Use this filter to find all resources assigned a tag
-	// with a specific key, regardless of the tag value.
+	//   - tag-key - The key of a tag assigned to the resource. Use this filter to find
+	//   all resources assigned a tag with a specific key, regardless of the tag value.
 	//
-	// * vpc-id - The ID of the VPC
-	// for the network ACL.
+	//   - vpc-id - The ID of the VPC for the network ACL.
 	Filters []types.Filter
 
-	// The maximum number of results to return with a single call. To retrieve the
-	// remaining results, make another call with the returned nextToken value.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. For more
+	// information, see [Pagination].
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	MaxResults *int32
 
-	// One or more network ACL IDs. Default: Describes all your network ACLs.
+	// The IDs of the network ACLs.
 	NetworkAclIds []string
 
-	// The token for the next page of results.
+	// The token returned from a previous paginated request. Pagination continues from
+	// the end of the items returned by the previous request.
 	NextToken *string
 
 	noSmithyDocumentSerde
@@ -117,11 +110,11 @@ type DescribeNetworkAclsInput struct {
 
 type DescribeNetworkAclsOutput struct {
 
-	// Information about one or more network ACLs.
+	// Information about the network ACLs.
 	NetworkAcls []types.NetworkAcl
 
-	// The token to use to retrieve the next page of results. This value is null when
-	// there are no more results to return.
+	// The token to include in another request to get the next page of items. This
+	// value is null when there are no more items to return.
 	NextToken *string
 
 	// Metadata pertaining to the operation's result.
@@ -131,6 +124,9 @@ type DescribeNetworkAclsOutput struct {
 }
 
 func (c *Client) addOperationDescribeNetworkAclsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeNetworkAcls{}, middleware.After)
 	if err != nil {
 		return err
@@ -139,34 +135,41 @@ func (c *Client) addOperationDescribeNetworkAclsMiddlewares(stack *middleware.St
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeNetworkAcls"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -175,7 +178,22 @@ func (c *Client) addOperationDescribeNetworkAclsMiddlewares(stack *middleware.St
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeNetworkAcls(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -187,22 +205,32 @@ func (c *Client) addOperationDescribeNetworkAclsMiddlewares(stack *middleware.St
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// DescribeNetworkAclsAPIClient is a client that implements the DescribeNetworkAcls
-// operation.
-type DescribeNetworkAclsAPIClient interface {
-	DescribeNetworkAcls(context.Context, *DescribeNetworkAclsInput, ...func(*Options)) (*DescribeNetworkAclsOutput, error)
-}
-
-var _ DescribeNetworkAclsAPIClient = (*Client)(nil)
 
 // DescribeNetworkAclsPaginatorOptions is the paginator options for
 // DescribeNetworkAcls
 type DescribeNetworkAclsPaginatorOptions struct {
-	// The maximum number of results to return with a single call. To retrieve the
-	// remaining results, make another call with the returned nextToken value.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. For more
+	// information, see [Pagination].
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -263,6 +291,9 @@ func (p *DescribeNetworkAclsPaginator) NextPage(ctx context.Context, optFns ...f
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeNetworkAcls(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -282,11 +313,18 @@ func (p *DescribeNetworkAclsPaginator) NextPage(ctx context.Context, optFns ...f
 	return result, nil
 }
 
+// DescribeNetworkAclsAPIClient is a client that implements the
+// DescribeNetworkAcls operation.
+type DescribeNetworkAclsAPIClient interface {
+	DescribeNetworkAcls(context.Context, *DescribeNetworkAclsInput, ...func(*Options)) (*DescribeNetworkAclsOutput, error)
+}
+
+var _ DescribeNetworkAclsAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeNetworkAcls(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeNetworkAcls",
 	}
 }

@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -30,20 +29,21 @@ func (c *Client) DeleteVerifiedAccessEndpoint(ctx context.Context, params *Delet
 
 type DeleteVerifiedAccessEndpointInput struct {
 
-	// The ID of the Amazon Web Services Verified Access endpoint.
+	// The ID of the Verified Access endpoint.
 	//
 	// This member is required.
 	VerifiedAccessEndpointId *string
 
 	// A unique, case-sensitive token that you provide to ensure idempotency of your
-	// modification request. For more information, see Ensuring Idempotency
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
+	// modification request. For more information, see [Ensuring idempotency].
+	//
+	// [Ensuring idempotency]: https://docs.aws.amazon.com/ec2/latest/devguide/ec2-api-idempotency.html
 	ClientToken *string
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	noSmithyDocumentSerde
@@ -51,7 +51,7 @@ type DeleteVerifiedAccessEndpointInput struct {
 
 type DeleteVerifiedAccessEndpointOutput struct {
 
-	// The ID of the Amazon Web Services Verified Access endpoint.
+	// Details about the Verified Access endpoint.
 	VerifiedAccessEndpoint *types.VerifiedAccessEndpoint
 
 	// Metadata pertaining to the operation's result.
@@ -61,6 +61,9 @@ type DeleteVerifiedAccessEndpointOutput struct {
 }
 
 func (c *Client) addOperationDeleteVerifiedAccessEndpointMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDeleteVerifiedAccessEndpoint{}, middleware.After)
 	if err != nil {
 		return err
@@ -69,40 +72,59 @@ func (c *Client) addOperationDeleteVerifiedAccessEndpointMiddlewares(stack *midd
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DeleteVerifiedAccessEndpoint"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addIdempotencyToken_opDeleteVerifiedAccessEndpointMiddleware(stack, options); err != nil {
@@ -114,6 +136,9 @@ func (c *Client) addOperationDeleteVerifiedAccessEndpointMiddlewares(stack *midd
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDeleteVerifiedAccessEndpoint(options.Region), middleware.Before); err != nil {
 		return err
 	}
+	if err = addRecursionDetection(stack); err != nil {
+		return err
+	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -121,6 +146,21 @@ func (c *Client) addOperationDeleteVerifiedAccessEndpointMiddlewares(stack *midd
 		return err
 	}
 	if err = addRequestResponseLogging(stack, options); err != nil {
+		return err
+	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
 		return err
 	}
 	return nil
@@ -163,7 +203,6 @@ func newServiceMetadataMiddleware_opDeleteVerifiedAccessEndpoint(region string) 
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DeleteVerifiedAccessEndpoint",
 	}
 }

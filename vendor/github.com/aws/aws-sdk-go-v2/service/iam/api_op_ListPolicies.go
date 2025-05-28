@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -14,18 +13,23 @@ import (
 
 // Lists all the managed policies that are available in your Amazon Web Services
 // account, including your own customer-defined managed policies and all Amazon Web
-// Services managed policies. You can filter the list of policies that is returned
-// using the optional OnlyAttached, Scope, and PathPrefix parameters. For example,
-// to list only the customer managed policies in your Amazon Web Services account,
-// set Scope to Local. To list only Amazon Web Services managed policies, set Scope
-// to AWS. You can paginate the results using the MaxItems and Marker parameters.
-// For more information about managed policies, see Managed policies and inline
-// policies
-// (https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html)
-// in the IAM User Guide. IAM resource-listing operations return a subset of the
-// available attributes for the resource. For example, this operation does not
-// return tags, even though they are an attribute of the returned object. To view
-// all of the information for a customer manged policy, see GetPolicy.
+// Services managed policies.
+//
+// You can filter the list of policies that is returned using the optional
+// OnlyAttached , Scope , and PathPrefix parameters. For example, to list only the
+// customer managed policies in your Amazon Web Services account, set Scope to
+// Local . To list only Amazon Web Services managed policies, set Scope to AWS .
+//
+// You can paginate the results using the MaxItems and Marker parameters.
+//
+// For more information about managed policies, see [Managed policies and inline policies] in the IAM User Guide.
+//
+// IAM resource-listing operations return a subset of the available attributes for
+// the resource. For example, this operation does not return tags, even though they
+// are an attribute of the returned object. To view all of the information for a
+// customer manged policy, see GetPolicy.
+//
+// [Managed policies and inline policies]: https://docs.aws.amazon.com/IAM/latest/UserGuide/policies-managed-vs-inline.html
 func (c *Client) ListPolicies(ctx context.Context, params *ListPoliciesInput, optFns ...func(*Options)) (*ListPoliciesOutput, error) {
 	if params == nil {
 		params = &ListPoliciesInput{}
@@ -51,40 +55,50 @@ type ListPoliciesInput struct {
 
 	// Use this only when paginating results to indicate the maximum number of items
 	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true. If you do not include this
-	// parameter, the number of items defaults to 100. Note that IAM might return fewer
-	// results, even when there are more results available. In that case, the
-	// IsTruncated response element returns true, and Marker contains a value to
-	// include in the subsequent call that tells the service where to continue from.
+	// specify, the IsTruncated response element is true .
+	//
+	// If you do not include this parameter, the number of items defaults to 100. Note
+	// that IAM might return fewer results, even when there are more results available.
+	// In that case, the IsTruncated response element returns true , and Marker
+	// contains a value to include in the subsequent call that tells the service where
+	// to continue from.
 	MaxItems *int32
 
-	// A flag to filter the results to only the attached policies. When OnlyAttached is
-	// true, the returned list contains only the policies that are attached to an IAM
-	// user, group, or role. When OnlyAttached is false, or when the parameter is not
-	// included, all policies are returned.
+	// A flag to filter the results to only the attached policies.
+	//
+	// When OnlyAttached is true , the returned list contains only the policies that
+	// are attached to an IAM user, group, or role. When OnlyAttached is false , or
+	// when the parameter is not included, all policies are returned.
 	OnlyAttached bool
 
 	// The path prefix for filtering the results. This parameter is optional. If it is
 	// not included, it defaults to a slash (/), listing all policies. This parameter
-	// allows (through its regex pattern (http://wikipedia.org/wiki/regex)) a string of
-	// characters consisting of either a forward slash (/) by itself or a string that
-	// must begin and end with forward slashes. In addition, it can contain any ASCII
-	// character from the ! (\u0021) through the DEL character (\u007F), including most
-	// punctuation characters, digits, and upper and lowercased letters.
+	// allows (through its [regex pattern]) a string of characters consisting of either a forward
+	// slash (/) by itself or a string that must begin and end with forward slashes. In
+	// addition, it can contain any ASCII character from the ! ( \u0021 ) through the
+	// DEL character ( \u007F ), including most punctuation characters, digits, and
+	// upper and lowercased letters.
+	//
+	// [regex pattern]: http://wikipedia.org/wiki/regex
 	PathPrefix *string
 
-	// The policy usage method to use for filtering the results. To list only
-	// permissions policies, set PolicyUsageFilter to PermissionsPolicy. To list only
-	// the policies used to set permissions boundaries, set the value to
-	// PermissionsBoundary. This parameter is optional. If it is not included, all
-	// policies are returned.
+	// The policy usage method to use for filtering the results.
+	//
+	// To list only permissions policies, set PolicyUsageFilter to PermissionsPolicy .
+	// To list only the policies used to set permissions boundaries, set the value to
+	// PermissionsBoundary .
+	//
+	// This parameter is optional. If it is not included, all policies are returned.
 	PolicyUsageFilter types.PolicyUsageType
 
-	// The scope to use for filtering the results. To list only Amazon Web Services
-	// managed policies, set Scope to AWS. To list only the customer managed policies
-	// in your Amazon Web Services account, set Scope to Local. This parameter is
-	// optional. If it is not included, or if it is set to All, all policies are
-	// returned.
+	// The scope to use for filtering the results.
+	//
+	// To list only Amazon Web Services managed policies, set Scope to AWS . To list
+	// only the customer managed policies in your Amazon Web Services account, set
+	// Scope to Local .
+	//
+	// This parameter is optional. If it is not included, or if it is set to All , all
+	// policies are returned.
 	Scope types.PolicyScopeType
 
 	noSmithyDocumentSerde
@@ -97,11 +111,11 @@ type ListPoliciesOutput struct {
 	// were truncated, you can make a subsequent pagination request using the Marker
 	// request parameter to retrieve more items. Note that IAM might return fewer than
 	// the MaxItems number of results even when there are more results available. We
-	// recommend that you check IsTruncated after every call to ensure that you receive
-	// all your results.
+	// recommend that you check IsTruncated after every call to ensure that you
+	// receive all your results.
 	IsTruncated bool
 
-	// When IsTruncated is true, this element is present and contains the value to use
+	// When IsTruncated is true , this element is present and contains the value to use
 	// for the Marker parameter in a subsequent pagination request.
 	Marker *string
 
@@ -115,6 +129,9 @@ type ListPoliciesOutput struct {
 }
 
 func (c *Client) addOperationListPoliciesMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpListPolicies{}, middleware.After)
 	if err != nil {
 		return err
@@ -123,34 +140,41 @@ func (c *Client) addOperationListPoliciesMiddlewares(stack *middleware.Stack, op
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ListPolicies"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -159,7 +183,22 @@ func (c *Client) addOperationListPoliciesMiddlewares(stack *middleware.Stack, op
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opListPolicies(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -171,25 +210,35 @@ func (c *Client) addOperationListPoliciesMiddlewares(stack *middleware.Stack, op
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// ListPoliciesAPIClient is a client that implements the ListPolicies operation.
-type ListPoliciesAPIClient interface {
-	ListPolicies(context.Context, *ListPoliciesInput, ...func(*Options)) (*ListPoliciesOutput, error)
-}
-
-var _ ListPoliciesAPIClient = (*Client)(nil)
 
 // ListPoliciesPaginatorOptions is the paginator options for ListPolicies
 type ListPoliciesPaginatorOptions struct {
 	// Use this only when paginating results to indicate the maximum number of items
 	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true. If you do not include this
-	// parameter, the number of items defaults to 100. Note that IAM might return fewer
-	// results, even when there are more results available. In that case, the
-	// IsTruncated response element returns true, and Marker contains a value to
-	// include in the subsequent call that tells the service where to continue from.
+	// specify, the IsTruncated response element is true .
+	//
+	// If you do not include this parameter, the number of items defaults to 100. Note
+	// that IAM might return fewer results, even when there are more results available.
+	// In that case, the IsTruncated response element returns true , and Marker
+	// contains a value to include in the subsequent call that tells the service where
+	// to continue from.
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -250,6 +299,9 @@ func (p *ListPoliciesPaginator) NextPage(ctx context.Context, optFns ...func(*Op
 	}
 	params.MaxItems = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.ListPolicies(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -269,11 +321,17 @@ func (p *ListPoliciesPaginator) NextPage(ctx context.Context, optFns ...func(*Op
 	return result, nil
 }
 
+// ListPoliciesAPIClient is a client that implements the ListPolicies operation.
+type ListPoliciesAPIClient interface {
+	ListPolicies(context.Context, *ListPoliciesInput, ...func(*Options)) (*ListPoliciesOutput, error)
+}
+
+var _ ListPoliciesAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opListPolicies(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "iam",
 		OperationName: "ListPolicies",
 	}
 }

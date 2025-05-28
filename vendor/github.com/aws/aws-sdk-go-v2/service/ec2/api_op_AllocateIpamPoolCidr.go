@@ -6,17 +6,23 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Allocate a CIDR from an IPAM pool. In IPAM, an allocation is a CIDR assignment
-// from an IPAM pool to another resource or IPAM pool. For more information, see
-// Allocate CIDRs
-// (https://docs.aws.amazon.com/vpc/latest/ipam/allocate-cidrs-ipam.html) in the
-// Amazon VPC IPAM User Guide.
+// Allocate a CIDR from an IPAM pool. The Region you use should be the IPAM pool
+// locale. The locale is the Amazon Web Services Region where this IPAM pool is
+// available for allocations.
+//
+// In IPAM, an allocation is a CIDR assignment from an IPAM pool to another IPAM
+// pool or to a resource. For more information, see [Allocate CIDRs]in the Amazon VPC IPAM User
+// Guide.
+//
+// This action creates an allocation with strong consistency. The returned CIDR
+// will not overlap with any other allocations from the same pool.
+//
+// [Allocate CIDRs]: https://docs.aws.amazon.com/vpc/latest/ipam/allocate-cidrs-ipam.html
 func (c *Client) AllocateIpamPoolCidr(ctx context.Context, params *AllocateIpamPoolCidrInput, optFns ...func(*Options)) (*AllocateIpamPoolCidrOutput, error) {
 	if params == nil {
 		params = &AllocateIpamPoolCidrInput{}
@@ -39,23 +45,26 @@ type AllocateIpamPoolCidrInput struct {
 	// This member is required.
 	IpamPoolId *string
 
+	// Include a particular CIDR range that can be returned by the pool. Allowed CIDRs
+	// are only allowed if using netmask length for allocation.
+	AllowedCidrs []string
+
 	// The CIDR you would like to allocate from the IPAM pool. Note the following:
 	//
-	// *
-	// If there is no DefaultNetmaskLength allocation rule set on the pool, you must
-	// specify either the NetmaskLength or the CIDR.
+	//   - If there is no DefaultNetmaskLength allocation rule set on the pool, you
+	//   must specify either the NetmaskLength or the CIDR.
 	//
-	// * If the DefaultNetmaskLength
-	// allocation rule is set on the pool, you can specify either the NetmaskLength or
-	// the CIDR and the DefaultNetmaskLength allocation rule will be ignored.
+	//   - If the DefaultNetmaskLength allocation rule is set on the pool, you can
+	//   specify either the NetmaskLength or the CIDR and the DefaultNetmaskLength
+	//   allocation rule will be ignored.
 	//
-	// Possible
-	// values: Any available IPv4 or IPv6 CIDR.
+	// Possible values: Any available IPv4 or IPv6 CIDR.
 	Cidr *string
 
 	// A unique, case-sensitive identifier that you provide to ensure the idempotency
-	// of the request. For more information, see Ensuring Idempotency
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
+	// of the request. For more information, see [Ensuring idempotency].
+	//
+	// [Ensuring idempotency]: https://docs.aws.amazon.com/ec2/latest/devguide/ec2-api-idempotency.html
 	ClientToken *string
 
 	// A description for the allocation.
@@ -67,23 +76,22 @@ type AllocateIpamPoolCidrInput struct {
 
 	// A check for whether you have the required permissions for the action without
 	// actually making the request and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// The netmask length of the CIDR you would like to allocate from the IPAM pool.
 	// Note the following:
 	//
-	// * If there is no DefaultNetmaskLength allocation rule set
-	// on the pool, you must specify either the NetmaskLength or the CIDR.
+	//   - If there is no DefaultNetmaskLength allocation rule set on the pool, you
+	//   must specify either the NetmaskLength or the CIDR.
 	//
-	// * If the
-	// DefaultNetmaskLength allocation rule is set on the pool, you can specify either
-	// the NetmaskLength or the CIDR and the DefaultNetmaskLength allocation rule will
-	// be ignored.
+	//   - If the DefaultNetmaskLength allocation rule is set on the pool, you can
+	//   specify either the NetmaskLength or the CIDR and the DefaultNetmaskLength
+	//   allocation rule will be ignored.
 	//
-	// Possible netmask lengths for IPv4 addresses are 0 - 32. Possible
-	// netmask lengths for IPv6 addresses are 0 - 128.
+	// Possible netmask lengths for IPv4 addresses are 0 - 32. Possible netmask
+	// lengths for IPv6 addresses are 0 - 128.
 	NetmaskLength *int32
 
 	// A preview of the next available CIDR in a pool.
@@ -104,6 +112,9 @@ type AllocateIpamPoolCidrOutput struct {
 }
 
 func (c *Client) addOperationAllocateIpamPoolCidrMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpAllocateIpamPoolCidr{}, middleware.After)
 	if err != nil {
 		return err
@@ -112,40 +123,59 @@ func (c *Client) addOperationAllocateIpamPoolCidrMiddlewares(stack *middleware.S
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "AllocateIpamPoolCidr"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addIdempotencyToken_opAllocateIpamPoolCidrMiddleware(stack, options); err != nil {
@@ -157,6 +187,9 @@ func (c *Client) addOperationAllocateIpamPoolCidrMiddlewares(stack *middleware.S
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opAllocateIpamPoolCidr(options.Region), middleware.Before); err != nil {
 		return err
 	}
+	if err = addRecursionDetection(stack); err != nil {
+		return err
+	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -164,6 +197,21 @@ func (c *Client) addOperationAllocateIpamPoolCidrMiddlewares(stack *middleware.S
 		return err
 	}
 	if err = addRequestResponseLogging(stack, options); err != nil {
+		return err
+	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
 		return err
 	}
 	return nil
@@ -206,7 +254,6 @@ func newServiceMetadataMiddleware_opAllocateIpamPoolCidr(region string) *awsmidd
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "AllocateIpamPoolCidr",
 	}
 }

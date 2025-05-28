@@ -6,16 +6,24 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Describes an Elastic IP address transfer. For more information, see Transfer
-// Elastic IP addresses
-// (https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#transfer-EIPs-intro)
-// in the Amazon Virtual Private Cloud User Guide.
+// Describes an Elastic IP address transfer. For more information, see [Transfer Elastic IP addresses] in the
+// Amazon VPC User Guide.
+//
+// When you transfer an Elastic IP address, there is a two-step handshake between
+// the source and transfer Amazon Web Services accounts. When the source account
+// starts the transfer, the transfer account has seven days to accept the Elastic
+// IP address transfer. During those seven days, the source account can view the
+// pending transfer by using this action. After seven days, the transfer expires
+// and ownership of the Elastic IP address returns to the source account. Accepted
+// transfers are visible to the source account for 14 days after the transfers have
+// been accepted.
+//
+// [Transfer Elastic IP addresses]: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#transfer-EIPs-intro
 func (c *Client) DescribeAddressTransfers(ctx context.Context, params *DescribeAddressTransfersInput, optFns ...func(*Options)) (*DescribeAddressTransfersOutput, error) {
 	if params == nil {
 		params = &DescribeAddressTransfersInput{}
@@ -38,8 +46,8 @@ type DescribeAddressTransfersInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// The maximum number of address transfers to return in one page of results.
@@ -68,6 +76,9 @@ type DescribeAddressTransfersOutput struct {
 }
 
 func (c *Client) addOperationDescribeAddressTransfersMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeAddressTransfers{}, middleware.After)
 	if err != nil {
 		return err
@@ -76,34 +87,41 @@ func (c *Client) addOperationDescribeAddressTransfersMiddlewares(stack *middlewa
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeAddressTransfers"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -112,7 +130,22 @@ func (c *Client) addOperationDescribeAddressTransfersMiddlewares(stack *middlewa
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeAddressTransfers(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -124,16 +157,23 @@ func (c *Client) addOperationDescribeAddressTransfersMiddlewares(stack *middlewa
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// DescribeAddressTransfersAPIClient is a client that implements the
-// DescribeAddressTransfers operation.
-type DescribeAddressTransfersAPIClient interface {
-	DescribeAddressTransfers(context.Context, *DescribeAddressTransfersInput, ...func(*Options)) (*DescribeAddressTransfersOutput, error)
-}
-
-var _ DescribeAddressTransfersAPIClient = (*Client)(nil)
 
 // DescribeAddressTransfersPaginatorOptions is the paginator options for
 // DescribeAddressTransfers
@@ -200,6 +240,9 @@ func (p *DescribeAddressTransfersPaginator) NextPage(ctx context.Context, optFns
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeAddressTransfers(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -219,11 +262,18 @@ func (p *DescribeAddressTransfersPaginator) NextPage(ctx context.Context, optFns
 	return result, nil
 }
 
+// DescribeAddressTransfersAPIClient is a client that implements the
+// DescribeAddressTransfers operation.
+type DescribeAddressTransfersAPIClient interface {
+	DescribeAddressTransfers(context.Context, *DescribeAddressTransfersInput, ...func(*Options)) (*DescribeAddressTransfersOutput, error)
+}
+
+var _ DescribeAddressTransfersAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeAddressTransfers(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeAddressTransfers",
 	}
 }

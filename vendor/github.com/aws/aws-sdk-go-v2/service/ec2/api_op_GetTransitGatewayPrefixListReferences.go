@@ -6,14 +6,13 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Gets information about the prefix list references in a specified transit gateway
-// route table.
+// Gets information about the prefix list references in a specified transit
+// gateway route table.
 func (c *Client) GetTransitGatewayPrefixListReferences(ctx context.Context, params *GetTransitGatewayPrefixListReferencesInput, optFns ...func(*Options)) (*GetTransitGatewayPrefixListReferencesOutput, error) {
 	if params == nil {
 		params = &GetTransitGatewayPrefixListReferencesInput{}
@@ -38,32 +37,28 @@ type GetTransitGatewayPrefixListReferencesInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// One or more filters. The possible values are:
 	//
-	// * attachment.resource-id - The ID
-	// of the resource for the attachment.
+	//   - attachment.resource-id - The ID of the resource for the attachment.
 	//
-	// * attachment.resource-type - The type of
-	// resource for the attachment. Valid values are vpc | vpn | direct-connect-gateway
-	// | peering.
+	//   - attachment.resource-type - The type of resource for the attachment. Valid
+	//   values are vpc | vpn | direct-connect-gateway | peering .
 	//
-	// * attachment.transit-gateway-attachment-id - The ID of the
-	// attachment.
+	//   - attachment.transit-gateway-attachment-id - The ID of the attachment.
 	//
-	// * is-blackhole - Whether traffic matching the route is blocked
-	// (true | false).
+	//   - is-blackhole - Whether traffic matching the route is blocked ( true | false
+	//   ).
 	//
-	// * prefix-list-id - The ID of the prefix list.
+	//   - prefix-list-id - The ID of the prefix list.
 	//
-	// *
-	// prefix-list-owner-id - The ID of the owner of the prefix list.
+	//   - prefix-list-owner-id - The ID of the owner of the prefix list.
 	//
-	// * state - The
-	// state of the prefix list reference (pending | available | modifying | deleting).
+	//   - state - The state of the prefix list reference ( pending | available |
+	//   modifying | deleting ).
 	Filters []types.Filter
 
 	// The maximum number of results to return with a single call. To retrieve the
@@ -92,6 +87,9 @@ type GetTransitGatewayPrefixListReferencesOutput struct {
 }
 
 func (c *Client) addOperationGetTransitGatewayPrefixListReferencesMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpGetTransitGatewayPrefixListReferences{}, middleware.After)
 	if err != nil {
 		return err
@@ -100,34 +98,41 @@ func (c *Client) addOperationGetTransitGatewayPrefixListReferencesMiddlewares(st
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetTransitGatewayPrefixListReferences"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -136,10 +141,25 @@ func (c *Client) addOperationGetTransitGatewayPrefixListReferencesMiddlewares(st
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpGetTransitGatewayPrefixListReferencesValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetTransitGatewayPrefixListReferences(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -151,16 +171,23 @@ func (c *Client) addOperationGetTransitGatewayPrefixListReferencesMiddlewares(st
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// GetTransitGatewayPrefixListReferencesAPIClient is a client that implements the
-// GetTransitGatewayPrefixListReferences operation.
-type GetTransitGatewayPrefixListReferencesAPIClient interface {
-	GetTransitGatewayPrefixListReferences(context.Context, *GetTransitGatewayPrefixListReferencesInput, ...func(*Options)) (*GetTransitGatewayPrefixListReferencesOutput, error)
-}
-
-var _ GetTransitGatewayPrefixListReferencesAPIClient = (*Client)(nil)
 
 // GetTransitGatewayPrefixListReferencesPaginatorOptions is the paginator options
 // for GetTransitGatewayPrefixListReferences
@@ -229,6 +256,9 @@ func (p *GetTransitGatewayPrefixListReferencesPaginator) NextPage(ctx context.Co
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.GetTransitGatewayPrefixListReferences(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -248,11 +278,18 @@ func (p *GetTransitGatewayPrefixListReferencesPaginator) NextPage(ctx context.Co
 	return result, nil
 }
 
+// GetTransitGatewayPrefixListReferencesAPIClient is a client that implements the
+// GetTransitGatewayPrefixListReferences operation.
+type GetTransitGatewayPrefixListReferencesAPIClient interface {
+	GetTransitGatewayPrefixListReferences(context.Context, *GetTransitGatewayPrefixListReferencesInput, ...func(*Options)) (*GetTransitGatewayPrefixListReferencesOutput, error)
+}
+
+var _ GetTransitGatewayPrefixListReferencesAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opGetTransitGatewayPrefixListReferences(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "GetTransitGatewayPrefixListReferences",
 	}
 }

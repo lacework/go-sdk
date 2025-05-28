@@ -4,23 +4,26 @@ package ec2
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Modifies the specified attribute of the specified instance. You can specify only
-// one attribute at a time. Note: Using this action to change the security groups
-// associated with an elastic network interface (ENI) attached to an instance in a
-// VPC can result in an error if the instance has more than one ENI. To change the
-// security groups associated with an ENI attached to an instance that has multiple
-// ENIs, we recommend that you use the ModifyNetworkInterfaceAttribute action. To
-// modify some attributes, the instance must be stopped. For more information, see
-// Modify a stopped instance
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_ChangingAttributesWhileInstanceStopped.html)
-// in the Amazon EC2 User Guide.
+// Modifies the specified attribute of the specified instance. You can specify
+// only one attribute at a time.
+//
+// Note: Using this action to change the security groups associated with an
+// elastic network interface (ENI) attached to an instance can result in an error
+// if the instance has more than one ENI. To change the security groups associated
+// with an ENI attached to an instance that has multiple ENIs, we recommend that
+// you use the ModifyNetworkInterfaceAttributeaction.
+//
+// To modify some attributes, the instance must be stopped. For more information,
+// see [Modify a stopped instance]in the Amazon EC2 User Guide.
+//
+// [Modify a stopped instance]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_ChangingAttributesWhileInstanceStopped.html
 func (c *Client) ModifyInstanceAttribute(ctx context.Context, params *ModifyInstanceAttributeInput, optFns ...func(*Options)) (*ModifyInstanceAttributeOutput, error) {
 	if params == nil {
 		params = &ModifyInstanceAttributeInput{}
@@ -43,37 +46,47 @@ type ModifyInstanceAttributeInput struct {
 	// This member is required.
 	InstanceId *string
 
-	// The name of the attribute to modify. You can modify the following attributes
-	// only: disableApiTermination | instanceType | kernel | ramdisk |
-	// instanceInitiatedShutdownBehavior | blockDeviceMapping | userData |
-	// sourceDestCheck | groupSet | ebsOptimized | sriovNetSupport | enaSupport |
-	// nvmeSupport | disableApiStop | enclaveOptions
+	// The name of the attribute to modify.
+	//
+	// When changing the instance type: If the original instance type is configured
+	// for configurable bandwidth, and the desired instance type doesn't support
+	// configurable bandwidth, first set the existing bandwidth configuration to
+	// default using the ModifyInstanceNetworkPerformanceOptions operation.
+	//
+	// You can modify the following attributes only: disableApiTermination |
+	// instanceType | kernel | ramdisk | instanceInitiatedShutdownBehavior |
+	// blockDeviceMapping | userData | sourceDestCheck | groupSet | ebsOptimized |
+	// sriovNetSupport | enaSupport | nvmeSupport | disableApiStop | enclaveOptions
 	Attribute types.InstanceAttributeName
 
 	// Modifies the DeleteOnTermination attribute for volumes that are currently
 	// attached. The volume must be owned by the caller. If no value is specified for
-	// DeleteOnTermination, the default is true and the volume is deleted when the
-	// instance is terminated. To add instance store volumes to an Amazon EBS-backed
-	// instance, you must add them when you launch the instance. For more information,
-	// see Update the block device mapping when launching an instance
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/block-device-mapping-concepts.html#Using_OverridingAMIBDM)
-	// in the Amazon EC2 User Guide.
+	// DeleteOnTermination , the default is true and the volume is deleted when the
+	// instance is terminated. You can't modify the DeleteOnTermination attribute for
+	// volumes that are attached to Fargate tasks.
+	//
+	// To add instance store volumes to an Amazon EBS-backed instance, you must add
+	// them when you launch the instance. For more information, see [Update the block device mapping when launching an instance]in the Amazon EC2
+	// User Guide.
+	//
+	// [Update the block device mapping when launching an instance]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/block-device-mapping-concepts.html#Using_OverridingAMIBDM
 	BlockDeviceMappings []types.InstanceBlockDeviceMappingSpecification
 
 	// Indicates whether an instance is enabled for stop protection. For more
-	// information, see Stop Protection
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Stop_Start.html#Using_StopProtection).
+	// information, see [Enable stop protection for your instance].
+	//
+	// [Enable stop protection for your instance]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-stop-protection.html
 	DisableApiStop *types.AttributeBooleanValue
 
-	// If the value is true, you can't terminate the instance using the Amazon EC2
-	// console, CLI, or API; otherwise, you can. You cannot use this parameter for Spot
-	// Instances.
+	// Enable or disable termination protection for the instance. If the value is true
+	// , you can't terminate the instance using the Amazon EC2 console, command line
+	// interface, or API. You can't enable termination protection for Spot Instances.
 	DisableApiTermination *types.AttributeBooleanValue
 
-	// Checks whether you have the required permissions for the action, without
+	// Checks whether you have the required permissions for the operation, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// Specifies whether the instance is optimized for Amazon EBS I/O. This
@@ -83,61 +96,67 @@ type ModifyInstanceAttributeInput struct {
 	// using an EBS Optimized instance.
 	EbsOptimized *types.AttributeBooleanValue
 
-	// Set to true to enable enhanced networking with ENA for the instance. This option
-	// is supported only for HVM instances. Specifying this option with a PV instance
-	// can make it unreachable.
+	// Set to true to enable enhanced networking with ENA for the instance.
+	//
+	// This option is supported only for HVM instances. Specifying this option with a
+	// PV instance can make it unreachable.
 	EnaSupport *types.AttributeBooleanValue
 
-	// [EC2-VPC] Replaces the security groups of the instance with the specified
-	// security groups. You must specify at least one security group, even if it's just
-	// the default security group for the VPC. You must specify the security group ID,
-	// not the security group name.
+	// Replaces the security groups of the instance with the specified security
+	// groups. You must specify the ID of at least one security group, even if it's
+	// just the default security group for the VPC.
 	Groups []string
 
 	// Specifies whether an instance stops or terminates when you initiate shutdown
 	// from the instance (using the operating system command for system shutdown).
 	InstanceInitiatedShutdownBehavior *types.AttributeValue
 
-	// Changes the instance type to the specified value. For more information, see
-	// Instance types
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html) in the
-	// Amazon EC2 User Guide. If the instance type is not valid, the error returned is
-	// InvalidInstanceAttributeValue.
+	// Changes the instance type to the specified value. For more information, see [Instance types] in
+	// the Amazon EC2 User Guide. If the instance type is not valid, the error returned
+	// is InvalidInstanceAttributeValue .
+	//
+	// [Instance types]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html
 	InstanceType *types.AttributeValue
 
 	// Changes the instance's kernel to the specified value. We recommend that you use
-	// PV-GRUB instead of kernels and RAM disks. For more information, see PV-GRUB
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/UserProvidedKernels.html).
+	// PV-GRUB instead of kernels and RAM disks. For more information, see [PV-GRUB].
+	//
+	// [PV-GRUB]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/UserProvidedKernels.html
 	Kernel *types.AttributeValue
 
 	// Changes the instance's RAM disk to the specified value. We recommend that you
-	// use PV-GRUB instead of kernels and RAM disks. For more information, see PV-GRUB
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/UserProvidedKernels.html).
+	// use PV-GRUB instead of kernels and RAM disks. For more information, see [PV-GRUB].
+	//
+	// [PV-GRUB]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/UserProvidedKernels.html
 	Ramdisk *types.AttributeValue
 
 	// Enable or disable source/destination checks, which ensure that the instance is
 	// either the source or the destination of any traffic that it receives. If the
-	// value is true, source/destination checks are enabled; otherwise, they are
-	// disabled. The default value is true. You must disable source/destination checks
+	// value is true , source/destination checks are enabled; otherwise, they are
+	// disabled. The default value is true . You must disable source/destination checks
 	// if the instance runs services such as network address translation, routing, or
 	// firewalls.
 	SourceDestCheck *types.AttributeBooleanValue
 
 	// Set to simple to enable enhanced networking with the Intel 82599 Virtual
-	// Function interface for the instance. There is no way to disable enhanced
-	// networking with the Intel 82599 Virtual Function interface at this time. This
-	// option is supported only for HVM instances. Specifying this option with a PV
-	// instance can make it unreachable.
+	// Function interface for the instance.
+	//
+	// There is no way to disable enhanced networking with the Intel 82599 Virtual
+	// Function interface at this time.
+	//
+	// This option is supported only for HVM instances. Specifying this option with a
+	// PV instance can make it unreachable.
 	SriovNetSupport *types.AttributeValue
 
-	// Changes the instance's user data to the specified value. If you are using an
-	// Amazon Web Services SDK or command line tool, base64-encoding is performed for
-	// you, and you can load the text from a file. Otherwise, you must provide
-	// base64-encoded text.
+	// Changes the instance's user data to the specified value. User data must be
+	// base64-encoded. Depending on the tool or SDK that you're using, the
+	// base64-encoding might be performed for you. For more information, see [Work with instance user data].
+	//
+	// [Work with instance user data]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-add-user-data.html
 	UserData *types.BlobAttributeValue
 
-	// A new value for the attribute. Use only with the kernel, ramdisk, userData,
-	// disableApiTermination, or instanceInitiatedShutdownBehavior attribute.
+	// A new value for the attribute. Use only with the kernel , ramdisk , userData ,
+	// disableApiTermination , or instanceInitiatedShutdownBehavior attribute.
 	Value *string
 
 	noSmithyDocumentSerde
@@ -151,6 +170,9 @@ type ModifyInstanceAttributeOutput struct {
 }
 
 func (c *Client) addOperationModifyInstanceAttributeMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpModifyInstanceAttribute{}, middleware.After)
 	if err != nil {
 		return err
@@ -159,34 +181,41 @@ func (c *Client) addOperationModifyInstanceAttributeMiddlewares(stack *middlewar
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ModifyInstanceAttribute"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -195,10 +224,25 @@ func (c *Client) addOperationModifyInstanceAttributeMiddlewares(stack *middlewar
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpModifyInstanceAttributeValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opModifyInstanceAttribute(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -210,6 +254,21 @@ func (c *Client) addOperationModifyInstanceAttributeMiddlewares(stack *middlewar
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -217,7 +276,6 @@ func newServiceMetadataMiddleware_opModifyInstanceAttribute(region string) *awsm
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "ModifyInstanceAttribute",
 	}
 }

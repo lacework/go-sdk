@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -15,14 +14,18 @@ import (
 // Retrieves information about all IAM users, groups, roles, and policies in your
 // Amazon Web Services account, including their relationships to one another. Use
 // this operation to obtain a snapshot of the configuration of IAM permissions
-// (users, groups, roles, and policies) in your account. Policies returned by this
-// operation are URL-encoded compliant with RFC 3986
-// (https://tools.ietf.org/html/rfc3986). You can use a URL decoding method to
-// convert the policy back to plain JSON text. For example, if you use Java, you
-// can use the decode method of the java.net.URLDecoder utility class in the Java
-// SDK. Other languages and SDKs provide similar functionality. You can optionally
-// filter the results using the Filter parameter. You can paginate the results
-// using the MaxItems and Marker parameters.
+// (users, groups, roles, and policies) in your account.
+//
+// Policies returned by this operation are URL-encoded compliant with [RFC 3986]. You can
+// use a URL decoding method to convert the policy back to plain JSON text. For
+// example, if you use Java, you can use the decode method of the
+// java.net.URLDecoder utility class in the Java SDK. Other languages and SDKs
+// provide similar functionality.
+//
+// You can optionally filter the results using the Filter parameter. You can
+// paginate the results using the MaxItems and Marker parameters.
+//
+// [RFC 3986]: https://tools.ietf.org/html/rfc3986
 func (c *Client) GetAccountAuthorizationDetails(ctx context.Context, params *GetAccountAuthorizationDetailsInput, optFns ...func(*Options)) (*GetAccountAuthorizationDetailsOutput, error) {
 	if params == nil {
 		params = &GetAccountAuthorizationDetailsInput{}
@@ -42,9 +45,11 @@ type GetAccountAuthorizationDetailsInput struct {
 
 	// A list of entity types used to filter the results. Only the entities that match
 	// the types you specify are included in the output. Use the value
-	// LocalManagedPolicy to include customer managed policies. The format for this
-	// parameter is a comma-separated (if more than one) list of strings. Each string
-	// value in the list must be one of the valid values listed below.
+	// LocalManagedPolicy to include customer managed policies.
+	//
+	// The format for this parameter is a comma-separated (if more than one) list of
+	// strings. Each string value in the list must be one of the valid values listed
+	// below.
 	Filter []types.EntityType
 
 	// Use this parameter only when paginating results and only after you receive a
@@ -55,11 +60,13 @@ type GetAccountAuthorizationDetailsInput struct {
 
 	// Use this only when paginating results to indicate the maximum number of items
 	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true. If you do not include this
-	// parameter, the number of items defaults to 100. Note that IAM might return fewer
-	// results, even when there are more results available. In that case, the
-	// IsTruncated response element returns true, and Marker contains a value to
-	// include in the subsequent call that tells the service where to continue from.
+	// specify, the IsTruncated response element is true .
+	//
+	// If you do not include this parameter, the number of items defaults to 100. Note
+	// that IAM might return fewer results, even when there are more results available.
+	// In that case, the IsTruncated response element returns true , and Marker
+	// contains a value to include in the subsequent call that tells the service where
+	// to continue from.
 	MaxItems *int32
 
 	noSmithyDocumentSerde
@@ -75,11 +82,11 @@ type GetAccountAuthorizationDetailsOutput struct {
 	// were truncated, you can make a subsequent pagination request using the Marker
 	// request parameter to retrieve more items. Note that IAM might return fewer than
 	// the MaxItems number of results even when there are more results available. We
-	// recommend that you check IsTruncated after every call to ensure that you receive
-	// all your results.
+	// recommend that you check IsTruncated after every call to ensure that you
+	// receive all your results.
 	IsTruncated bool
 
-	// When IsTruncated is true, this element is present and contains the value to use
+	// When IsTruncated is true , this element is present and contains the value to use
 	// for the Marker parameter in a subsequent pagination request.
 	Marker *string
 
@@ -99,6 +106,9 @@ type GetAccountAuthorizationDetailsOutput struct {
 }
 
 func (c *Client) addOperationGetAccountAuthorizationDetailsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpGetAccountAuthorizationDetails{}, middleware.After)
 	if err != nil {
 		return err
@@ -107,34 +117,41 @@ func (c *Client) addOperationGetAccountAuthorizationDetailsMiddlewares(stack *mi
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetAccountAuthorizationDetails"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -143,7 +160,22 @@ func (c *Client) addOperationGetAccountAuthorizationDetailsMiddlewares(stack *mi
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetAccountAuthorizationDetails(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -155,27 +187,36 @@ func (c *Client) addOperationGetAccountAuthorizationDetailsMiddlewares(stack *mi
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// GetAccountAuthorizationDetailsAPIClient is a client that implements the
-// GetAccountAuthorizationDetails operation.
-type GetAccountAuthorizationDetailsAPIClient interface {
-	GetAccountAuthorizationDetails(context.Context, *GetAccountAuthorizationDetailsInput, ...func(*Options)) (*GetAccountAuthorizationDetailsOutput, error)
-}
-
-var _ GetAccountAuthorizationDetailsAPIClient = (*Client)(nil)
 
 // GetAccountAuthorizationDetailsPaginatorOptions is the paginator options for
 // GetAccountAuthorizationDetails
 type GetAccountAuthorizationDetailsPaginatorOptions struct {
 	// Use this only when paginating results to indicate the maximum number of items
 	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true. If you do not include this
-	// parameter, the number of items defaults to 100. Note that IAM might return fewer
-	// results, even when there are more results available. In that case, the
-	// IsTruncated response element returns true, and Marker contains a value to
-	// include in the subsequent call that tells the service where to continue from.
+	// specify, the IsTruncated response element is true .
+	//
+	// If you do not include this parameter, the number of items defaults to 100. Note
+	// that IAM might return fewer results, even when there are more results available.
+	// In that case, the IsTruncated response element returns true , and Marker
+	// contains a value to include in the subsequent call that tells the service where
+	// to continue from.
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -238,6 +279,9 @@ func (p *GetAccountAuthorizationDetailsPaginator) NextPage(ctx context.Context, 
 	}
 	params.MaxItems = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.GetAccountAuthorizationDetails(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -257,11 +301,18 @@ func (p *GetAccountAuthorizationDetailsPaginator) NextPage(ctx context.Context, 
 	return result, nil
 }
 
+// GetAccountAuthorizationDetailsAPIClient is a client that implements the
+// GetAccountAuthorizationDetails operation.
+type GetAccountAuthorizationDetailsAPIClient interface {
+	GetAccountAuthorizationDetails(context.Context, *GetAccountAuthorizationDetailsInput, ...func(*Options)) (*GetAccountAuthorizationDetailsOutput, error)
+}
+
+var _ GetAccountAuthorizationDetailsAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opGetAccountAuthorizationDetails(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "iam",
 		OperationName: "GetAccountAuthorizationDetails",
 	}
 }

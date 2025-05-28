@@ -6,23 +6,18 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// We are retiring EC2-Classic. We recommend that you migrate from EC2-Classic to a
-// VPC. For more information, see Migrate from EC2-Classic to a VPC
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html) in the
-// Amazon Elastic Compute Cloud User Guide. Describes the ClassicLink DNS support
-// status of one or more VPCs. If enabled, the DNS hostname of a linked EC2-Classic
-// instance resolves to its private IP address when addressed from an instance in
-// the VPC to which it's linked. Similarly, the DNS hostname of an instance in a
-// VPC resolves to its private IP address when addressed from a linked EC2-Classic
-// instance. For more information, see ClassicLink
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-classiclink.html) in
-// the Amazon Elastic Compute Cloud User Guide.
+// This action is deprecated.
+//
+// Describes the ClassicLink DNS support status of one or more VPCs. If enabled,
+// the DNS hostname of a linked EC2-Classic instance resolves to its private IP
+// address when addressed from an instance in the VPC to which it's linked.
+// Similarly, the DNS hostname of an instance in a VPC resolves to its private IP
+// address when addressed from a linked EC2-Classic instance.
 func (c *Client) DescribeVpcClassicLinkDnsSupport(ctx context.Context, params *DescribeVpcClassicLinkDnsSupportInput, optFns ...func(*Options)) (*DescribeVpcClassicLinkDnsSupportOutput, error) {
 	if params == nil {
 		params = &DescribeVpcClassicLinkDnsSupportInput{}
@@ -40,14 +35,18 @@ func (c *Client) DescribeVpcClassicLinkDnsSupport(ctx context.Context, params *D
 
 type DescribeVpcClassicLinkDnsSupportInput struct {
 
-	// The maximum number of results to return with a single call. To retrieve the
-	// remaining results, make another call with the returned nextToken value.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. For more
+	// information, see [Pagination].
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	MaxResults *int32
 
-	// The token for the next page of results.
+	// The token returned from a previous paginated request. Pagination continues from
+	// the end of the items returned by the previous request.
 	NextToken *string
 
-	// One or more VPC IDs.
+	// The IDs of the VPCs.
 	VpcIds []string
 
 	noSmithyDocumentSerde
@@ -55,8 +54,8 @@ type DescribeVpcClassicLinkDnsSupportInput struct {
 
 type DescribeVpcClassicLinkDnsSupportOutput struct {
 
-	// The token to use to retrieve the next page of results. This value is null when
-	// there are no more results to return.
+	// The token to include in another request to get the next page of items. This
+	// value is null when there are no more items to return.
 	NextToken *string
 
 	// Information about the ClassicLink DNS support status of the VPCs.
@@ -69,6 +68,9 @@ type DescribeVpcClassicLinkDnsSupportOutput struct {
 }
 
 func (c *Client) addOperationDescribeVpcClassicLinkDnsSupportMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeVpcClassicLinkDnsSupport{}, middleware.After)
 	if err != nil {
 		return err
@@ -77,34 +79,41 @@ func (c *Client) addOperationDescribeVpcClassicLinkDnsSupportMiddlewares(stack *
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeVpcClassicLinkDnsSupport"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -113,7 +122,22 @@ func (c *Client) addOperationDescribeVpcClassicLinkDnsSupportMiddlewares(stack *
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeVpcClassicLinkDnsSupport(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -125,22 +149,32 @@ func (c *Client) addOperationDescribeVpcClassicLinkDnsSupportMiddlewares(stack *
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// DescribeVpcClassicLinkDnsSupportAPIClient is a client that implements the
-// DescribeVpcClassicLinkDnsSupport operation.
-type DescribeVpcClassicLinkDnsSupportAPIClient interface {
-	DescribeVpcClassicLinkDnsSupport(context.Context, *DescribeVpcClassicLinkDnsSupportInput, ...func(*Options)) (*DescribeVpcClassicLinkDnsSupportOutput, error)
-}
-
-var _ DescribeVpcClassicLinkDnsSupportAPIClient = (*Client)(nil)
 
 // DescribeVpcClassicLinkDnsSupportPaginatorOptions is the paginator options for
 // DescribeVpcClassicLinkDnsSupport
 type DescribeVpcClassicLinkDnsSupportPaginatorOptions struct {
-	// The maximum number of results to return with a single call. To retrieve the
-	// remaining results, make another call with the returned nextToken value.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. For more
+	// information, see [Pagination].
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -203,6 +237,9 @@ func (p *DescribeVpcClassicLinkDnsSupportPaginator) NextPage(ctx context.Context
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeVpcClassicLinkDnsSupport(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -222,11 +259,18 @@ func (p *DescribeVpcClassicLinkDnsSupportPaginator) NextPage(ctx context.Context
 	return result, nil
 }
 
+// DescribeVpcClassicLinkDnsSupportAPIClient is a client that implements the
+// DescribeVpcClassicLinkDnsSupport operation.
+type DescribeVpcClassicLinkDnsSupportAPIClient interface {
+	DescribeVpcClassicLinkDnsSupport(context.Context, *DescribeVpcClassicLinkDnsSupportInput, ...func(*Options)) (*DescribeVpcClassicLinkDnsSupportOutput, error)
+}
+
+var _ DescribeVpcClassicLinkDnsSupportAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeVpcClassicLinkDnsSupport(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeVpcClassicLinkDnsSupport",
 	}
 }

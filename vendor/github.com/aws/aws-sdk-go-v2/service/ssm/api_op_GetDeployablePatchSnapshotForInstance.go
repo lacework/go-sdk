@@ -4,8 +4,8 @@ package ssm
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -13,13 +13,15 @@ import (
 
 // Retrieves the current snapshot for the patch baseline the managed node uses.
 // This API is primarily used by the AWS-RunPatchBaseline Systems Manager document
-// (SSM document). If you run the command locally, such as with the Command Line
-// Interface (CLI), the system attempts to use your local Amazon Web Services
-// credentials and the operation fails. To avoid this, you can run the command in
-// the Amazon Web Services Systems Manager console. Use Run Command, a capability
-// of Amazon Web Services Systems Manager, with an SSM document that enables you to
-// target a managed node with a script or command. For example, run the command
-// using the AWS-RunShellScript document or the AWS-RunPowerShellScript document.
+// (SSM document).
+//
+// If you run the command locally, such as with the Command Line Interface (CLI),
+// the system attempts to use your local Amazon Web Services credentials and the
+// operation fails. To avoid this, you can run the command in the Amazon Web
+// Services Systems Manager console. Use Run Command, a tool in Amazon Web Services
+// Systems Manager, with an SSM document that enables you to target a managed node
+// with a script or command. For example, run the command using the
+// AWS-RunShellScript document or the AWS-RunPowerShellScript document.
 func (c *Client) GetDeployablePatchSnapshotForInstance(ctx context.Context, params *GetDeployablePatchSnapshotForInstanceInput, optFns ...func(*Options)) (*GetDeployablePatchSnapshotForInstanceOutput, error) {
 	if params == nil {
 		params = &GetDeployablePatchSnapshotForInstanceInput{}
@@ -43,7 +45,7 @@ type GetDeployablePatchSnapshotForInstanceInput struct {
 	// This member is required.
 	InstanceId *string
 
-	// The snapshot ID provided by the user when running AWS-RunPatchBaseline.
+	// The snapshot ID provided by the user when running AWS-RunPatchBaseline .
 	//
 	// This member is required.
 	SnapshotId *string
@@ -59,8 +61,8 @@ type GetDeployablePatchSnapshotForInstanceOutput struct {
 	// The managed node ID.
 	InstanceId *string
 
-	// Returns the specific operating system (for example Windows Server 2012 or Amazon
-	// Linux 2015.09) on the managed node for the specified patch snapshot.
+	// Returns the specific operating system (for example Windows Server 2012 or
+	// Amazon Linux 2015.09) on the managed node for the specified patch snapshot.
 	Product *string
 
 	// A pre-signed Amazon Simple Storage Service (Amazon S3) URL that can be used to
@@ -77,6 +79,9 @@ type GetDeployablePatchSnapshotForInstanceOutput struct {
 }
 
 func (c *Client) addOperationGetDeployablePatchSnapshotForInstanceMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetDeployablePatchSnapshotForInstance{}, middleware.After)
 	if err != nil {
 		return err
@@ -85,34 +90,41 @@ func (c *Client) addOperationGetDeployablePatchSnapshotForInstanceMiddlewares(st
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetDeployablePatchSnapshotForInstance"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -121,10 +133,25 @@ func (c *Client) addOperationGetDeployablePatchSnapshotForInstanceMiddlewares(st
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpGetDeployablePatchSnapshotForInstanceValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetDeployablePatchSnapshotForInstance(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -136,6 +163,21 @@ func (c *Client) addOperationGetDeployablePatchSnapshotForInstanceMiddlewares(st
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -143,7 +185,6 @@ func newServiceMetadataMiddleware_opGetDeployablePatchSnapshotForInstance(region
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "GetDeployablePatchSnapshotForInstance",
 	}
 }

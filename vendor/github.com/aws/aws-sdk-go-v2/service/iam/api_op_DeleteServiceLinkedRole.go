@@ -4,31 +4,32 @@ package iam
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Submits a service-linked role deletion request and returns a DeletionTaskId,
+// Submits a service-linked role deletion request and returns a DeletionTaskId ,
 // which you can use to check the status of the deletion. Before you call this
 // operation, confirm that the role has no active sessions and that any resources
 // used by the role in the linked service are deleted. If you call this operation
 // more than once for the same service-linked role and an earlier deletion task is
-// not complete, then the DeletionTaskId of the earlier request is returned. If you
-// submit a deletion request for a service-linked role whose linked service is
-// still accessing a resource, then the deletion task fails. If it fails, the
-// GetServiceLinkedRoleDeletionStatus operation returns the reason for the failure,
-// usually including the resources that must be deleted. To delete the
-// service-linked role, you must first remove those resources from the linked
-// service and then submit the deletion request again. Resources are specific to
-// the service that is linked to the role. For more information about removing
-// resources from a service, see the Amazon Web Services documentation
-// (http://docs.aws.amazon.com/) for your service. For more information about
-// service-linked roles, see Roles terms and concepts: Amazon Web Services
-// service-linked role
-// (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_terms-and-concepts.html#iam-term-service-linked-role)
-// in the IAM User Guide.
+// not complete, then the DeletionTaskId of the earlier request is returned.
+//
+// If you submit a deletion request for a service-linked role whose linked service
+// is still accessing a resource, then the deletion task fails. If it fails, the GetServiceLinkedRoleDeletionStatus
+// operation returns the reason for the failure, usually including the resources
+// that must be deleted. To delete the service-linked role, you must first remove
+// those resources from the linked service and then submit the deletion request
+// again. Resources are specific to the service that is linked to the role. For
+// more information about removing resources from a service, see the [Amazon Web Services documentation]for your
+// service.
+//
+// For more information about service-linked roles, see [Roles terms and concepts: Amazon Web Services service-linked role] in the IAM User Guide.
+//
+// [Roles terms and concepts: Amazon Web Services service-linked role]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_terms-and-concepts.html#iam-term-service-linked-role
+// [Amazon Web Services documentation]: http://docs.aws.amazon.com/
 func (c *Client) DeleteServiceLinkedRole(ctx context.Context, params *DeleteServiceLinkedRoleInput, optFns ...func(*Options)) (*DeleteServiceLinkedRoleOutput, error) {
 	if params == nil {
 		params = &DeleteServiceLinkedRoleInput{}
@@ -57,7 +58,7 @@ type DeleteServiceLinkedRoleInput struct {
 type DeleteServiceLinkedRoleOutput struct {
 
 	// The deletion task identifier that you can use to check the status of the
-	// deletion. This identifier is returned in the format task/aws-service-role///.
+	// deletion. This identifier is returned in the format task/aws-service-role/// .
 	//
 	// This member is required.
 	DeletionTaskId *string
@@ -69,6 +70,9 @@ type DeleteServiceLinkedRoleOutput struct {
 }
 
 func (c *Client) addOperationDeleteServiceLinkedRoleMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpDeleteServiceLinkedRole{}, middleware.After)
 	if err != nil {
 		return err
@@ -77,34 +81,41 @@ func (c *Client) addOperationDeleteServiceLinkedRoleMiddlewares(stack *middlewar
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DeleteServiceLinkedRole"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -113,10 +124,25 @@ func (c *Client) addOperationDeleteServiceLinkedRoleMiddlewares(stack *middlewar
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpDeleteServiceLinkedRoleValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDeleteServiceLinkedRole(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -128,6 +154,21 @@ func (c *Client) addOperationDeleteServiceLinkedRoleMiddlewares(stack *middlewar
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -135,7 +176,6 @@ func newServiceMetadataMiddleware_opDeleteServiceLinkedRole(region string) *awsm
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "iam",
 		OperationName: "DeleteServiceLinkedRole",
 	}
 }

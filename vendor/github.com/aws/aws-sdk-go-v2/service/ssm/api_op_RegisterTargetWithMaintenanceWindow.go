@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -35,25 +34,46 @@ type RegisterTargetWithMaintenanceWindowInput struct {
 	// This member is required.
 	ResourceType types.MaintenanceWindowResourceType
 
-	// The targets to register with the maintenance window. In other words, the managed
-	// nodes to run commands on when the maintenance window runs. If a single
-	// maintenance window task is registered with multiple targets, its task
-	// invocations occur sequentially and not in parallel. If your task must run on
-	// multiple targets at the same time, register a task for each target individually
-	// and assign each task the same priority level. You can specify targets using
-	// managed node IDs, resource group names, or tags that have been applied to
-	// managed nodes. Example 1: Specify managed node IDs Key=InstanceIds,Values=,,
-	// Example 2: Use tag key-pairs applied to managed nodes Key=tag:,Values=, Example
-	// 3: Use tag-keys applied to managed nodes Key=tag-key,Values=, Example 4: Use
-	// resource group names Key=resource-groups:Name,Values= Example 5: Use filters for
-	// resource group types Key=resource-groups:ResourceTypeFilters,Values=, For
-	// Key=resource-groups:ResourceTypeFilters, specify resource types in the following
-	// format
-	// Key=resource-groups:ResourceTypeFilters,Values=AWS::EC2::INSTANCE,AWS::EC2::VPC
+	// The targets to register with the maintenance window. In other words, the
+	// managed nodes to run commands on when the maintenance window runs.
+	//
+	// If a single maintenance window task is registered with multiple targets, its
+	// task invocations occur sequentially and not in parallel. If your task must run
+	// on multiple targets at the same time, register a task for each target
+	// individually and assign each task the same priority level.
+	//
+	// You can specify targets using managed node IDs, resource group names, or tags
+	// that have been applied to managed nodes.
+	//
+	// Example 1: Specify managed node IDs
+	//
+	//     Key=InstanceIds,Values=,,
+	//
+	// Example 2: Use tag key-pairs applied to managed nodes
+	//
+	//     Key=tag:,Values=,
+	//
+	// Example 3: Use tag-keys applied to managed nodes
+	//
+	//     Key=tag-key,Values=,
+	//
+	// Example 4: Use resource group names
+	//
+	//     Key=resource-groups:Name,Values=
+	//
+	// Example 5: Use filters for resource group types
+	//
+	//     Key=resource-groups:ResourceTypeFilters,Values=,
+	//
+	// For Key=resource-groups:ResourceTypeFilters , specify resource types in the
+	// following format
+	//
+	//     Key=resource-groups:ResourceTypeFilters,Values=AWS::EC2::INSTANCE,AWS::EC2::VPC
+	//
 	// For more information about these examples formats, including the best use case
-	// for each one, see Examples: Register targets with a maintenance window
-	// (https://docs.aws.amazon.com/systems-manager/latest/userguide/mw-cli-tutorial-targets-examples.html)
-	// in the Amazon Web Services Systems Manager User Guide.
+	// for each one, see [Examples: Register targets with a maintenance window]in the Amazon Web Services Systems Manager User Guide.
+	//
+	// [Examples: Register targets with a maintenance window]: https://docs.aws.amazon.com/systems-manager/latest/userguide/mw-cli-tutorial-targets-examples.html
 	//
 	// This member is required.
 	Targets []types.Target
@@ -72,8 +92,8 @@ type RegisterTargetWithMaintenanceWindowInput struct {
 	// An optional name for the target.
 	Name *string
 
-	// User-provided value that will be included in any Amazon CloudWatch Events events
-	// raised while running tasks for these targets in this maintenance window.
+	// User-provided value that will be included in any Amazon CloudWatch Events
+	// events raised while running tasks for these targets in this maintenance window.
 	OwnerInformation *string
 
 	noSmithyDocumentSerde
@@ -91,6 +111,9 @@ type RegisterTargetWithMaintenanceWindowOutput struct {
 }
 
 func (c *Client) addOperationRegisterTargetWithMaintenanceWindowMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpRegisterTargetWithMaintenanceWindow{}, middleware.After)
 	if err != nil {
 		return err
@@ -99,40 +122,59 @@ func (c *Client) addOperationRegisterTargetWithMaintenanceWindowMiddlewares(stac
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "RegisterTargetWithMaintenanceWindow"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addIdempotencyToken_opRegisterTargetWithMaintenanceWindowMiddleware(stack, options); err != nil {
@@ -144,6 +186,9 @@ func (c *Client) addOperationRegisterTargetWithMaintenanceWindowMiddlewares(stac
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opRegisterTargetWithMaintenanceWindow(options.Region), middleware.Before); err != nil {
 		return err
 	}
+	if err = addRecursionDetection(stack); err != nil {
+		return err
+	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -151,6 +196,21 @@ func (c *Client) addOperationRegisterTargetWithMaintenanceWindowMiddlewares(stac
 		return err
 	}
 	if err = addRequestResponseLogging(stack, options); err != nil {
+		return err
+	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
 		return err
 	}
 	return nil
@@ -193,7 +253,6 @@ func newServiceMetadataMiddleware_opRegisterTargetWithMaintenanceWindow(region s
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "RegisterTargetWithMaintenanceWindow",
 	}
 }

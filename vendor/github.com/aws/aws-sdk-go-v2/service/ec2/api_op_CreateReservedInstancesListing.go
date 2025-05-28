@@ -4,8 +4,8 @@ package ec2
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -14,22 +14,27 @@ import (
 // Creates a listing for Amazon EC2 Standard Reserved Instances to be sold in the
 // Reserved Instance Marketplace. You can submit one Standard Reserved Instance
 // listing at a time. To get a list of your Standard Reserved Instances, you can
-// use the DescribeReservedInstances operation. Only Standard Reserved Instances
-// can be sold in the Reserved Instance Marketplace. Convertible Reserved Instances
-// cannot be sold. The Reserved Instance Marketplace matches sellers who want to
-// resell Standard Reserved Instance capacity that they no longer need with buyers
-// who want to purchase additional capacity. Reserved Instances bought and sold
-// through the Reserved Instance Marketplace work like any other Reserved
-// Instances. To sell your Standard Reserved Instances, you must first register as
-// a seller in the Reserved Instance Marketplace. After completing the registration
-// process, you can create a Reserved Instance Marketplace listing of some or all
-// of your Standard Reserved Instances, and specify the upfront price to receive
-// for them. Your Standard Reserved Instance listings then become available for
-// purchase. To view the details of your Standard Reserved Instance listing, you
-// can use the DescribeReservedInstancesListings operation. For more information,
-// see Reserved Instance Marketplace
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html) in
-// the Amazon EC2 User Guide.
+// use the DescribeReservedInstancesoperation.
+//
+// Only Standard Reserved Instances can be sold in the Reserved Instance
+// Marketplace. Convertible Reserved Instances cannot be sold.
+//
+// The Reserved Instance Marketplace matches sellers who want to resell Standard
+// Reserved Instance capacity that they no longer need with buyers who want to
+// purchase additional capacity. Reserved Instances bought and sold through the
+// Reserved Instance Marketplace work like any other Reserved Instances.
+//
+// To sell your Standard Reserved Instances, you must first register as a seller
+// in the Reserved Instance Marketplace. After completing the registration process,
+// you can create a Reserved Instance Marketplace listing of some or all of your
+// Standard Reserved Instances, and specify the upfront price to receive for them.
+// Your Standard Reserved Instance listings then become available for purchase. To
+// view the details of your Standard Reserved Instance listing, you can use the DescribeReservedInstancesListings
+// operation.
+//
+// For more information, see [Sell in the Reserved Instance Marketplace] in the Amazon EC2 User Guide.
+//
+// [Sell in the Reserved Instance Marketplace]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ri-market-general.html
 func (c *Client) CreateReservedInstancesListing(ctx context.Context, params *CreateReservedInstancesListingInput, optFns ...func(*Options)) (*CreateReservedInstancesListingOutput, error) {
 	if params == nil {
 		params = &CreateReservedInstancesListingInput{}
@@ -49,9 +54,9 @@ func (c *Client) CreateReservedInstancesListing(ctx context.Context, params *Cre
 type CreateReservedInstancesListingInput struct {
 
 	// Unique, case-sensitive identifier you provide to ensure idempotency of your
-	// listings. This helps avoid duplicate listings. For more information, see
-	// Ensuring Idempotency
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
+	// listings. This helps avoid duplicate listings. For more information, see [Ensuring Idempotency].
+	//
+	// [Ensuring Idempotency]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html
 	//
 	// This member is required.
 	ClientToken *string
@@ -91,6 +96,9 @@ type CreateReservedInstancesListingOutput struct {
 }
 
 func (c *Client) addOperationCreateReservedInstancesListingMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpCreateReservedInstancesListing{}, middleware.After)
 	if err != nil {
 		return err
@@ -99,34 +107,41 @@ func (c *Client) addOperationCreateReservedInstancesListingMiddlewares(stack *mi
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateReservedInstancesListing"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -135,10 +150,25 @@ func (c *Client) addOperationCreateReservedInstancesListingMiddlewares(stack *mi
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpCreateReservedInstancesListingValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opCreateReservedInstancesListing(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -150,6 +180,21 @@ func (c *Client) addOperationCreateReservedInstancesListingMiddlewares(stack *mi
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -157,7 +202,6 @@ func newServiceMetadataMiddleware_opCreateReservedInstancesListing(region string
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "CreateReservedInstancesListing",
 	}
 }

@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -36,9 +35,9 @@ type DescribeMaintenanceWindowExecutionTasksInput struct {
 	// This member is required.
 	WindowExecutionId *string
 
-	// Optional filters used to scope down the returned tasks. The supported filter key
-	// is STATUS with the corresponding values PENDING, IN_PROGRESS, SUCCESS, FAILED,
-	// TIMED_OUT, CANCELLING, and CANCELLED.
+	// Optional filters used to scope down the returned tasks. The supported filter
+	// key is STATUS with the corresponding values PENDING , IN_PROGRESS , SUCCESS ,
+	// FAILED , TIMED_OUT , CANCELLING , and CANCELLED .
 	Filters []types.MaintenanceWindowFilter
 
 	// The maximum number of items to return for this call. The call also returns a
@@ -68,6 +67,9 @@ type DescribeMaintenanceWindowExecutionTasksOutput struct {
 }
 
 func (c *Client) addOperationDescribeMaintenanceWindowExecutionTasksMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribeMaintenanceWindowExecutionTasks{}, middleware.After)
 	if err != nil {
 		return err
@@ -76,34 +78,41 @@ func (c *Client) addOperationDescribeMaintenanceWindowExecutionTasksMiddlewares(
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeMaintenanceWindowExecutionTasks"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -112,10 +121,25 @@ func (c *Client) addOperationDescribeMaintenanceWindowExecutionTasksMiddlewares(
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpDescribeMaintenanceWindowExecutionTasksValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeMaintenanceWindowExecutionTasks(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -127,19 +151,26 @@ func (c *Client) addOperationDescribeMaintenanceWindowExecutionTasksMiddlewares(
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
-// DescribeMaintenanceWindowExecutionTasksAPIClient is a client that implements the
-// DescribeMaintenanceWindowExecutionTasks operation.
-type DescribeMaintenanceWindowExecutionTasksAPIClient interface {
-	DescribeMaintenanceWindowExecutionTasks(context.Context, *DescribeMaintenanceWindowExecutionTasksInput, ...func(*Options)) (*DescribeMaintenanceWindowExecutionTasksOutput, error)
-}
-
-var _ DescribeMaintenanceWindowExecutionTasksAPIClient = (*Client)(nil)
-
-// DescribeMaintenanceWindowExecutionTasksPaginatorOptions is the paginator options
-// for DescribeMaintenanceWindowExecutionTasks
+// DescribeMaintenanceWindowExecutionTasksPaginatorOptions is the paginator
+// options for DescribeMaintenanceWindowExecutionTasks
 type DescribeMaintenanceWindowExecutionTasksPaginatorOptions struct {
 	// The maximum number of items to return for this call. The call also returns a
 	// token that you can specify in a subsequent call to get the next set of results.
@@ -205,6 +236,9 @@ func (p *DescribeMaintenanceWindowExecutionTasksPaginator) NextPage(ctx context.
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeMaintenanceWindowExecutionTasks(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -224,11 +258,18 @@ func (p *DescribeMaintenanceWindowExecutionTasksPaginator) NextPage(ctx context.
 	return result, nil
 }
 
+// DescribeMaintenanceWindowExecutionTasksAPIClient is a client that implements
+// the DescribeMaintenanceWindowExecutionTasks operation.
+type DescribeMaintenanceWindowExecutionTasksAPIClient interface {
+	DescribeMaintenanceWindowExecutionTasks(context.Context, *DescribeMaintenanceWindowExecutionTasksInput, ...func(*Options)) (*DescribeMaintenanceWindowExecutionTasksOutput, error)
+}
+
+var _ DescribeMaintenanceWindowExecutionTasksAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeMaintenanceWindowExecutionTasks(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "DescribeMaintenanceWindowExecutionTasks",
 	}
 }

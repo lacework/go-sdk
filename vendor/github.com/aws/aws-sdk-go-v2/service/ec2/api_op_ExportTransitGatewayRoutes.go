@@ -4,8 +4,8 @@ package ec2
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -13,10 +13,12 @@ import (
 
 // Exports routes from the specified transit gateway route table to the specified
 // S3 bucket. By default, all routes are exported. Alternatively, you can filter by
-// CIDR range. The routes are saved to the specified bucket in a JSON file. For
-// more information, see Export Route Tables to Amazon S3
-// (https://docs.aws.amazon.com/vpc/latest/tgw/tgw-route-tables.html#tgw-export-route-tables)
-// in Transit Gateways.
+// CIDR range.
+//
+// The routes are saved to the specified bucket in a JSON file. For more
+// information, see [Export route tables to Amazon S3]in the Amazon Web Services Transit Gateways Guide.
+//
+// [Export route tables to Amazon S3]: https://docs.aws.amazon.com/vpc/latest/tgw/tgw-route-tables.html#tgw-export-route-tables
 func (c *Client) ExportTransitGatewayRoutes(ctx context.Context, params *ExportTransitGatewayRoutesInput, optFns ...func(*Options)) (*ExportTransitGatewayRoutesOutput, error) {
 	if params == nil {
 		params = &ExportTransitGatewayRoutesInput{}
@@ -46,40 +48,35 @@ type ExportTransitGatewayRoutesInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// One or more filters. The possible values are:
 	//
-	// *
-	// attachment.transit-gateway-attachment-id - The id of the transit gateway
-	// attachment.
+	//   - attachment.transit-gateway-attachment-id - The id of the transit gateway
+	//   attachment.
 	//
-	// * attachment.resource-id - The resource id of the transit gateway
-	// attachment.
+	//   - attachment.resource-id - The resource id of the transit gateway attachment.
 	//
-	// * route-search.exact-match - The exact match of the specified
-	// filter.
+	//   - route-search.exact-match - The exact match of the specified filter.
 	//
-	// * route-search.longest-prefix-match - The longest prefix that matches
-	// the route.
+	//   - route-search.longest-prefix-match - The longest prefix that matches the
+	//   route.
 	//
-	// * route-search.subnet-of-match - The routes with a subnet that match
-	// the specified CIDR filter.
+	//   - route-search.subnet-of-match - The routes with a subnet that match the
+	//   specified CIDR filter.
 	//
-	// * route-search.supernet-of-match - The routes with a
-	// CIDR that encompass the CIDR filter. For example, if you have 10.0.1.0/29 and
-	// 10.0.1.0/31 routes in your route table and you specify supernet-of-match as
-	// 10.0.1.0/30, then the result returns 10.0.1.0/29.
+	//   - route-search.supernet-of-match - The routes with a CIDR that encompass the
+	//   CIDR filter. For example, if you have 10.0.1.0/29 and 10.0.1.0/31 routes in your
+	//   route table and you specify supernet-of-match as 10.0.1.0/30, then the result
+	//   returns 10.0.1.0/29.
 	//
-	// * state - The state of the
-	// route (active | blackhole).
+	//   - state - The state of the route ( active | blackhole ).
 	//
-	// * transit-gateway-route-destination-cidr-block -
-	// The CIDR range.
+	//   - transit-gateway-route-destination-cidr-block - The CIDR range.
 	//
-	// * type - The type of route (propagated | static).
+	//   - type - The type of route ( propagated | static ).
 	Filters []types.Filter
 
 	noSmithyDocumentSerde
@@ -98,6 +95,9 @@ type ExportTransitGatewayRoutesOutput struct {
 }
 
 func (c *Client) addOperationExportTransitGatewayRoutesMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpExportTransitGatewayRoutes{}, middleware.After)
 	if err != nil {
 		return err
@@ -106,34 +106,41 @@ func (c *Client) addOperationExportTransitGatewayRoutesMiddlewares(stack *middle
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ExportTransitGatewayRoutes"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -142,10 +149,25 @@ func (c *Client) addOperationExportTransitGatewayRoutesMiddlewares(stack *middle
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpExportTransitGatewayRoutesValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opExportTransitGatewayRoutes(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -157,6 +179,21 @@ func (c *Client) addOperationExportTransitGatewayRoutesMiddlewares(stack *middle
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -164,7 +201,6 @@ func newServiceMetadataMiddleware_opExportTransitGatewayRoutes(region string) *a
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "ExportTransitGatewayRoutes",
 	}
 }

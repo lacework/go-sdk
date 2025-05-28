@@ -4,20 +4,24 @@ package ec2
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Release an allocation within an IPAM pool. You can only use this action to
-// release manual allocations. To remove an allocation for a resource without
-// deleting the resource, set its monitored state to false using
-// ModifyIpamResourceCidr
-// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyIpamResourceCidr.html).
-// For more information, see Release an allocation
-// (https://docs.aws.amazon.com/vpc/latest/ipam/release-pool-alloc-ipam.html) in
-// the Amazon VPC IPAM User Guide.
+// Release an allocation within an IPAM pool. The Region you use should be the
+// IPAM pool locale. The locale is the Amazon Web Services Region where this IPAM
+// pool is available for allocations. You can only use this action to release
+// manual allocations. To remove an allocation for a resource without deleting the
+// resource, set its monitored state to false using [ModifyIpamResourceCidr]. For more information, see [Release an allocation]
+// in the Amazon VPC IPAM User Guide.
+//
+// All EC2 API actions follow an [eventual consistency] model.
+//
+// [Release an allocation]: https://docs.aws.amazon.com/vpc/latest/ipam/release-alloc-ipam.html
+// [eventual consistency]: https://docs.aws.amazon.com/ec2/latest/devguide/eventual-consistency.html
+// [ModifyIpamResourceCidr]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyIpamResourceCidr.html
 func (c *Client) ReleaseIpamPoolAllocation(ctx context.Context, params *ReleaseIpamPoolAllocationInput, optFns ...func(*Options)) (*ReleaseIpamPoolAllocationOutput, error) {
 	if params == nil {
 		params = &ReleaseIpamPoolAllocationInput{}
@@ -52,8 +56,8 @@ type ReleaseIpamPoolAllocationInput struct {
 
 	// A check for whether you have the required permissions for the action without
 	// actually making the request and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	noSmithyDocumentSerde
@@ -71,6 +75,9 @@ type ReleaseIpamPoolAllocationOutput struct {
 }
 
 func (c *Client) addOperationReleaseIpamPoolAllocationMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpReleaseIpamPoolAllocation{}, middleware.After)
 	if err != nil {
 		return err
@@ -79,34 +86,41 @@ func (c *Client) addOperationReleaseIpamPoolAllocationMiddlewares(stack *middlew
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ReleaseIpamPoolAllocation"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -115,10 +129,25 @@ func (c *Client) addOperationReleaseIpamPoolAllocationMiddlewares(stack *middlew
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpReleaseIpamPoolAllocationValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opReleaseIpamPoolAllocation(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -130,6 +159,21 @@ func (c *Client) addOperationReleaseIpamPoolAllocationMiddlewares(stack *middlew
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -137,7 +181,6 @@ func newServiceMetadataMiddleware_opReleaseIpamPoolAllocation(region string) *aw
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "ReleaseIpamPoolAllocation",
 	}
 }

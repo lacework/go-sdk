@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -31,8 +30,8 @@ func (c *Client) DescribeMaintenanceWindows(ctx context.Context, params *Describ
 type DescribeMaintenanceWindowsInput struct {
 
 	// Optional filters used to narrow down the scope of the returned maintenance
-	// windows. Supported filter keys are Name and Enabled. For example,
-	// Name=MyMaintenanceWindow and Enabled=True.
+	// windows. Supported filter keys are Name and Enabled . For example,
+	// Name=MyMaintenanceWindow and Enabled=True .
 	Filters []types.MaintenanceWindowFilter
 
 	// The maximum number of items to return for this call. The call also returns a
@@ -62,6 +61,9 @@ type DescribeMaintenanceWindowsOutput struct {
 }
 
 func (c *Client) addOperationDescribeMaintenanceWindowsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribeMaintenanceWindows{}, middleware.After)
 	if err != nil {
 		return err
@@ -70,34 +72,41 @@ func (c *Client) addOperationDescribeMaintenanceWindowsMiddlewares(stack *middle
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeMaintenanceWindows"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -106,7 +115,22 @@ func (c *Client) addOperationDescribeMaintenanceWindowsMiddlewares(stack *middle
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeMaintenanceWindows(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -118,16 +142,23 @@ func (c *Client) addOperationDescribeMaintenanceWindowsMiddlewares(stack *middle
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// DescribeMaintenanceWindowsAPIClient is a client that implements the
-// DescribeMaintenanceWindows operation.
-type DescribeMaintenanceWindowsAPIClient interface {
-	DescribeMaintenanceWindows(context.Context, *DescribeMaintenanceWindowsInput, ...func(*Options)) (*DescribeMaintenanceWindowsOutput, error)
-}
-
-var _ DescribeMaintenanceWindowsAPIClient = (*Client)(nil)
 
 // DescribeMaintenanceWindowsPaginatorOptions is the paginator options for
 // DescribeMaintenanceWindows
@@ -196,6 +227,9 @@ func (p *DescribeMaintenanceWindowsPaginator) NextPage(ctx context.Context, optF
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeMaintenanceWindows(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -215,11 +249,18 @@ func (p *DescribeMaintenanceWindowsPaginator) NextPage(ctx context.Context, optF
 	return result, nil
 }
 
+// DescribeMaintenanceWindowsAPIClient is a client that implements the
+// DescribeMaintenanceWindows operation.
+type DescribeMaintenanceWindowsAPIClient interface {
+	DescribeMaintenanceWindows(context.Context, *DescribeMaintenanceWindowsInput, ...func(*Options)) (*DescribeMaintenanceWindowsOutput, error)
+}
+
+var _ DescribeMaintenanceWindowsAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeMaintenanceWindows(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "DescribeMaintenanceWindows",
 	}
 }

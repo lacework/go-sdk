@@ -4,16 +4,18 @@ package ec2
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Provision a CIDR to a public IPv4 pool. For more information about IPAM, see
-// What is IPAM? (https://docs.aws.amazon.com/vpc/latest/ipam/what-is-it-ipam.html)
-// in the Amazon VPC IPAM User Guide.
+// Provision a CIDR to a public IPv4 pool.
+//
+// For more information about IPAM, see [What is IPAM?] in the Amazon VPC IPAM User Guide.
+//
+// [What is IPAM?]: https://docs.aws.amazon.com/vpc/latest/ipam/what-is-it-ipam.html
 func (c *Client) ProvisionPublicIpv4PoolCidr(ctx context.Context, params *ProvisionPublicIpv4PoolCidrInput, optFns ...func(*Options)) (*ProvisionPublicIpv4PoolCidrOutput, error) {
 	if params == nil {
 		params = &ProvisionPublicIpv4PoolCidrInput{}
@@ -37,7 +39,7 @@ type ProvisionPublicIpv4PoolCidrInput struct {
 	IpamPoolId *string
 
 	// The netmask length of the CIDR you would like to allocate to the public IPv4
-	// pool.
+	// pool. The least specific netmask length you can define is 24.
 	//
 	// This member is required.
 	NetmaskLength *int32
@@ -49,9 +51,17 @@ type ProvisionPublicIpv4PoolCidrInput struct {
 
 	// A check for whether you have the required permissions for the action without
 	// actually making the request and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
+
+	// The Availability Zone (AZ) or Local Zone (LZ) network border group that the
+	// resource that the IP address is assigned to is in. Defaults to an AZ network
+	// border group. For more information on available Local Zones, see [Local Zone availability]in the Amazon
+	// EC2 User Guide.
+	//
+	// [Local Zone availability]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html#byoip-zone-avail
+	NetworkBorderGroup *string
 
 	noSmithyDocumentSerde
 }
@@ -71,6 +81,9 @@ type ProvisionPublicIpv4PoolCidrOutput struct {
 }
 
 func (c *Client) addOperationProvisionPublicIpv4PoolCidrMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpProvisionPublicIpv4PoolCidr{}, middleware.After)
 	if err != nil {
 		return err
@@ -79,34 +92,41 @@ func (c *Client) addOperationProvisionPublicIpv4PoolCidrMiddlewares(stack *middl
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ProvisionPublicIpv4PoolCidr"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -115,10 +135,25 @@ func (c *Client) addOperationProvisionPublicIpv4PoolCidrMiddlewares(stack *middl
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpProvisionPublicIpv4PoolCidrValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opProvisionPublicIpv4PoolCidr(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -130,6 +165,21 @@ func (c *Client) addOperationProvisionPublicIpv4PoolCidrMiddlewares(stack *middl
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -137,7 +187,6 @@ func newServiceMetadataMiddleware_opProvisionPublicIpv4PoolCidr(region string) *
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "ProvisionPublicIpv4PoolCidr",
 	}
 }

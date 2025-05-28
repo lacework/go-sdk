@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -33,37 +32,30 @@ type DescribeTrafficMirrorSessionsInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// One or more filters. The possible values are:
 	//
-	// * description: The Traffic Mirror
-	// session description.
+	//   - description : The Traffic Mirror session description.
 	//
-	// * network-interface-id: The ID of the Traffic Mirror
-	// session network interface.
+	//   - network-interface-id : The ID of the Traffic Mirror session network
+	//   interface.
 	//
-	// * owner-id: The ID of the account that owns the
-	// Traffic Mirror session.
+	//   - owner-id : The ID of the account that owns the Traffic Mirror session.
 	//
-	// * packet-length: The assigned number of packets to
-	// mirror.
+	//   - packet-length : The assigned number of packets to mirror.
 	//
-	// * session-number: The assigned session number.
+	//   - session-number : The assigned session number.
 	//
-	// *
-	// traffic-mirror-filter-id: The ID of the Traffic Mirror filter.
+	//   - traffic-mirror-filter-id : The ID of the Traffic Mirror filter.
 	//
-	// *
-	// traffic-mirror-session-id: The ID of the Traffic Mirror session.
+	//   - traffic-mirror-session-id : The ID of the Traffic Mirror session.
 	//
-	// *
-	// traffic-mirror-target-id: The ID of the Traffic Mirror target.
+	//   - traffic-mirror-target-id : The ID of the Traffic Mirror target.
 	//
-	// *
-	// virtual-network-id: The virtual network ID of the Traffic Mirror session.
+	//   - virtual-network-id : The virtual network ID of the Traffic Mirror session.
 	Filters []types.Filter
 
 	// The maximum number of results to return with a single call. To retrieve the
@@ -96,6 +88,9 @@ type DescribeTrafficMirrorSessionsOutput struct {
 }
 
 func (c *Client) addOperationDescribeTrafficMirrorSessionsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeTrafficMirrorSessions{}, middleware.After)
 	if err != nil {
 		return err
@@ -104,34 +99,41 @@ func (c *Client) addOperationDescribeTrafficMirrorSessionsMiddlewares(stack *mid
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeTrafficMirrorSessions"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -140,7 +142,22 @@ func (c *Client) addOperationDescribeTrafficMirrorSessionsMiddlewares(stack *mid
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeTrafficMirrorSessions(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -152,16 +169,23 @@ func (c *Client) addOperationDescribeTrafficMirrorSessionsMiddlewares(stack *mid
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// DescribeTrafficMirrorSessionsAPIClient is a client that implements the
-// DescribeTrafficMirrorSessions operation.
-type DescribeTrafficMirrorSessionsAPIClient interface {
-	DescribeTrafficMirrorSessions(context.Context, *DescribeTrafficMirrorSessionsInput, ...func(*Options)) (*DescribeTrafficMirrorSessionsOutput, error)
-}
-
-var _ DescribeTrafficMirrorSessionsAPIClient = (*Client)(nil)
 
 // DescribeTrafficMirrorSessionsPaginatorOptions is the paginator options for
 // DescribeTrafficMirrorSessions
@@ -230,6 +254,9 @@ func (p *DescribeTrafficMirrorSessionsPaginator) NextPage(ctx context.Context, o
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeTrafficMirrorSessions(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -249,11 +276,18 @@ func (p *DescribeTrafficMirrorSessionsPaginator) NextPage(ctx context.Context, o
 	return result, nil
 }
 
+// DescribeTrafficMirrorSessionsAPIClient is a client that implements the
+// DescribeTrafficMirrorSessions operation.
+type DescribeTrafficMirrorSessionsAPIClient interface {
+	DescribeTrafficMirrorSessions(context.Context, *DescribeTrafficMirrorSessionsInput, ...func(*Options)) (*DescribeTrafficMirrorSessionsOutput, error)
+}
+
+var _ DescribeTrafficMirrorSessionsAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeTrafficMirrorSessions(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeTrafficMirrorSessions",
 	}
 }

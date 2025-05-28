@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -14,10 +13,10 @@ import (
 
 // Obtain a list of customer gateway devices for which sample configuration files
 // can be provided. The request has no additional parameters. You can also see the
-// list of device types with sample configuration files available under Your
-// customer gateway device
-// (https://docs.aws.amazon.com/vpn/latest/s2svpn/your-cgw.html) in the Amazon Web
-// Services Site-to-Site VPN User Guide.
+// list of device types with sample configuration files available under [Your customer gateway device]in the
+// Amazon Web Services Site-to-Site VPN User Guide.
+//
+// [Your customer gateway device]: https://docs.aws.amazon.com/vpn/latest/s2svpn/your-cgw.html
 func (c *Client) GetVpnConnectionDeviceTypes(ctx context.Context, params *GetVpnConnectionDeviceTypesInput, optFns ...func(*Options)) (*GetVpnConnectionDeviceTypesOutput, error) {
 	if params == nil {
 		params = &GetVpnConnectionDeviceTypesInput{}
@@ -37,8 +36,8 @@ type GetVpnConnectionDeviceTypesInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// The maximum number of results returned by GetVpnConnectionDeviceTypes in
@@ -63,13 +62,13 @@ type GetVpnConnectionDeviceTypesInput struct {
 type GetVpnConnectionDeviceTypesOutput struct {
 
 	// The NextToken value to include in a future GetVpnConnectionDeviceTypes request.
-	// When the results of a GetVpnConnectionDeviceTypes request exceed MaxResults,
+	// When the results of a GetVpnConnectionDeviceTypes request exceed MaxResults ,
 	// this value can be used to retrieve the next page of results. This value is null
 	// when there are no more results to return.
 	NextToken *string
 
-	// List of customer gateway devices that have a sample configuration file available
-	// for use.
+	// List of customer gateway devices that have a sample configuration file
+	// available for use.
 	VpnConnectionDeviceTypes []types.VpnConnectionDeviceType
 
 	// Metadata pertaining to the operation's result.
@@ -79,6 +78,9 @@ type GetVpnConnectionDeviceTypesOutput struct {
 }
 
 func (c *Client) addOperationGetVpnConnectionDeviceTypesMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpGetVpnConnectionDeviceTypes{}, middleware.After)
 	if err != nil {
 		return err
@@ -87,34 +89,41 @@ func (c *Client) addOperationGetVpnConnectionDeviceTypesMiddlewares(stack *middl
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetVpnConnectionDeviceTypes"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -123,7 +132,22 @@ func (c *Client) addOperationGetVpnConnectionDeviceTypesMiddlewares(stack *middl
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetVpnConnectionDeviceTypes(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -135,16 +159,23 @@ func (c *Client) addOperationGetVpnConnectionDeviceTypesMiddlewares(stack *middl
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// GetVpnConnectionDeviceTypesAPIClient is a client that implements the
-// GetVpnConnectionDeviceTypes operation.
-type GetVpnConnectionDeviceTypesAPIClient interface {
-	GetVpnConnectionDeviceTypes(context.Context, *GetVpnConnectionDeviceTypesInput, ...func(*Options)) (*GetVpnConnectionDeviceTypesOutput, error)
-}
-
-var _ GetVpnConnectionDeviceTypesAPIClient = (*Client)(nil)
 
 // GetVpnConnectionDeviceTypesPaginatorOptions is the paginator options for
 // GetVpnConnectionDeviceTypes
@@ -218,6 +249,9 @@ func (p *GetVpnConnectionDeviceTypesPaginator) NextPage(ctx context.Context, opt
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.GetVpnConnectionDeviceTypes(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -237,11 +271,18 @@ func (p *GetVpnConnectionDeviceTypesPaginator) NextPage(ctx context.Context, opt
 	return result, nil
 }
 
+// GetVpnConnectionDeviceTypesAPIClient is a client that implements the
+// GetVpnConnectionDeviceTypes operation.
+type GetVpnConnectionDeviceTypesAPIClient interface {
+	GetVpnConnectionDeviceTypes(context.Context, *GetVpnConnectionDeviceTypesInput, ...func(*Options)) (*GetVpnConnectionDeviceTypesOutput, error)
+}
+
+var _ GetVpnConnectionDeviceTypesAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opGetVpnConnectionDeviceTypes(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "GetVpnConnectionDeviceTypes",
 	}
 }

@@ -4,8 +4,8 @@ package ec2
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -13,12 +13,15 @@ import (
 )
 
 // Describes the events for the specified Spot Fleet request during the specified
-// time. Spot Fleet events are delayed by up to 30 seconds before they can be
-// described. This ensures that you can query by the last evaluated time and not
-// miss a recorded event. Spot Fleet events are available for 48 hours. For more
-// information, see Monitor fleet events using Amazon EventBridge
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/fleet-monitor.html) in the
-// Amazon EC2 User Guide.
+// time.
+//
+// Spot Fleet events are delayed by up to 30 seconds before they can be described.
+// This ensures that you can query by the last evaluated time and not miss a
+// recorded event. Spot Fleet events are available for 48 hours.
+//
+// For more information, see [Monitor fleet events using Amazon EventBridge] in the Amazon EC2 User Guide.
+//
+// [Monitor fleet events using Amazon EventBridge]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/fleet-monitor.html
 func (c *Client) DescribeSpotFleetRequestHistory(ctx context.Context, params *DescribeSpotFleetRequestHistoryInput, optFns ...func(*Options)) (*DescribeSpotFleetRequestHistoryOutput, error) {
 	if params == nil {
 		params = &DescribeSpotFleetRequestHistoryInput{}
@@ -50,19 +53,22 @@ type DescribeSpotFleetRequestHistoryInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// The type of events to describe. By default, all events are described.
 	EventType types.EventType
 
-	// The maximum number of results to return in a single call. Specify a value
-	// between 1 and 1000. The default value is 1000. To retrieve the remaining
-	// results, make another call with the returned NextToken value.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. For more
+	// information, see [Pagination].
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	MaxResults *int32
 
-	// The token for the next set of results.
+	// The token to include in another request to get the next page of items. This
+	// value is null when there are no more items to return.
 	NextToken *string
 
 	noSmithyDocumentSerde
@@ -75,12 +81,13 @@ type DescribeSpotFleetRequestHistoryOutput struct {
 	HistoryRecords []types.HistoryRecord
 
 	// The last date and time for the events, in UTC format (for example,
-	// YYYY-MM-DDTHH:MM:SSZ). All records up to this time were retrieved. If nextToken
-	// indicates that there are more results, this value is not present.
+	// YYYY-MM-DDTHH:MM:SSZ). All records up to this time were retrieved.
+	//
+	// If nextToken indicates that there are more items, this value is not present.
 	LastEvaluatedTime *time.Time
 
-	// The token required to retrieve the next set of results. This value is null when
-	// there are no more results to return.
+	// The token to include in another request to get the next page of items. This
+	// value is null when there are no more items to return.
 	NextToken *string
 
 	// The ID of the Spot Fleet request.
@@ -97,6 +104,9 @@ type DescribeSpotFleetRequestHistoryOutput struct {
 }
 
 func (c *Client) addOperationDescribeSpotFleetRequestHistoryMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeSpotFleetRequestHistory{}, middleware.After)
 	if err != nil {
 		return err
@@ -105,34 +115,41 @@ func (c *Client) addOperationDescribeSpotFleetRequestHistoryMiddlewares(stack *m
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeSpotFleetRequestHistory"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -141,10 +158,25 @@ func (c *Client) addOperationDescribeSpotFleetRequestHistoryMiddlewares(stack *m
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpDescribeSpotFleetRequestHistoryValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeSpotFleetRequestHistory(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -156,6 +188,21 @@ func (c *Client) addOperationDescribeSpotFleetRequestHistoryMiddlewares(stack *m
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -163,7 +210,6 @@ func newServiceMetadataMiddleware_opDescribeSpotFleetRequestHistory(region strin
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeSpotFleetRequestHistory",
 	}
 }

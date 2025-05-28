@@ -4,17 +4,19 @@ package iam
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Creates a new group. For information about the number of groups you can create,
-// see IAM and STS quotas
-// (https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html) in
-// the IAM User Guide.
+// Creates a new group.
+//
+// For information about the number of groups you can create, see [IAM and STS quotas] in the IAM User
+// Guide.
+//
+// [IAM and STS quotas]: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html
 func (c *Client) CreateGroup(ctx context.Context, params *CreateGroupInput, optFns ...func(*Options)) (*CreateGroupOutput, error) {
 	if params == nil {
 		params = &CreateGroupInput{}
@@ -32,23 +34,28 @@ func (c *Client) CreateGroup(ctx context.Context, params *CreateGroupInput, optF
 
 type CreateGroupInput struct {
 
-	// The name of the group to create. Do not include the path in this value. IAM
-	// user, group, role, and policy names must be unique within the account. Names are
-	// not distinguished by case. For example, you cannot create resources named both
-	// "MyResource" and "myresource".
+	// The name of the group to create. Do not include the path in this value.
+	//
+	// IAM user, group, role, and policy names must be unique within the account.
+	// Names are not distinguished by case. For example, you cannot create resources
+	// named both "MyResource" and "myresource".
 	//
 	// This member is required.
 	GroupName *string
 
-	// The path to the group. For more information about paths, see IAM identifiers
-	// (https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_Identifiers.html) in the
-	// IAM User Guide. This parameter is optional. If it is not included, it defaults
-	// to a slash (/). This parameter allows (through its regex pattern
-	// (http://wikipedia.org/wiki/regex)) a string of characters consisting of either a
-	// forward slash (/) by itself or a string that must begin and end with forward
-	// slashes. In addition, it can contain any ASCII character from the ! (\u0021)
-	// through the DEL character (\u007F), including most punctuation characters,
-	// digits, and upper and lowercased letters.
+	//  The path to the group. For more information about paths, see [IAM identifiers] in the IAM User
+	// Guide.
+	//
+	// This parameter is optional. If it is not included, it defaults to a slash (/).
+	//
+	// This parameter allows (through its [regex pattern]) a string of characters consisting of
+	// either a forward slash (/) by itself or a string that must begin and end with
+	// forward slashes. In addition, it can contain any ASCII character from the ! (
+	// \u0021 ) through the DEL character ( \u007F ), including most punctuation
+	// characters, digits, and upper and lowercased letters.
+	//
+	// [IAM identifiers]: https://docs.aws.amazon.com/IAM/latest/UserGuide/Using_Identifiers.html
+	// [regex pattern]: http://wikipedia.org/wiki/regex
 	Path *string
 
 	noSmithyDocumentSerde
@@ -69,6 +76,9 @@ type CreateGroupOutput struct {
 }
 
 func (c *Client) addOperationCreateGroupMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpCreateGroup{}, middleware.After)
 	if err != nil {
 		return err
@@ -77,34 +87,41 @@ func (c *Client) addOperationCreateGroupMiddlewares(stack *middleware.Stack, opt
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateGroup"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -113,10 +130,25 @@ func (c *Client) addOperationCreateGroupMiddlewares(stack *middleware.Stack, opt
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpCreateGroupValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opCreateGroup(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -128,6 +160,21 @@ func (c *Client) addOperationCreateGroupMiddlewares(stack *middleware.Stack, opt
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -135,7 +182,6 @@ func newServiceMetadataMiddleware_opCreateGroup(region string) *awsmiddleware.Re
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "iam",
 		OperationName: "CreateGroup",
 	}
 }

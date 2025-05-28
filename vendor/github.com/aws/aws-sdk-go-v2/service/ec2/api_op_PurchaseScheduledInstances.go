@@ -6,20 +6,22 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// You can no longer purchase Scheduled Instances. Purchases the Scheduled
-// Instances with the specified schedule. Scheduled Instances enable you to
-// purchase Amazon EC2 compute capacity by the hour for a one-year term. Before you
-// can purchase a Scheduled Instance, you must call
-// DescribeScheduledInstanceAvailability to check for available schedules and
-// obtain a purchase token. After you purchase a Scheduled Instance, you must call
-// RunScheduledInstances during each scheduled time period. After you purchase a
-// Scheduled Instance, you can't cancel, modify, or resell your purchase.
+// You can no longer purchase Scheduled Instances.
+//
+// Purchases the Scheduled Instances with the specified schedule.
+//
+// Scheduled Instances enable you to purchase Amazon EC2 compute capacity by the
+// hour for a one-year term. Before you can purchase a Scheduled Instance, you must
+// call DescribeScheduledInstanceAvailabilityto check for available schedules and obtain a purchase token. After you
+// purchase a Scheduled Instance, you must call RunScheduledInstancesduring each scheduled time period.
+//
+// After you purchase a Scheduled Instance, you can't cancel, modify, or resell
+// your purchase.
 func (c *Client) PurchaseScheduledInstances(ctx context.Context, params *PurchaseScheduledInstancesInput, optFns ...func(*Options)) (*PurchaseScheduledInstancesOutput, error) {
 	if params == nil {
 		params = &PurchaseScheduledInstancesInput{}
@@ -44,14 +46,15 @@ type PurchaseScheduledInstancesInput struct {
 	PurchaseRequests []types.PurchaseRequest
 
 	// Unique, case-sensitive identifier that ensures the idempotency of the request.
-	// For more information, see Ensuring Idempotency
-	// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html).
+	// For more information, see [Ensuring Idempotency].
+	//
+	// [Ensuring Idempotency]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html
 	ClientToken *string
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	noSmithyDocumentSerde
@@ -70,6 +73,9 @@ type PurchaseScheduledInstancesOutput struct {
 }
 
 func (c *Client) addOperationPurchaseScheduledInstancesMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpPurchaseScheduledInstances{}, middleware.After)
 	if err != nil {
 		return err
@@ -78,40 +84,59 @@ func (c *Client) addOperationPurchaseScheduledInstancesMiddlewares(stack *middle
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "PurchaseScheduledInstances"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addIdempotencyToken_opPurchaseScheduledInstancesMiddleware(stack, options); err != nil {
@@ -123,6 +148,9 @@ func (c *Client) addOperationPurchaseScheduledInstancesMiddlewares(stack *middle
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opPurchaseScheduledInstances(options.Region), middleware.Before); err != nil {
 		return err
 	}
+	if err = addRecursionDetection(stack); err != nil {
+		return err
+	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -130,6 +158,21 @@ func (c *Client) addOperationPurchaseScheduledInstancesMiddlewares(stack *middle
 		return err
 	}
 	if err = addRequestResponseLogging(stack, options); err != nil {
+		return err
+	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
 		return err
 	}
 	return nil
@@ -172,7 +215,6 @@ func newServiceMetadataMiddleware_opPurchaseScheduledInstances(region string) *a
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "PurchaseScheduledInstances",
 	}
 }

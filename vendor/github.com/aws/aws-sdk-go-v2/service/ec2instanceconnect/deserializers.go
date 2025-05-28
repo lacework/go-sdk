@@ -13,10 +13,21 @@ import (
 	smithyio "github.com/aws/smithy-go/io"
 	"github.com/aws/smithy-go/middleware"
 	"github.com/aws/smithy-go/ptr"
+	smithytime "github.com/aws/smithy-go/time"
+	"github.com/aws/smithy-go/tracing"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	"io"
 	"strings"
+	"time"
 )
+
+func deserializeS3Expires(v string) (*time.Time, error) {
+	t, err := smithytime.ParseHTTPDate(v)
+	if err != nil {
+		return nil, nil
+	}
+	return &t, nil
+}
 
 type awsAwsjson11_deserializeOpSendSerialConsoleSSHPublicKey struct {
 }
@@ -33,6 +44,10 @@ func (m *awsAwsjson11_deserializeOpSendSerialConsoleSSHPublicKey) HandleDeserial
 		return out, metadata, err
 	}
 
+	_, span := tracing.StartSpan(ctx, "OperationDeserializer")
+	endTimer := startMetricTimer(ctx, "client.call.deserialization_duration")
+	defer endTimer()
+	defer span.End()
 	response, ok := out.RawResponse.(*smithyhttp.Response)
 	if !ok {
 		return out, metadata, &smithy.DeserializationError{Err: fmt.Errorf("unknown transport type %T", out.RawResponse)}
@@ -85,10 +100,7 @@ func awsAwsjson11_deserializeOpErrorSendSerialConsoleSSHPublicKey(response *smit
 	errorCode := "UnknownError"
 	errorMessage := errorCode
 
-	code := response.Header.Get("X-Amzn-ErrorType")
-	if len(code) != 0 {
-		errorCode = restjson.SanitizeErrorCode(code)
-	}
+	headerCode := response.Header.Get("X-Amzn-ErrorType")
 
 	var buff [1024]byte
 	ringBuffer := smithyio.NewRingBuffer(buff[:])
@@ -96,7 +108,7 @@ func awsAwsjson11_deserializeOpErrorSendSerialConsoleSSHPublicKey(response *smit
 	body := io.TeeReader(errorBody, ringBuffer)
 	decoder := json.NewDecoder(body)
 	decoder.UseNumber()
-	code, message, err := restjson.GetErrorInfo(decoder)
+	bodyInfo, err := getProtocolErrorInfo(decoder)
 	if err != nil {
 		var snapshot bytes.Buffer
 		io.Copy(&snapshot, ringBuffer)
@@ -108,13 +120,12 @@ func awsAwsjson11_deserializeOpErrorSendSerialConsoleSSHPublicKey(response *smit
 	}
 
 	errorBody.Seek(0, io.SeekStart)
-	if len(code) != 0 {
-		errorCode = restjson.SanitizeErrorCode(code)
+	if typ, ok := resolveProtocolErrorType(headerCode, bodyInfo); ok {
+		errorCode = restjson.SanitizeErrorCode(typ)
 	}
-	if len(message) != 0 {
-		errorMessage = message
+	if len(bodyInfo.Message) != 0 {
+		errorMessage = bodyInfo.Message
 	}
-
 	switch {
 	case strings.EqualFold("AuthException", errorCode):
 		return awsAwsjson11_deserializeErrorAuthException(response, errorBody)
@@ -142,6 +153,9 @@ func awsAwsjson11_deserializeOpErrorSendSerialConsoleSSHPublicKey(response *smit
 
 	case strings.EqualFold("SerialConsoleSessionUnavailableException", errorCode):
 		return awsAwsjson11_deserializeErrorSerialConsoleSessionUnavailableException(response, errorBody)
+
+	case strings.EqualFold("SerialConsoleSessionUnsupportedException", errorCode):
+		return awsAwsjson11_deserializeErrorSerialConsoleSessionUnsupportedException(response, errorBody)
 
 	case strings.EqualFold("ServiceException", errorCode):
 		return awsAwsjson11_deserializeErrorServiceException(response, errorBody)
@@ -174,6 +188,10 @@ func (m *awsAwsjson11_deserializeOpSendSSHPublicKey) HandleDeserialize(ctx conte
 		return out, metadata, err
 	}
 
+	_, span := tracing.StartSpan(ctx, "OperationDeserializer")
+	endTimer := startMetricTimer(ctx, "client.call.deserialization_duration")
+	defer endTimer()
+	defer span.End()
 	response, ok := out.RawResponse.(*smithyhttp.Response)
 	if !ok {
 		return out, metadata, &smithy.DeserializationError{Err: fmt.Errorf("unknown transport type %T", out.RawResponse)}
@@ -226,10 +244,7 @@ func awsAwsjson11_deserializeOpErrorSendSSHPublicKey(response *smithyhttp.Respon
 	errorCode := "UnknownError"
 	errorMessage := errorCode
 
-	code := response.Header.Get("X-Amzn-ErrorType")
-	if len(code) != 0 {
-		errorCode = restjson.SanitizeErrorCode(code)
-	}
+	headerCode := response.Header.Get("X-Amzn-ErrorType")
 
 	var buff [1024]byte
 	ringBuffer := smithyio.NewRingBuffer(buff[:])
@@ -237,7 +252,7 @@ func awsAwsjson11_deserializeOpErrorSendSSHPublicKey(response *smithyhttp.Respon
 	body := io.TeeReader(errorBody, ringBuffer)
 	decoder := json.NewDecoder(body)
 	decoder.UseNumber()
-	code, message, err := restjson.GetErrorInfo(decoder)
+	bodyInfo, err := getProtocolErrorInfo(decoder)
 	if err != nil {
 		var snapshot bytes.Buffer
 		io.Copy(&snapshot, ringBuffer)
@@ -249,13 +264,12 @@ func awsAwsjson11_deserializeOpErrorSendSSHPublicKey(response *smithyhttp.Respon
 	}
 
 	errorBody.Seek(0, io.SeekStart)
-	if len(code) != 0 {
-		errorCode = restjson.SanitizeErrorCode(code)
+	if typ, ok := resolveProtocolErrorType(headerCode, bodyInfo); ok {
+		errorCode = restjson.SanitizeErrorCode(typ)
 	}
-	if len(message) != 0 {
-		errorMessage = message
+	if len(bodyInfo.Message) != 0 {
+		errorMessage = bodyInfo.Message
 	}
-
 	switch {
 	case strings.EqualFold("AuthException", errorCode):
 		return awsAwsjson11_deserializeErrorAuthException(response, errorBody)
@@ -603,6 +617,41 @@ func awsAwsjson11_deserializeErrorSerialConsoleSessionUnavailableException(respo
 	return output
 }
 
+func awsAwsjson11_deserializeErrorSerialConsoleSessionUnsupportedException(response *smithyhttp.Response, errorBody *bytes.Reader) error {
+	var buff [1024]byte
+	ringBuffer := smithyio.NewRingBuffer(buff[:])
+
+	body := io.TeeReader(errorBody, ringBuffer)
+	decoder := json.NewDecoder(body)
+	decoder.UseNumber()
+	var shape interface{}
+	if err := decoder.Decode(&shape); err != nil && err != io.EOF {
+		var snapshot bytes.Buffer
+		io.Copy(&snapshot, ringBuffer)
+		err = &smithy.DeserializationError{
+			Err:      fmt.Errorf("failed to decode response body, %w", err),
+			Snapshot: snapshot.Bytes(),
+		}
+		return err
+	}
+
+	output := &types.SerialConsoleSessionUnsupportedException{}
+	err := awsAwsjson11_deserializeDocumentSerialConsoleSessionUnsupportedException(&output, shape)
+
+	if err != nil {
+		var snapshot bytes.Buffer
+		io.Copy(&snapshot, ringBuffer)
+		err = &smithy.DeserializationError{
+			Err:      fmt.Errorf("failed to decode response body, %w", err),
+			Snapshot: snapshot.Bytes(),
+		}
+		return err
+	}
+
+	errorBody.Seek(0, io.SeekStart)
+	return output
+}
+
 func awsAwsjson11_deserializeErrorServiceException(response *smithyhttp.Response, errorBody *bytes.Reader) error {
 	var buff [1024]byte
 	ringBuffer := smithyio.NewRingBuffer(buff[:])
@@ -695,7 +744,7 @@ func awsAwsjson11_deserializeDocumentAuthException(v **types.AuthException, valu
 
 	for key, value := range shape {
 		switch key {
-		case "Message":
+		case "message", "Message":
 			if value != nil {
 				jtv, ok := value.(string)
 				if !ok {
@@ -735,7 +784,7 @@ func awsAwsjson11_deserializeDocumentEC2InstanceNotFoundException(v **types.EC2I
 
 	for key, value := range shape {
 		switch key {
-		case "Message":
+		case "message", "Message":
 			if value != nil {
 				jtv, ok := value.(string)
 				if !ok {
@@ -775,7 +824,7 @@ func awsAwsjson11_deserializeDocumentEC2InstanceStateInvalidException(v **types.
 
 	for key, value := range shape {
 		switch key {
-		case "Message":
+		case "message", "Message":
 			if value != nil {
 				jtv, ok := value.(string)
 				if !ok {
@@ -815,7 +864,7 @@ func awsAwsjson11_deserializeDocumentEC2InstanceTypeInvalidException(v **types.E
 
 	for key, value := range shape {
 		switch key {
-		case "Message":
+		case "message", "Message":
 			if value != nil {
 				jtv, ok := value.(string)
 				if !ok {
@@ -855,7 +904,7 @@ func awsAwsjson11_deserializeDocumentEC2InstanceUnavailableException(v **types.E
 
 	for key, value := range shape {
 		switch key {
-		case "Message":
+		case "message", "Message":
 			if value != nil {
 				jtv, ok := value.(string)
 				if !ok {
@@ -895,7 +944,7 @@ func awsAwsjson11_deserializeDocumentInvalidArgsException(v **types.InvalidArgsE
 
 	for key, value := range shape {
 		switch key {
-		case "Message":
+		case "message", "Message":
 			if value != nil {
 				jtv, ok := value.(string)
 				if !ok {
@@ -935,7 +984,7 @@ func awsAwsjson11_deserializeDocumentSerialConsoleAccessDisabledException(v **ty
 
 	for key, value := range shape {
 		switch key {
-		case "Message":
+		case "message", "Message":
 			if value != nil {
 				jtv, ok := value.(string)
 				if !ok {
@@ -975,7 +1024,7 @@ func awsAwsjson11_deserializeDocumentSerialConsoleSessionLimitExceededException(
 
 	for key, value := range shape {
 		switch key {
-		case "Message":
+		case "message", "Message":
 			if value != nil {
 				jtv, ok := value.(string)
 				if !ok {
@@ -1015,7 +1064,47 @@ func awsAwsjson11_deserializeDocumentSerialConsoleSessionUnavailableException(v 
 
 	for key, value := range shape {
 		switch key {
-		case "Message":
+		case "message", "Message":
+			if value != nil {
+				jtv, ok := value.(string)
+				if !ok {
+					return fmt.Errorf("expected String to be of type string, got %T instead", value)
+				}
+				sv.Message = ptr.String(jtv)
+			}
+
+		default:
+			_, _ = key, value
+
+		}
+	}
+	*v = sv
+	return nil
+}
+
+func awsAwsjson11_deserializeDocumentSerialConsoleSessionUnsupportedException(v **types.SerialConsoleSessionUnsupportedException, value interface{}) error {
+	if v == nil {
+		return fmt.Errorf("unexpected nil of type %T", v)
+	}
+	if value == nil {
+		return nil
+	}
+
+	shape, ok := value.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected JSON type %v", value)
+	}
+
+	var sv *types.SerialConsoleSessionUnsupportedException
+	if *v == nil {
+		sv = &types.SerialConsoleSessionUnsupportedException{}
+	} else {
+		sv = *v
+	}
+
+	for key, value := range shape {
+		switch key {
+		case "message", "Message":
 			if value != nil {
 				jtv, ok := value.(string)
 				if !ok {
@@ -1055,7 +1144,7 @@ func awsAwsjson11_deserializeDocumentServiceException(v **types.ServiceException
 
 	for key, value := range shape {
 		switch key {
-		case "Message":
+		case "message", "Message":
 			if value != nil {
 				jtv, ok := value.(string)
 				if !ok {
@@ -1095,7 +1184,7 @@ func awsAwsjson11_deserializeDocumentThrottlingException(v **types.ThrottlingExc
 
 	for key, value := range shape {
 		switch key {
-		case "Message":
+		case "message", "Message":
 			if value != nil {
 				jtv, ok := value.(string)
 				if !ok {
@@ -1209,4 +1298,33 @@ func awsAwsjson11_deserializeOpDocumentSendSSHPublicKeyOutput(v **SendSSHPublicK
 	}
 	*v = sv
 	return nil
+}
+
+type protocolErrorInfo struct {
+	Type    string `json:"__type"`
+	Message string
+	Code    any // nonstandard for awsjson but some services do present the type here
+}
+
+func getProtocolErrorInfo(decoder *json.Decoder) (protocolErrorInfo, error) {
+	var errInfo protocolErrorInfo
+	if err := decoder.Decode(&errInfo); err != nil {
+		if err == io.EOF {
+			return errInfo, nil
+		}
+		return errInfo, err
+	}
+
+	return errInfo, nil
+}
+
+func resolveProtocolErrorType(headerType string, bodyInfo protocolErrorInfo) (string, bool) {
+	if len(headerType) != 0 {
+		return headerType, true
+	} else if len(bodyInfo.Type) != 0 {
+		return bodyInfo.Type, true
+	} else if code, ok := bodyInfo.Code.(string); ok && len(code) != 0 {
+		return code, true
+	}
+	return "", false
 }

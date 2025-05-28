@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -36,8 +35,8 @@ type DescribeMaintenanceWindowTargetsInput struct {
 	WindowId *string
 
 	// Optional filters that can be used to narrow down the scope of the returned
-	// window targets. The supported filter keys are Type, WindowTargetId, and
-	// OwnerInformation.
+	// window targets. The supported filter keys are Type , WindowTargetId , and
+	// OwnerInformation .
 	Filters []types.MaintenanceWindowFilter
 
 	// The maximum number of items to return for this call. The call also returns a
@@ -67,6 +66,9 @@ type DescribeMaintenanceWindowTargetsOutput struct {
 }
 
 func (c *Client) addOperationDescribeMaintenanceWindowTargetsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpDescribeMaintenanceWindowTargets{}, middleware.After)
 	if err != nil {
 		return err
@@ -75,34 +77,41 @@ func (c *Client) addOperationDescribeMaintenanceWindowTargetsMiddlewares(stack *
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeMaintenanceWindowTargets"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -111,10 +120,25 @@ func (c *Client) addOperationDescribeMaintenanceWindowTargetsMiddlewares(stack *
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpDescribeMaintenanceWindowTargetsValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeMaintenanceWindowTargets(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -126,16 +150,23 @@ func (c *Client) addOperationDescribeMaintenanceWindowTargetsMiddlewares(stack *
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// DescribeMaintenanceWindowTargetsAPIClient is a client that implements the
-// DescribeMaintenanceWindowTargets operation.
-type DescribeMaintenanceWindowTargetsAPIClient interface {
-	DescribeMaintenanceWindowTargets(context.Context, *DescribeMaintenanceWindowTargetsInput, ...func(*Options)) (*DescribeMaintenanceWindowTargetsOutput, error)
-}
-
-var _ DescribeMaintenanceWindowTargetsAPIClient = (*Client)(nil)
 
 // DescribeMaintenanceWindowTargetsPaginatorOptions is the paginator options for
 // DescribeMaintenanceWindowTargets
@@ -204,6 +235,9 @@ func (p *DescribeMaintenanceWindowTargetsPaginator) NextPage(ctx context.Context
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeMaintenanceWindowTargets(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -223,11 +257,18 @@ func (p *DescribeMaintenanceWindowTargetsPaginator) NextPage(ctx context.Context
 	return result, nil
 }
 
+// DescribeMaintenanceWindowTargetsAPIClient is a client that implements the
+// DescribeMaintenanceWindowTargets operation.
+type DescribeMaintenanceWindowTargetsAPIClient interface {
+	DescribeMaintenanceWindowTargets(context.Context, *DescribeMaintenanceWindowTargetsInput, ...func(*Options)) (*DescribeMaintenanceWindowTargetsOutput, error)
+}
+
+var _ DescribeMaintenanceWindowTargetsAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeMaintenanceWindowTargets(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "DescribeMaintenanceWindowTargets",
 	}
 }

@@ -4,8 +4,8 @@ package ec2
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -14,27 +14,26 @@ import (
 // Modifies the placement attributes for a specified instance. You can do the
 // following:
 //
-// * Modify the affinity between an instance and a Dedicated Host
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-overview.html).
-// When affinity is set to host and the instance is not associated with a specific
-// Dedicated Host, the next time the instance is launched, it is automatically
-// associated with the host on which it lands. If the instance is restarted or
-// rebooted, this relationship persists.
+//   - Modify the affinity between an instance and a [Dedicated Host]. When affinity is set to host
+//     and the instance is not associated with a specific Dedicated Host, the next time
+//     the instance is started, it is automatically associated with the host on which
+//     it lands. If the instance is restarted or rebooted, this relationship persists.
 //
-// * Change the Dedicated Host with which an
-// instance is associated.
+//   - Change the Dedicated Host with which an instance is associated.
 //
-// * Change the instance tenancy of an instance.
+//   - Change the instance tenancy of an instance.
 //
-// * Move
-// an instance to or from a placement group
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html).
+//   - Move an instance to or from a [placement group].
 //
-// At
-// least one attribute for affinity, host ID, tenancy, or placement group name must
-// be specified in the request. Affinity and tenancy can be modified in the same
-// request. To modify the host ID, tenancy, placement group, or partition for an
-// instance, the instance must be in the stopped state.
+// At least one attribute for affinity, host ID, tenancy, or placement group name
+// must be specified in the request. Affinity and tenancy can be modified in the
+// same request.
+//
+// To modify the host ID, tenancy, placement group, or partition for an instance,
+// the instance must be in the stopped state.
+//
+// [Dedicated Host]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-overview.html
+// [placement group]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html
 func (c *Client) ModifyInstancePlacement(ctx context.Context, params *ModifyInstancePlacementInput, optFns ...func(*Options)) (*ModifyInstancePlacementOutput, error) {
 	if params == nil {
 		params = &ModifyInstancePlacementInput{}
@@ -57,33 +56,41 @@ type ModifyInstancePlacementInput struct {
 	// This member is required.
 	InstanceId *string
 
-	// The affinity setting for the instance.
+	// The affinity setting for the instance. For more information, see [Host affinity] in the Amazon
+	// EC2 User Guide.
+	//
+	// [Host affinity]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/how-dedicated-hosts-work.html#dedicated-hosts-affinity
 	Affinity types.Affinity
 
-	// The Group Id of a placement group. You must specify the Placement Group Group Id
-	// to launch an instance in a shared placement group.
+	// The Group Id of a placement group. You must specify the Placement Group Group
+	// Id to launch an instance in a shared placement group.
 	GroupId *string
 
 	// The name of the placement group in which to place the instance. For spread
-	// placement groups, the instance must have a tenancy of default. For cluster and
+	// placement groups, the instance must have a tenancy of default . For cluster and
 	// partition placement groups, the instance must have a tenancy of default or
-	// dedicated. To remove an instance from a placement group, specify an empty string
-	// ("").
+	// dedicated .
+	//
+	// To remove an instance from a placement group, specify an empty string ("").
 	GroupName *string
 
 	// The ID of the Dedicated Host with which to associate the instance.
 	HostId *string
 
-	// The ARN of the host resource group in which to place the instance.
+	// The ARN of the host resource group in which to place the instance. The instance
+	// must have a tenancy of host to specify this parameter.
 	HostResourceGroupArn *string
 
 	// The number of the partition in which to place the instance. Valid only if the
-	// placement group strategy is set to partition.
+	// placement group strategy is set to partition .
 	PartitionNumber *int32
 
-	// The tenancy for the instance. For T3 instances, you can't change the tenancy
-	// from dedicated to host, or from host to dedicated. Attempting to make one of
-	// these unsupported tenancy changes results in the InvalidTenancy error code.
+	// The tenancy for the instance.
+	//
+	// For T3 instances, you must launch the instance on a Dedicated Host to use a
+	// tenancy of host . You can't change the tenancy from host to dedicated or default
+	// . Attempting to make one of these unsupported tenancy changes results in an
+	// InvalidRequest error code.
 	Tenancy types.HostTenancy
 
 	noSmithyDocumentSerde
@@ -101,6 +108,9 @@ type ModifyInstancePlacementOutput struct {
 }
 
 func (c *Client) addOperationModifyInstancePlacementMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpModifyInstancePlacement{}, middleware.After)
 	if err != nil {
 		return err
@@ -109,34 +119,41 @@ func (c *Client) addOperationModifyInstancePlacementMiddlewares(stack *middlewar
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ModifyInstancePlacement"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -145,10 +162,25 @@ func (c *Client) addOperationModifyInstancePlacementMiddlewares(stack *middlewar
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpModifyInstancePlacementValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opModifyInstancePlacement(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -160,6 +192,21 @@ func (c *Client) addOperationModifyInstancePlacementMiddlewares(stack *middlewar
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -167,7 +214,6 @@ func newServiceMetadataMiddleware_opModifyInstancePlacement(region string) *awsm
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "ModifyInstancePlacement",
 	}
 }
