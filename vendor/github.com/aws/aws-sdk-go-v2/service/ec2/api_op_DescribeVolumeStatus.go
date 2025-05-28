@@ -6,41 +6,51 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Describes the status of the specified volumes. Volume status provides the result
-// of the checks performed on your volumes to determine events that can impair the
-// performance of your volumes. The performance of a volume can be affected if an
-// issue occurs on the volume's underlying host. If the volume's underlying host
-// experiences a power outage or system issue, after the system is restored, there
-// could be data inconsistencies on the volume. Volume events notify you if this
-// occurs. Volume actions notify you if any action needs to be taken in response to
-// the event. The DescribeVolumeStatus operation provides the following information
-// about the specified volumes: Status: Reflects the current status of the volume.
-// The possible values are ok, impaired , warning, or insufficient-data. If all
-// checks pass, the overall status of the volume is ok. If the check fails, the
-// overall status is impaired. If the status is insufficient-data, then the checks
-// might still be taking place on your volume at the time. We recommend that you
-// retry the request. For more information about volume status, see Monitor the
-// status of your volumes
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-volume-status.html)
-// in the Amazon Elastic Compute Cloud User Guide. Events: Reflect the cause of a
-// volume status and might require you to take action. For example, if your volume
-// returns an impaired status, then the volume event might be
-// potential-data-inconsistency. This means that your volume has been affected by
-// an issue with the underlying host, has all I/O operations disabled, and might
-// have inconsistent data. Actions: Reflect the actions you might have to take in
-// response to an event. For example, if the status of the volume is impaired and
-// the volume event shows potential-data-inconsistency, then the action shows
-// enable-volume-io. This means that you may want to enable the I/O operations for
-// the volume by calling the EnableVolumeIO action and then check the volume for
-// data consistency. Volume status is based on the volume status checks, and does
-// not reflect the volume state. Therefore, volume status does not indicate volumes
-// in the error state (for example, when a volume is incapable of accepting I/O.)
+// Describes the status of the specified volumes. Volume status provides the
+// result of the checks performed on your volumes to determine events that can
+// impair the performance of your volumes. The performance of a volume can be
+// affected if an issue occurs on the volume's underlying host. If the volume's
+// underlying host experiences a power outage or system issue, after the system is
+// restored, there could be data inconsistencies on the volume. Volume events
+// notify you if this occurs. Volume actions notify you if any action needs to be
+// taken in response to the event.
+//
+// The DescribeVolumeStatus operation provides the following information about the
+// specified volumes:
+//
+// Status: Reflects the current status of the volume. The possible values are ok ,
+// impaired , warning , or insufficient-data . If all checks pass, the overall
+// status of the volume is ok . If the check fails, the overall status is impaired
+// . If the status is insufficient-data , then the checks might still be taking
+// place on your volume at the time. We recommend that you retry the request. For
+// more information about volume status, see [Monitor the status of your volumes]in the Amazon EBS User Guide.
+//
+// Events: Reflect the cause of a volume status and might require you to take
+// action. For example, if your volume returns an impaired status, then the volume
+// event might be potential-data-inconsistency . This means that your volume has
+// been affected by an issue with the underlying host, has all I/O operations
+// disabled, and might have inconsistent data.
+//
+// Actions: Reflect the actions you might have to take in response to an event.
+// For example, if the status of the volume is impaired and the volume event shows
+// potential-data-inconsistency , then the action shows enable-volume-io . This
+// means that you may want to enable the I/O operations for the volume by calling
+// the EnableVolumeIOaction and then check the volume for data consistency.
+//
+// Volume status is based on the volume status checks, and does not reflect the
+// volume state. Therefore, volume status does not indicate volumes in the error
+// state (for example, when a volume is incapable of accepting I/O.)
+//
+// The order of the elements in the response, including those within nested
+// structures, might vary. Applications should not assume the elements appear in a
+// particular order.
+//
+// [Monitor the status of your volumes]: https://docs.aws.amazon.com/ebs/latest/userguide/monitoring-volume-status.html
 func (c *Client) DescribeVolumeStatus(ctx context.Context, params *DescribeVolumeStatusInput, optFns ...func(*Options)) (*DescribeVolumeStatusOutput, error) {
 	if params == nil {
 		params = &DescribeVolumeStatusInput{}
@@ -60,68 +70,57 @@ type DescribeVolumeStatusInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// The filters.
 	//
-	// * action.code - The action code for the event (for example,
-	// enable-volume-io).
+	//   - action.code - The action code for the event (for example, enable-volume-io ).
 	//
-	// * action.description - A description of the action.
+	//   - action.description - A description of the action.
 	//
-	// *
-	// action.event-id - The event ID associated with the action.
+	//   - action.event-id - The event ID associated with the action.
 	//
-	// * availability-zone
-	// - The Availability Zone of the instance.
+	//   - availability-zone - The Availability Zone of the instance.
 	//
-	// * event.description - A description of
-	// the event.
+	//   - event.description - A description of the event.
 	//
-	// * event.event-id - The event ID.
+	//   - event.event-id - The event ID.
 	//
-	// * event.event-type - The event
-	// type (for io-enabled: passed | failed; for io-performance:
-	// io-performance:degraded | io-performance:severely-degraded |
-	// io-performance:stalled).
+	//   - event.event-type - The event type (for io-enabled : passed | failed ; for
+	//   io-performance : io-performance:degraded | io-performance:severely-degraded |
+	//   io-performance:stalled ).
 	//
-	// * event.not-after - The latest end time for the
-	// event.
+	//   - event.not-after - The latest end time for the event.
 	//
-	// * event.not-before - The earliest start time for the event.
+	//   - event.not-before - The earliest start time for the event.
 	//
-	// *
-	// volume-status.details-name - The cause for volume-status.status (io-enabled |
-	// io-performance).
+	//   - volume-status.details-name - The cause for volume-status.status ( io-enabled
+	//   | io-performance ).
 	//
-	// * volume-status.details-status - The status of
-	// volume-status.details-name (for io-enabled: passed | failed; for io-performance:
-	// normal | degraded | severely-degraded | stalled).
+	//   - volume-status.details-status - The status of volume-status.details-name (for
+	//   io-enabled : passed | failed ; for io-performance : normal | degraded |
+	//   severely-degraded | stalled ).
 	//
-	// * volume-status.status - The
-	// status of the volume (ok | impaired | warning | insufficient-data).
+	//   - volume-status.status - The status of the volume ( ok | impaired | warning |
+	//   insufficient-data ).
 	Filters []types.Filter
 
-	// The maximum number of volume results returned by DescribeVolumeStatus in
-	// paginated output. When this parameter is used, the request only returns
-	// MaxResults results in a single page along with a NextToken response element. The
-	// remaining results of the initial request can be seen by sending another request
-	// with the returned NextToken value. This value can be between 5 and 1,000; if
-	// MaxResults is given a value larger than 1,000, only 1,000 results are returned.
-	// If this parameter is not used, then DescribeVolumeStatus returns all results.
-	// You cannot specify this parameter and the volume IDs parameter in the same
-	// request.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. For more
+	// information, see [Pagination].
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	MaxResults *int32
 
-	// The NextToken value to include in a future DescribeVolumeStatus request. When
-	// the results of the request exceed MaxResults, this value can be used to retrieve
-	// the next page of results. This value is null when there are no more results to
-	// return.
+	// The token returned from a previous paginated request. Pagination continues from
+	// the end of the items returned by the previous request.
 	NextToken *string
 
-	// The IDs of the volumes. Default: Describes all your volumes.
+	// The IDs of the volumes.
+	//
+	// Default: Describes all your volumes.
 	VolumeIds []string
 
 	noSmithyDocumentSerde
@@ -129,8 +128,8 @@ type DescribeVolumeStatusInput struct {
 
 type DescribeVolumeStatusOutput struct {
 
-	// The token to use to retrieve the next page of results. This value is null when
-	// there are no more results to return.
+	// The token to include in another request to get the next page of items. This
+	// value is null when there are no more items to return.
 	NextToken *string
 
 	// Information about the status of the volumes.
@@ -143,6 +142,9 @@ type DescribeVolumeStatusOutput struct {
 }
 
 func (c *Client) addOperationDescribeVolumeStatusMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeVolumeStatus{}, middleware.After)
 	if err != nil {
 		return err
@@ -151,34 +153,41 @@ func (c *Client) addOperationDescribeVolumeStatusMiddlewares(stack *middleware.S
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeVolumeStatus"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -187,7 +196,22 @@ func (c *Client) addOperationDescribeVolumeStatusMiddlewares(stack *middleware.S
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeVolumeStatus(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -199,29 +223,32 @@ func (c *Client) addOperationDescribeVolumeStatusMiddlewares(stack *middleware.S
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// DescribeVolumeStatusAPIClient is a client that implements the
-// DescribeVolumeStatus operation.
-type DescribeVolumeStatusAPIClient interface {
-	DescribeVolumeStatus(context.Context, *DescribeVolumeStatusInput, ...func(*Options)) (*DescribeVolumeStatusOutput, error)
-}
-
-var _ DescribeVolumeStatusAPIClient = (*Client)(nil)
 
 // DescribeVolumeStatusPaginatorOptions is the paginator options for
 // DescribeVolumeStatus
 type DescribeVolumeStatusPaginatorOptions struct {
-	// The maximum number of volume results returned by DescribeVolumeStatus in
-	// paginated output. When this parameter is used, the request only returns
-	// MaxResults results in a single page along with a NextToken response element. The
-	// remaining results of the initial request can be seen by sending another request
-	// with the returned NextToken value. This value can be between 5 and 1,000; if
-	// MaxResults is given a value larger than 1,000, only 1,000 results are returned.
-	// If this parameter is not used, then DescribeVolumeStatus returns all results.
-	// You cannot specify this parameter and the volume IDs parameter in the same
-	// request.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. For more
+	// information, see [Pagination].
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -282,6 +309,9 @@ func (p *DescribeVolumeStatusPaginator) NextPage(ctx context.Context, optFns ...
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeVolumeStatus(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -301,11 +331,18 @@ func (p *DescribeVolumeStatusPaginator) NextPage(ctx context.Context, optFns ...
 	return result, nil
 }
 
+// DescribeVolumeStatusAPIClient is a client that implements the
+// DescribeVolumeStatus operation.
+type DescribeVolumeStatusAPIClient interface {
+	DescribeVolumeStatus(context.Context, *DescribeVolumeStatusInput, ...func(*Options)) (*DescribeVolumeStatusOutput, error)
+}
+
+var _ DescribeVolumeStatusAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeVolumeStatus(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeVolumeStatus",
 	}
 }

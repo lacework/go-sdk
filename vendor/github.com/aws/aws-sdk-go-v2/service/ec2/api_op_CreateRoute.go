@@ -4,30 +4,32 @@ package ec2
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Creates a route in a route table within a VPC. You must specify either a
-// destination CIDR block or a prefix list ID. You must also specify exactly one of
-// the resources from the parameter list. When determining how to route traffic, we
-// use the route with the most specific match. For example, traffic is destined for
-// the IPv4 address 192.0.2.3, and the route table includes the following two IPv4
-// routes:
+// Creates a route in a route table within a VPC.
 //
-// * 192.0.2.0/24 (goes to some target A)
+// You must specify either a destination CIDR block or a prefix list ID. You must
+// also specify exactly one of the resources from the parameter list.
 //
-// * 192.0.2.0/28 (goes to some
-// target B)
+// When determining how to route traffic, we use the route with the most specific
+// match. For example, traffic is destined for the IPv4 address 192.0.2.3 , and the
+// route table includes the following two IPv4 routes:
 //
-// Both routes apply to the traffic destined for 192.0.2.3. However, the
-// second route in the list covers a smaller number of IP addresses and is
-// therefore more specific, so we use that route to determine where to target the
-// traffic. For more information about route tables, see Route tables
-// (https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html) in the
-// Amazon Virtual Private Cloud User Guide.
+//   - 192.0.2.0/24 (goes to some target A)
+//
+//   - 192.0.2.0/28 (goes to some target B)
+//
+// Both routes apply to the traffic destined for 192.0.2.3 . However, the second
+// route in the list covers a smaller number of IP addresses and is therefore more
+// specific, so we use that route to determine where to target the traffic.
+//
+// For more information about route tables, see [Route tables] in the Amazon VPC User Guide.
+//
+// [Route tables]: https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
 func (c *Client) CreateRoute(ctx context.Context, params *CreateRouteInput, optFns ...func(*Options)) (*CreateRouteOutput, error) {
 	if params == nil {
 		params = &CreateRouteInput{}
@@ -50,8 +52,10 @@ type CreateRouteInput struct {
 	// This member is required.
 	RouteTableId *string
 
-	// The ID of the carrier gateway. You can only use this option when the VPC
-	// contains a subnet which is associated with a Wavelength Zone.
+	// The ID of the carrier gateway.
+	//
+	// You can only use this option when the VPC contains a subnet which is associated
+	// with a Wavelength Zone.
 	CarrierGatewayId *string
 
 	// The Amazon Resource Name (ARN) of the core network.
@@ -59,8 +63,8 @@ type CreateRouteInput struct {
 
 	// The IPv4 CIDR address block used for the destination match. Routing decisions
 	// are based on the most specific match. We modify the specified CIDR block to its
-	// canonical form; for example, if you specify 100.68.0.18/18, we modify it to
-	// 100.68.0.0/18.
+	// canonical form; for example, if you specify 100.68.0.18/18 , we modify it to
+	// 100.68.0.0/18 .
 	DestinationCidrBlock *string
 
 	// The IPv6 CIDR block used for the destination match. Routing decisions are based
@@ -72,8 +76,8 @@ type CreateRouteInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// [IPv6 traffic only] The ID of an egress-only internet gateway.
@@ -119,6 +123,9 @@ type CreateRouteOutput struct {
 }
 
 func (c *Client) addOperationCreateRouteMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpCreateRoute{}, middleware.After)
 	if err != nil {
 		return err
@@ -127,34 +134,41 @@ func (c *Client) addOperationCreateRouteMiddlewares(stack *middleware.Stack, opt
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateRoute"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -163,10 +177,25 @@ func (c *Client) addOperationCreateRouteMiddlewares(stack *middleware.Stack, opt
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpCreateRouteValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opCreateRoute(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -178,6 +207,21 @@ func (c *Client) addOperationCreateRouteMiddlewares(stack *middleware.Stack, opt
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -185,7 +229,6 @@ func newServiceMetadataMiddleware_opCreateRoute(region string) *awsmiddleware.Re
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "CreateRoute",
 	}
 }

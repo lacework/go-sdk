@@ -4,17 +4,19 @@ package ec2
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Delete an IPAM. Deleting an IPAM removes all monitored data associated with the
-// IPAM including the historical data for CIDRs. For more information, see Delete
-// an IPAM (https://docs.aws.amazon.com/vpc/latest/ipam/delete-ipam.html) in the
-// Amazon VPC IPAM User Guide.
+// IPAM including the historical data for CIDRs.
+//
+// For more information, see [Delete an IPAM] in the Amazon VPC IPAM User Guide.
+//
+// [Delete an IPAM]: https://docs.aws.amazon.com/vpc/latest/ipam/delete-ipam.html
 func (c *Client) DeleteIpam(ctx context.Context, params *DeleteIpamInput, optFns ...func(*Options)) (*DeleteIpamOutput, error) {
 	if params == nil {
 		params = &DeleteIpamInput{}
@@ -42,28 +44,26 @@ type DeleteIpamInput struct {
 	// with this option if there is a pool in your public scope. If you use this
 	// option, IPAM does the following:
 	//
-	// * Deallocates any CIDRs allocated to VPC
-	// resources (such as VPCs) in pools in private scopes. No VPC resources are
-	// deleted as a result of enabling this option. The CIDR associated with the
-	// resource will no longer be allocated from an IPAM pool, but the CIDR itself will
-	// remain unchanged.
+	//   - Deallocates any CIDRs allocated to VPC resources (such as VPCs) in pools in
+	//   private scopes.
 	//
-	// * Deprovisions all IPv4 CIDRs provisioned to IPAM pools in
-	// private scopes.
+	// No VPC resources are deleted as a result of enabling this option. The CIDR
+	//   associated with the resource will no longer be allocated from an IPAM pool, but
+	//   the CIDR itself will remain unchanged.
 	//
-	// * Deletes all IPAM pools in private scopes.
+	//   - Deprovisions all IPv4 CIDRs provisioned to IPAM pools in private scopes.
 	//
-	// * Deletes all
-	// non-default private scopes in the IPAM.
+	//   - Deletes all IPAM pools in private scopes.
 	//
-	// * Deletes the default public and
-	// private scopes and the IPAM.
+	//   - Deletes all non-default private scopes in the IPAM.
+	//
+	//   - Deletes the default public and private scopes and the IPAM.
 	Cascade *bool
 
 	// A check for whether you have the required permissions for the action without
 	// actually making the request and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	noSmithyDocumentSerde
@@ -81,6 +81,9 @@ type DeleteIpamOutput struct {
 }
 
 func (c *Client) addOperationDeleteIpamMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDeleteIpam{}, middleware.After)
 	if err != nil {
 		return err
@@ -89,34 +92,41 @@ func (c *Client) addOperationDeleteIpamMiddlewares(stack *middleware.Stack, opti
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DeleteIpam"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -125,10 +135,25 @@ func (c *Client) addOperationDeleteIpamMiddlewares(stack *middleware.Stack, opti
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpDeleteIpamValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDeleteIpam(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -140,6 +165,21 @@ func (c *Client) addOperationDeleteIpamMiddlewares(stack *middleware.Stack, opti
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -147,7 +187,6 @@ func newServiceMetadataMiddleware_opDeleteIpam(region string) *awsmiddleware.Reg
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DeleteIpam",
 	}
 }

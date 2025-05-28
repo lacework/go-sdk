@@ -4,8 +4,8 @@ package ssm
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -44,8 +44,8 @@ type GetDocumentInput struct {
 	DocumentVersion *string
 
 	// An optional field specifying the version of the artifact associated with the
-	// document. For example, "Release 12, Update 6". This value is unique across all
-	// versions of a document and can't be changed.
+	// document. For example, 12.6. This value is unique across all versions of a
+	// document and can't be changed.
 	VersionName *string
 
 	noSmithyDocumentSerde
@@ -63,8 +63,8 @@ type GetDocumentOutput struct {
 	// The date the SSM document was created.
 	CreatedDate *time.Time
 
-	// The friendly name of the SSM document. This value can differ for each version of
-	// the document. If you want to update this value, see UpdateDocument.
+	// The friendly name of the SSM document. This value can differ for each version
+	// of the document. If you want to update this value, see UpdateDocument.
 	DisplayName *string
 
 	// The document format, either JSON or YAML.
@@ -86,14 +86,17 @@ type GetDocumentOutput struct {
 
 	// The current review status of a new custom Systems Manager document (SSM
 	// document) created by a member of your organization, or of the latest version of
-	// an existing SSM document. Only one version of an SSM document can be in the
-	// APPROVED state at a time. When a new version is approved, the status of the
-	// previous version changes to REJECTED. Only one version of an SSM document can be
-	// in review, or PENDING, at a time.
+	// an existing SSM document.
+	//
+	// Only one version of an SSM document can be in the APPROVED state at a time.
+	// When a new version is approved, the status of the previous version changes to
+	// REJECTED.
+	//
+	// Only one version of an SSM document can be in review, or PENDING, at a time.
 	ReviewStatus types.ReviewStatus
 
-	// The status of the SSM document, such as Creating, Active, Updating, Failed, and
-	// Deleting.
+	// The status of the SSM document, such as Creating , Active , Updating , Failed ,
+	// and Deleting .
 	Status types.DocumentStatus
 
 	// A message returned by Amazon Web Services Systems Manager that explains the
@@ -102,9 +105,8 @@ type GetDocumentOutput struct {
 	// the URL of the S3 bucket is correct."
 	StatusInformation *string
 
-	// The version of the artifact associated with the document. For example, "Release
-	// 12, Update 6". This value is unique across all versions of a document, and can't
-	// be changed.
+	// The version of the artifact associated with the document. For example, 12.6.
+	// This value is unique across all versions of a document, and can't be changed.
 	VersionName *string
 
 	// Metadata pertaining to the operation's result.
@@ -114,6 +116,9 @@ type GetDocumentOutput struct {
 }
 
 func (c *Client) addOperationGetDocumentMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetDocument{}, middleware.After)
 	if err != nil {
 		return err
@@ -122,34 +127,41 @@ func (c *Client) addOperationGetDocumentMiddlewares(stack *middleware.Stack, opt
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetDocument"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -158,10 +170,25 @@ func (c *Client) addOperationGetDocumentMiddlewares(stack *middleware.Stack, opt
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpGetDocumentValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetDocument(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -173,6 +200,21 @@ func (c *Client) addOperationGetDocumentMiddlewares(stack *middleware.Stack, opt
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -180,7 +222,6 @@ func newServiceMetadataMiddleware_opGetDocument(region string) *awsmiddleware.Re
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "GetDocument",
 	}
 }

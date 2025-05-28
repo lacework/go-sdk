@@ -6,16 +6,17 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Retrieves the history of all changes to a parameter. If you change the KMS key
-// alias for the KMS key used to encrypt a parameter, then you must also update the
-// key alias the parameter uses to reference KMS. Otherwise, GetParameterHistory
-// retrieves whatever the original key alias was referencing.
+// Retrieves the history of all changes to a parameter.
+//
+// If you change the KMS key alias for the KMS key used to encrypt a parameter,
+// then you must also update the key alias the parameter uses to reference KMS.
+// Otherwise, GetParameterHistory retrieves whatever the original key alias was
+// referencing.
 func (c *Client) GetParameterHistory(ctx context.Context, params *GetParameterHistoryInput, optFns ...func(*Options)) (*GetParameterHistoryOutput, error) {
 	if params == nil {
 		params = &GetParameterHistoryInput{}
@@ -33,7 +34,9 @@ func (c *Client) GetParameterHistory(ctx context.Context, params *GetParameterHi
 
 type GetParameterHistoryInput struct {
 
-	// The name of the parameter for which you want to review history.
+	// The name or Amazon Resource Name (ARN) of the parameter for which you want to
+	// review history. For parameters shared with you from another account, you must
+	// use the full ARN.
 	//
 	// This member is required.
 	Name *string
@@ -69,6 +72,9 @@ type GetParameterHistoryOutput struct {
 }
 
 func (c *Client) addOperationGetParameterHistoryMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpGetParameterHistory{}, middleware.After)
 	if err != nil {
 		return err
@@ -77,34 +83,41 @@ func (c *Client) addOperationGetParameterHistoryMiddlewares(stack *middleware.St
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetParameterHistory"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -113,10 +126,25 @@ func (c *Client) addOperationGetParameterHistoryMiddlewares(stack *middleware.St
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpGetParameterHistoryValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetParameterHistory(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -128,16 +156,23 @@ func (c *Client) addOperationGetParameterHistoryMiddlewares(stack *middleware.St
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// GetParameterHistoryAPIClient is a client that implements the GetParameterHistory
-// operation.
-type GetParameterHistoryAPIClient interface {
-	GetParameterHistory(context.Context, *GetParameterHistoryInput, ...func(*Options)) (*GetParameterHistoryOutput, error)
-}
-
-var _ GetParameterHistoryAPIClient = (*Client)(nil)
 
 // GetParameterHistoryPaginatorOptions is the paginator options for
 // GetParameterHistory
@@ -204,6 +239,9 @@ func (p *GetParameterHistoryPaginator) NextPage(ctx context.Context, optFns ...f
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.GetParameterHistory(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -223,11 +261,18 @@ func (p *GetParameterHistoryPaginator) NextPage(ctx context.Context, optFns ...f
 	return result, nil
 }
 
+// GetParameterHistoryAPIClient is a client that implements the
+// GetParameterHistory operation.
+type GetParameterHistoryAPIClient interface {
+	GetParameterHistory(context.Context, *GetParameterHistoryInput, ...func(*Options)) (*GetParameterHistoryOutput, error)
+}
+
+var _ GetParameterHistoryAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opGetParameterHistory(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "GetParameterHistory",
 	}
 }

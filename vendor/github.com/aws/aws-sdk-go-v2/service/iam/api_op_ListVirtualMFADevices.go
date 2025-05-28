@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -14,12 +13,15 @@ import (
 
 // Lists the virtual MFA devices defined in the Amazon Web Services account by
 // assignment status. If you do not specify an assignment status, the operation
-// returns a list of all virtual MFA devices. Assignment status can be Assigned,
-// Unassigned, or Any. IAM resource-listing operations return a subset of the
-// available attributes for the resource. For example, this operation does not
-// return tags, even though they are an attribute of the returned object. To view
-// tag information for a virtual MFA device, see ListMFADeviceTags. You can
-// paginate the results using the MaxItems and Marker parameters.
+// returns a list of all virtual MFA devices. Assignment status can be Assigned ,
+// Unassigned , or Any .
+//
+// IAM resource-listing operations return a subset of the available attributes for
+// the resource. For example, this operation does not return tags, even though they
+// are an attribute of the returned object. To view tag information for a virtual
+// MFA device, see ListMFADeviceTags.
+//
+// You can paginate the results using the MaxItems and Marker parameters.
 func (c *Client) ListVirtualMFADevices(ctx context.Context, params *ListVirtualMFADevicesInput, optFns ...func(*Options)) (*ListVirtualMFADevicesOutput, error) {
 	if params == nil {
 		params = &ListVirtualMFADevicesInput{}
@@ -37,8 +39,8 @@ func (c *Client) ListVirtualMFADevices(ctx context.Context, params *ListVirtualM
 
 type ListVirtualMFADevicesInput struct {
 
-	// The status (Unassigned or Assigned) of the devices to list. If you do not
-	// specify an AssignmentStatus, the operation defaults to Any, which lists both
+	//  The status ( Unassigned or Assigned ) of the devices to list. If you do not
+	// specify an AssignmentStatus , the operation defaults to Any , which lists both
 	// assigned and unassigned virtual MFA devices.,
 	AssignmentStatus types.AssignmentStatusType
 
@@ -50,11 +52,13 @@ type ListVirtualMFADevicesInput struct {
 
 	// Use this only when paginating results to indicate the maximum number of items
 	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true. If you do not include this
-	// parameter, the number of items defaults to 100. Note that IAM might return fewer
-	// results, even when there are more results available. In that case, the
-	// IsTruncated response element returns true, and Marker contains a value to
-	// include in the subsequent call that tells the service where to continue from.
+	// specify, the IsTruncated response element is true .
+	//
+	// If you do not include this parameter, the number of items defaults to 100. Note
+	// that IAM might return fewer results, even when there are more results available.
+	// In that case, the IsTruncated response element returns true , and Marker
+	// contains a value to include in the subsequent call that tells the service where
+	// to continue from.
 	MaxItems *int32
 
 	noSmithyDocumentSerde
@@ -63,7 +67,7 @@ type ListVirtualMFADevicesInput struct {
 // Contains the response to a successful ListVirtualMFADevices request.
 type ListVirtualMFADevicesOutput struct {
 
-	// The list of virtual MFA devices in the current account that match the
+	//  The list of virtual MFA devices in the current account that match the
 	// AssignmentStatus value that was passed in the request.
 	//
 	// This member is required.
@@ -73,11 +77,11 @@ type ListVirtualMFADevicesOutput struct {
 	// were truncated, you can make a subsequent pagination request using the Marker
 	// request parameter to retrieve more items. Note that IAM might return fewer than
 	// the MaxItems number of results even when there are more results available. We
-	// recommend that you check IsTruncated after every call to ensure that you receive
-	// all your results.
+	// recommend that you check IsTruncated after every call to ensure that you
+	// receive all your results.
 	IsTruncated bool
 
-	// When IsTruncated is true, this element is present and contains the value to use
+	// When IsTruncated is true , this element is present and contains the value to use
 	// for the Marker parameter in a subsequent pagination request.
 	Marker *string
 
@@ -88,6 +92,9 @@ type ListVirtualMFADevicesOutput struct {
 }
 
 func (c *Client) addOperationListVirtualMFADevicesMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsquery_serializeOpListVirtualMFADevices{}, middleware.After)
 	if err != nil {
 		return err
@@ -96,34 +103,41 @@ func (c *Client) addOperationListVirtualMFADevicesMiddlewares(stack *middleware.
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ListVirtualMFADevices"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -132,7 +146,22 @@ func (c *Client) addOperationListVirtualMFADevicesMiddlewares(stack *middleware.
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opListVirtualMFADevices(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -144,27 +173,36 @@ func (c *Client) addOperationListVirtualMFADevicesMiddlewares(stack *middleware.
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// ListVirtualMFADevicesAPIClient is a client that implements the
-// ListVirtualMFADevices operation.
-type ListVirtualMFADevicesAPIClient interface {
-	ListVirtualMFADevices(context.Context, *ListVirtualMFADevicesInput, ...func(*Options)) (*ListVirtualMFADevicesOutput, error)
-}
-
-var _ ListVirtualMFADevicesAPIClient = (*Client)(nil)
 
 // ListVirtualMFADevicesPaginatorOptions is the paginator options for
 // ListVirtualMFADevices
 type ListVirtualMFADevicesPaginatorOptions struct {
 	// Use this only when paginating results to indicate the maximum number of items
 	// you want in the response. If additional items exist beyond the maximum you
-	// specify, the IsTruncated response element is true. If you do not include this
-	// parameter, the number of items defaults to 100. Note that IAM might return fewer
-	// results, even when there are more results available. In that case, the
-	// IsTruncated response element returns true, and Marker contains a value to
-	// include in the subsequent call that tells the service where to continue from.
+	// specify, the IsTruncated response element is true .
+	//
+	// If you do not include this parameter, the number of items defaults to 100. Note
+	// that IAM might return fewer results, even when there are more results available.
+	// In that case, the IsTruncated response element returns true , and Marker
+	// contains a value to include in the subsequent call that tells the service where
+	// to continue from.
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -225,6 +263,9 @@ func (p *ListVirtualMFADevicesPaginator) NextPage(ctx context.Context, optFns ..
 	}
 	params.MaxItems = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.ListVirtualMFADevices(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -244,11 +285,18 @@ func (p *ListVirtualMFADevicesPaginator) NextPage(ctx context.Context, optFns ..
 	return result, nil
 }
 
+// ListVirtualMFADevicesAPIClient is a client that implements the
+// ListVirtualMFADevices operation.
+type ListVirtualMFADevicesAPIClient interface {
+	ListVirtualMFADevices(context.Context, *ListVirtualMFADevicesInput, ...func(*Options)) (*ListVirtualMFADevicesOutput, error)
+}
+
+var _ ListVirtualMFADevicesAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opListVirtualMFADevices(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "iam",
 		OperationName: "ListVirtualMFADevices",
 	}
 }

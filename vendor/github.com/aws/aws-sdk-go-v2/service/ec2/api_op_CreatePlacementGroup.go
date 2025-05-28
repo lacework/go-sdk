@@ -4,23 +4,26 @@ package ec2
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // Creates a placement group in which to launch instances. The strategy of the
-// placement group determines how the instances are organized within the group. A
-// cluster placement group is a logical grouping of instances within a single
+// placement group determines how the instances are organized within the group.
+//
+// A cluster placement group is a logical grouping of instances within a single
 // Availability Zone that benefit from low network latency, high network
 // throughput. A spread placement group places instances on distinct hardware. A
 // partition placement group places groups of instances in different partitions,
 // where instances in one partition do not share the same hardware with instances
-// in another partition. For more information, see Placement groups
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html) in
-// the Amazon EC2 User Guide.
+// in another partition.
+//
+// For more information, see [Placement groups] in the Amazon EC2 User Guide.
+//
+// [Placement groups]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html
 func (c *Client) CreatePlacementGroup(ctx context.Context, params *CreatePlacementGroupInput, optFns ...func(*Options)) (*CreatePlacementGroupOutput, error) {
 	if params == nil {
 		params = &CreatePlacementGroupInput{}
@@ -38,25 +41,26 @@ func (c *Client) CreatePlacementGroup(ctx context.Context, params *CreatePlaceme
 
 type CreatePlacementGroupInput struct {
 
-	// Checks whether you have the required permissions for the action, without
+	// Checks whether you have the required permissions for the operation, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// A name for the placement group. Must be unique within the scope of your account
-	// for the Region. Constraints: Up to 255 ASCII characters
+	// for the Region.
+	//
+	// Constraints: Up to 255 ASCII characters
 	GroupName *string
 
-	// The number of partitions. Valid only when Strategy is set to partition.
+	// The number of partitions. Valid only when Strategy is set to partition .
 	PartitionCount *int32
 
 	// Determines how placement groups spread instances.
 	//
-	// * Host – You can use host
-	// only with Outpost placement groups.
+	//   - Host – You can use host only with Outpost placement groups.
 	//
-	// * Rack – No usage restrictions.
+	//   - Rack – No usage restrictions.
 	SpreadLevel types.SpreadLevel
 
 	// The placement strategy.
@@ -80,6 +84,9 @@ type CreatePlacementGroupOutput struct {
 }
 
 func (c *Client) addOperationCreatePlacementGroupMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpCreatePlacementGroup{}, middleware.After)
 	if err != nil {
 		return err
@@ -88,34 +95,41 @@ func (c *Client) addOperationCreatePlacementGroupMiddlewares(stack *middleware.S
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreatePlacementGroup"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -124,7 +138,22 @@ func (c *Client) addOperationCreatePlacementGroupMiddlewares(stack *middleware.S
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opCreatePlacementGroup(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -136,6 +165,21 @@ func (c *Client) addOperationCreatePlacementGroupMiddlewares(stack *middleware.S
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -143,7 +187,6 @@ func newServiceMetadataMiddleware_opCreatePlacementGroup(region string) *awsmidd
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "CreatePlacementGroup",
 	}
 }
