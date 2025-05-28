@@ -7,8 +7,11 @@ import (
 )
 
 // ParseResourceName extracts the resource name from the caller identity Arn
-// for example if the Arn is arn:aws:iam::123456789012:user/MyUser
-// MyUser string is returned
+// Examples:
+//   - arn:aws:iam::123456789012:root -> root
+//   - arn:aws:iam::123456789012:user/MyUser -> MyUser
+//   - arn:aws:iam::123456789012:role/application_abc/component_xyz/RDSAccess -> RDSAccess
+//   - arn:aws:iam::123456789012:assumed-role/preflight_ro/aws-go-sdk-00000000000 -> preflight_ro
 func ParseResourceName(arnStr string) (string, error) {
 	arnObj, err := arn.Parse(arnStr)
 	if err != nil {
