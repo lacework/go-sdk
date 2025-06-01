@@ -109,7 +109,7 @@ func userFriendlyErrorForOnDemandCtrVulnScan(err error, registry, repo, tag stri
 		"Could not find vulnerability integrations",
 	) {
 
-		registries, errReg := getContainerRegistries()
+		registries, errReg := getPlatformScannerIntegrationContainerRegistries()
 		if errReg != nil {
 			cli.Log.Debugw("error trying to retrieve configured registries", "error", errReg)
 			return errors.Errorf("container registry '%s' not found", registry)
