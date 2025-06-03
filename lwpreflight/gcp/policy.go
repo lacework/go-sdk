@@ -15,7 +15,7 @@ import (
 
 func FetchPolicies(p *Preflight) error {
 	var err error
-	policies := []*cloudresourcemanagerV3.Policy{}
+	var policies []*cloudresourcemanagerV3.Policy
 
 	if p.orgID != "" {
 		policies, err = fetchOrgPolicies(p)
@@ -74,12 +74,12 @@ func fetchProjectPolicies(p *Preflight) ([]*cloudresourcemanagerV3.Policy, error
 		return nil, err
 	}
 
-	policies := []*cloudresourcemanagerV3.Policy{}
-
 	response, err := crmSvc.Projects.GetAncestry(p.projectID, &cloudresourcemanager.GetAncestryRequest{}).Do()
 	if err != nil {
 		return nil, err
 	}
+
+	policies := []*cloudresourcemanagerV3.Policy{}
 
 	for _, a := range response.Ancestor {
 		var policy *cloudresourcemanagerV3.Policy

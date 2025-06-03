@@ -2,6 +2,7 @@ package gcp
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"golang.org/x/oauth2"
@@ -82,7 +83,10 @@ func New(params Params) (*Preflight, error) {
 			credentialsFile = os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 		}
 		if credentialsFile == "" {
-			return nil, errors.New("CredentialsFile or AccessToken must be provided. Alternatively, set the GOOGLE_APPLICATION_CREDENTIALS environment variable.")
+			return nil, errors.New(fmt.Sprint(
+				"CredentialsFile or AccessToken must be provided. ",
+				"Alternatively, set the GOOGLE_APPLICATION_CREDENTIALS environment variable.",
+			))
 		}
 		preflight.gcpClientOption = option.WithCredentialsFile(credentialsFile)
 	}
