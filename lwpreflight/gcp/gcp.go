@@ -37,6 +37,7 @@ type Params struct {
 	ProjectID       string
 	AccessToken     string
 	CredentialsFile string // Path to the credential JSON file
+	CredentialsJSON string // Content of the credential JSON file
 }
 
 func New(params Params) (*Preflight, error) {
@@ -75,6 +76,8 @@ func New(params Params) (*Preflight, error) {
 	if params.AccessToken != "" {
 		token := &oauth2.Token{AccessToken: params.AccessToken}
 		preflight.gcpClientOption = option.WithTokenSource(oauth2.StaticTokenSource(token))
+	} else if params.CredentialsJSON != "" {
+		preflight.gcpClientOption = option.WithCredentialsJSON([]byte(params.CredentialsJSON))
 	} else {
 		var credentialsFile string
 		if params.CredentialsFile != "" {
@@ -84,7 +87,7 @@ func New(params Params) (*Preflight, error) {
 		}
 		if credentialsFile == "" {
 			return nil, errors.New(fmt.Sprint(
-				"CredentialsFile or AccessToken must be provided. ",
+				"AccessToken, CredentialsFile or CredentialsJSON must be provided. ",
 				"Alternatively, set the GOOGLE_APPLICATION_CREDENTIALS environment variable.",
 			))
 		}
