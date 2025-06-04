@@ -46,7 +46,8 @@ INTEGRATION_TEST_TAGS=account \
 	report_definitions \
 	component \
 	resource_groups \
-	generation
+	generation \
+	preflight
 
 .PHONY: help
 help:

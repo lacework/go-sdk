@@ -98,7 +98,7 @@ func fetchProjectPolicies(p *Preflight) ([]*cloudresourcemanagerV3.Policy, error
 			).Do()
 		case "project":
 			policy, err = crmSvcV3.Projects.GetIamPolicy(
-				a.ResourceId.Id,
+				fmt.Sprintf("projects/%s", a.ResourceId.Id),
 				policyRequest,
 			).Do()
 		case "folder":
