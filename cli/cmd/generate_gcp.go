@@ -14,41 +14,37 @@ import (
 	"github.com/lacework/go-sdk/v2/lwgenerate/gcp"
 )
 
+// Question labels
+const (
+	IconGcpAgentless     = "[Agentless]"
+	IconGcpConfiguration = "[Configuration]"
+	IconGcpAuditLog      = "[Audit Log]"
+)
+
 var (
 	// Define question text here to be reused in testing
-	QuestionGcpEnableAgentless         = "Enable Agentless integration?"
-	QuestionGcpEnableConfiguration     = "Enable Configuration integration?"
-	QuestionGcpEnableAuditLog          = "Enable Audit Log integration?"
-	QuestionGcpOrganizationIntegration = "Organization integration?"
-	QuestionGcpOrganizationID          = "Specify the GCP organization ID:"
-	QuestionGcpProjectID               = "Specify the project ID to be used to provision Lacework resources:"
-	QuestionGcpServiceAccountCredsPath = "Specify service account credentials JSON path: (optional)"
+	// Core questions
+	QuestionGcpEnableAgentless              = "Enable Agentless integration?"
+	QuestionGcpEnableConfiguration          = "Enable Configuration integration?"
+	QuestionGcpEnableAuditLog               = "Enable Audit Log integration?"
+	QuestionGcpOrganizationIntegration      = "Organization integration?"
+	QuestionGcpOrganizationID               = "Organization ID:"
+	QuestionGcpProjectID                    = "Project ID to be used to provision Lacework resources:"
+	QuestionGcpServiceAccountCredsPath      = "Service account credentials JSON path: (optional)"
+	QuestionGcpRegions                      = "Comma separated list of regions to deploy Agentless:"
+	QuestionGcpProjectFilterList            = "Comma separated list of project IDs to monitor: (optional)"
+	QuestionGcpUseExistingSink              = "Use an existing sink?"
+	QuestionGcpExistingSinkName             = "Existing sink name:"
+	QuestionGcpConfigurationIntegrationName = "Custom Configuration integration name: (optional)"
+	QuestionGcpAuditLogIntegrationName      = "Custom Audit Log integration name: (optional)"
+	QuestionGcpCustomFilter                 = "Custom Audit Log filter which supersedes other filter options: (optional)"
+	QuestionGcpCustomizeOutputLocation      = "Provide the location for the output to be written: (optional)"
+	QuestionGcpCustomizeProjects            = "Provide comma separated list of project IDs to deploy: (optional)"
 
-	QuestionGcpConfigureAdvanced             = "Configure advanced integration options?"
-	GcpAdvancedOptExistingServiceAccount     = "Configure & use existing service account"
-	QuestionExistingServiceAccountName       = "Specify an existing service account name:"
-	QuestionExistingServiceAccountPrivateKey = "Specify an existing service account private key (base64 encoded):"
-
-	GcpAdvancedOptAgentless      = "Configure additional Agentless options"
-	QuestionGcpProjectFilterList = "Specify a comma separated list of Google Cloud projects that " +
-		"you want to monitor: (optional)"
-	QuestionGcpRegions = "Specify a comma separated list of regions to deploy Agentless:"
-
-	GcpAdvancedOptAuditLog      = "Configure additional Audit Log options"
-	QuestionGcpUseExistingSink  = "Use an existing sink?"
-	QuestionGcpExistingSinkName = "Specify the existing sink name"
-
-	GcpAdvancedOptIntegrationName           = "Customize integration name(s)"
-	QuestionGcpConfigurationIntegrationName = "Specify a custom configuration integration name: (optional)"
-	QuestionGcpAuditLogIntegrationName      = "Specify a custom Audit Log integration name: (optional)"
-
-	QuestionGcpAnotherAdvancedOpt      = "Configure another advanced integration option"
-	GcpAdvancedOptLocation             = "Customize output location"
-	GcpAdvancedOptProjects             = "Configure multiple projects"
-	QuestionGcpCustomizeOutputLocation = "Provide the location for the output to be written:"
-	QuestionGcpCustomizeProjects       = "Provide comma separated list of project ID"
-	QuestionGcpCustomFilter            = "Specify a custom Audit Log filter which supersedes all other filter options"
-	GcpAdvancedOptDone                 = "Done"
+	// Service account questions
+	QuestionUseExistingServiceAccount        = "Use existing service account details?"
+	QuestionExistingServiceAccountName       = "Existing service account name:"
+	QuestionExistingServiceAccountPrivateKey = "Existing service account private key (base64 encoded):"
 
 	// GcpRegionRegex regex used for validating region input
 	GcpRegionRegex = `(asia|australia|europe|northamerica|southamerica|us)-(central|(north|south)?(east|west)?)\d`
@@ -62,6 +58,54 @@ var (
 	InvalidProjectIDMessage = "invalid GCP project ID. " +
 		"It must be 6 to 30 lowercase ASCII letters, digits, or hyphens. " +
 		"It must start with a letter. Trailing hyphens are prohibited. Example: tokyo-rain-123"
+
+	// List of valid GCP regions
+	validGcpRegions = map[string]bool{
+		"africa-south1":           true,
+		"asia-east1":              true,
+		"asia-east2":              true,
+		"asia-northeast1":         true,
+		"asia-northeast2":         true,
+		"asia-northeast3":         true,
+		"asia-south1":             true,
+		"asia-south2":             true,
+		"asia-southeast1":         true,
+		"asia-southeast2":         true,
+		"australia-southeast1":    true,
+		"australia-southeast2":    true,
+		"europe-central2":         true,
+		"europe-north1":           true,
+		"europe-north2":           true,
+		"europe-southwest1":       true,
+		"europe-west1":            true,
+		"europe-west2":            true,
+		"europe-west3":            true,
+		"europe-west4":            true,
+		"europe-west5":            true,
+		"europe-west6":            true,
+		"europe-west8":            true,
+		"europe-west9":            true,
+		"europe-west10":           true,
+		"europe-west12":           true,
+		"me-central1":             true,
+		"me-central2":             true,
+		"me-west1":                true,
+		"northamerica-northeast1": true,
+		"northamerica-northeast2": true,
+		"northamerica-south1":     true,
+		"southamerica-east1":      true,
+		"southamerica-west1":      true,
+		"us-central1":             true,
+		"us-central2":             true,
+		"us-east1":                true,
+		"us-east4":                true,
+		"us-east5":                true,
+		"us-south1":               true,
+		"us-west1":                true,
+		"us-west2":                true,
+		"us-west3":                true,
+		"us-west4":                true,
+	}
 
 	// gcp command is used to generate TF code for gcp
 	generateGcpTfCommand = &cobra.Command{
@@ -261,7 +305,6 @@ See help output for more details on the parameter value(s) required for Terrafor
 )
 
 type GcpGenerateCommandExtraState struct {
-	AskAdvanced               bool
 	Output                    string
 	UseExistingServiceAccount bool
 	UseExistingSink           bool
@@ -270,7 +313,6 @@ type GcpGenerateCommandExtraState struct {
 
 func (gcp *GcpGenerateCommandExtraState) isEmpty() bool {
 	return gcp.Output == "" &&
-		!gcp.AskAdvanced &&
 		!gcp.UseExistingServiceAccount &&
 		!gcp.UseExistingSink &&
 		!gcp.TerraformApply
@@ -425,22 +467,74 @@ func initGenerateGcpTfCommandFlags() {
 		"list of project IDs to integrate with (project-level integrations)")
 }
 
-func promptGcpAgentlessQuestions(
-	config *gcp.GenerateGcpTfConfigurationArgs,
-	extraState *GcpGenerateCommandExtraState,
-) error {
+func validateGcpRegion(val interface{}) error {
+	switch value := val.(type) {
+	case string:
+		regions := strings.Split(value, ",")
+		for _, region := range regions {
+			region = strings.TrimSpace(region)
+			if !validGcpRegions[region] {
+				return errors.New("invalid GCP region. Please provide a valid GCP region (e.g., 'us-central1', 'europe-west1')")
+			}
+		}
+	default:
+		return errors.New("value must be a string")
+	}
+
+	return nil
+}
+
+func promptGcpAgentlessQuestions(config *gcp.GenerateGcpTfConfigurationArgs) error {
+	regionsInput := ""
 	projectFilterListInput := ""
 
 	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpProjectFilterList, Default: strings.Join(config.ProjectFilterList, ",")},
+			Icon: IconGcpAgentless,
+			Prompt: &survey.Input{
+				Message: QuestionGcpRegions,
+				Default: strings.Join(config.Regions, ","),
+				Help:    "Enter a valid GCP region (e.g., 'us-central1', 'europe-west1')",
+			},
+			Response: &regionsInput,
+			Required: true,
+			Opts:     []survey.AskOpt{survey.WithValidator(validateGcpRegion)},
+		},
+		{
+			Icon: IconGcpAgentless,
+			Prompt: &survey.Input{
+				Message: QuestionGcpProjectFilterList,
+				Default: strings.Join(config.ProjectFilterList, ","),
+			},
 			Response: &projectFilterListInput,
 		},
-	}, config.Agentless)
+	})
 
+	if err != nil {
+		return err
+	}
+
+	if regionsInput != "" {
+		config.Regions = strings.Split(regionsInput, ",")
+	}
 	if projectFilterListInput != "" {
 		config.ProjectFilterList = strings.Split(projectFilterListInput, ",")
 	}
+
+	return nil
+}
+
+func promptGcpConfigurationQuestions(config *gcp.GenerateGcpTfConfigurationArgs) error {
+	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon: IconGcpConfiguration,
+			Prompt: &survey.Input{
+				Message: QuestionGcpConfigurationIntegrationName,
+				Default: config.ConfigurationIntegrationName,
+			},
+			Response: &config.ConfigurationIntegrationName,
+		},
+	})
 
 	return err
 }
@@ -449,26 +543,68 @@ func promptGcpAuditLogQuestions(
 	config *gcp.GenerateGcpTfConfigurationArgs,
 	extraState *GcpGenerateCommandExtraState,
 ) error {
-
 	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Confirm{Message: QuestionGcpUseExistingSink, Default: extraState.UseExistingSink},
-			Checks:   []*bool{&config.AuditLog},
-			Required: true,
+			Icon: IconGcpAuditLog,
+			Prompt: &survey.Confirm{
+				Message: QuestionGcpUseExistingSink,
+				Default: extraState.UseExistingSink,
+			},
 			Response: &extraState.UseExistingSink,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpExistingSinkName, Default: config.ExistingLogSinkName},
-			Checks:   []*bool{&config.AuditLog, &extraState.UseExistingSink},
-			Required: true,
+			Icon: IconGcpAuditLog,
+			Prompt: &survey.Input{
+				Message: QuestionGcpExistingSinkName,
+				Default: config.ExistingLogSinkName,
+			},
+			Checks:   []*bool{&extraState.UseExistingSink},
 			Response: &config.ExistingLogSinkName,
 		},
 		{
-			Prompt:   &survey.Input{Message: QuestionGcpCustomFilter, Default: config.CustomFilter},
-			Checks:   []*bool{&config.AuditLog},
+			Icon: IconGcpAuditLog,
+			Prompt: &survey.Input{
+				Message: QuestionGcpAuditLogIntegrationName,
+				Default: config.AuditLogIntegrationName,
+			},
+			Response: &config.AuditLogIntegrationName,
+		},
+		{
+			Icon: IconGcpAuditLog,
+			Prompt: &survey.Input{
+				Message: QuestionGcpCustomFilter,
+				Default: config.CustomFilter,
+			},
 			Response: &config.CustomFilter,
 		},
-	}, config.AuditLog)
+	})
+
+	return err
+}
+
+func promptGcpOrganizationQuestions(config *gcp.GenerateGcpTfConfigurationArgs) error {
+	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt: &survey.Input{
+				Message: QuestionGcpOrganizationID,
+				Default: config.GcpOrganizationId,
+			},
+			Required: true,
+			Response: &config.GcpOrganizationId,
+		},
+	})
+
+	return err
+}
+
+func promptGcpServiceAccountQuestions(config *gcp.GenerateGcpTfConfigurationArgs) error {
+	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt:   &survey.Input{Message: QuestionGcpServiceAccountCredsPath, Default: config.ServiceAccountCredentials},
+			Opts:     []survey.AskOpt{survey.WithValidator(gcp.ValidateServiceAccountCredentials)},
+			Response: &config.ServiceAccountCredentials,
+		},
+	})
 
 	return err
 }
@@ -479,44 +615,42 @@ func promptGcpExistingServiceAccountQuestions(config *gcp.GenerateGcpTfConfigura
 		config.ExistingServiceAccount = &gcp.ExistingServiceAccountDetails{}
 	}
 
-	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+	// Prompt for service account name first (optional)
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
-			Prompt:   &survey.Input{Message: QuestionExistingServiceAccountName, Default: config.ExistingServiceAccount.Name},
+			Prompt: &survey.Input{
+				Message: QuestionExistingServiceAccountName,
+				Default: config.ExistingServiceAccount.Name,
+			},
 			Response: &config.ExistingServiceAccount.Name,
-			Opts:     []survey.AskOpt{survey.WithValidator(survey.Required)},
 		},
-		{
-			Prompt: &survey.Input{
-				Message: QuestionExistingServiceAccountPrivateKey,
-				Default: config.ExistingServiceAccount.PrivateKey,
-			},
-			Response: &config.ExistingServiceAccount.PrivateKey,
-			Opts: []survey.AskOpt{
-				survey.WithValidator(survey.Required),
-				survey.WithValidator(gcp.ValidateStringIsBase64),
-			},
-		}})
+	}); err != nil {
+		return err
+	}
 
-	return err
-}
-
-func promptGcpIntegrationNameQuestions(config *gcp.GenerateGcpTfConfigurationArgs) error {
-	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt: &survey.Input{
-				Message: QuestionGcpConfigurationIntegrationName,
-				Default: config.ConfigurationIntegrationName,
+	// If service account name is set (either from flag or prompt), require private key and validate
+	if strings.TrimSpace(config.ExistingServiceAccount.Name) != "" {
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Prompt: &survey.Input{
+					Message: QuestionExistingServiceAccountPrivateKey,
+					Default: config.ExistingServiceAccount.PrivateKey,
+				},
+				Response: &config.ExistingServiceAccount.PrivateKey,
+				Opts: []survey.AskOpt{
+					survey.WithValidator(survey.Required),
+					survey.WithValidator(gcp.ValidateStringIsBase64),
+				},
 			},
-			Checks:   []*bool{&config.Configuration},
-			Response: &config.ConfigurationIntegrationName,
-		},
-		{
-			Prompt:   &survey.Input{Message: QuestionGcpAuditLogIntegrationName, Default: config.AuditLogIntegrationName},
-			Checks:   []*bool{&config.AuditLog},
-			Response: &config.AuditLogIntegrationName,
-		}})
+		}); err != nil {
+			return err
+		}
+	} else {
+		// If name is not set, clear private key as well
+		config.ExistingServiceAccount.PrivateKey = ""
+	}
 
-	return err
+	return nil
 }
 
 func promptCustomizeGcpOutputLocation(extraState *GcpGenerateCommandExtraState) error {
@@ -524,17 +658,29 @@ func promptCustomizeGcpOutputLocation(extraState *GcpGenerateCommandExtraState) 
 		Prompt:   &survey.Input{Message: QuestionGcpCustomizeOutputLocation, Default: extraState.Output},
 		Response: &extraState.Output,
 		Opts:     []survey.AskOpt{survey.WithValidator(validPathExists)},
-		Required: true,
 	})
 
 	return err
 }
 
 func promptCustomizeGcpProjects(config *gcp.GenerateGcpTfConfigurationArgs) error {
+	// Determine the correct label
+	var label string
+	if config.Configuration && config.AuditLog {
+		label = "[Configuration & AuditLog]"
+	} else if config.Configuration {
+		label = IconGcpConfiguration
+	} else {
+		label = IconGcpAuditLog
+	}
 
 	validation := func(val interface{}) error {
 		switch value := val.(type) {
 		case string:
+			// If empty string, that's valid (optional field)
+			if value == "" {
+				return nil
+			}
 			for _, id := range strings.Split(value, ",") {
 				err := validateGcpProjectId(strings.TrimSpace(id))
 				if err != nil {
@@ -544,116 +690,34 @@ func promptCustomizeGcpProjects(config *gcp.GenerateGcpTfConfigurationArgs) erro
 		default:
 			return errors.New("value must be a string")
 		}
-
 		return nil
 	}
 
 	var projects string
 
-	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Input{Message: QuestionGcpCustomizeProjects},
-		Response: &projects,
-		Opts:     []survey.AskOpt{survey.WithValidator(validation)},
-		Required: true,
+	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon:     label,
+			Prompt:   &survey.Input{Message: QuestionGcpCustomizeProjects},
+			Response: &projects,
+			Opts:     []survey.AskOpt{survey.WithValidator(validation)},
+		},
 	})
 
 	if err != nil {
 		return err
 	}
 
-	for _, id := range strings.Split(projects, ",") {
-		config.Projects = append(config.Projects, strings.TrimSpace(id))
-	}
-
-	return nil
-}
-
-func askAdvancedOptions(config *gcp.GenerateGcpTfConfigurationArgs, extraState *GcpGenerateCommandExtraState) error {
-	answer := ""
-
-	// Prompt for options
-	for answer != GcpAdvancedOptDone {
-		// Construction of this slice is a bit strange at first look, but the reason for that is because we have to do
-		// string validation to know which option was selected due to how survey works; and doing it by index (also
-		// supported) is difficult when the options are dynamic (which they are)
-		var options []string
-
-		// Only show Advanced Agentless options if Agentless integration is set to true
-		if config.Agentless {
-			options = append(options, GcpAdvancedOptAgentless)
-		}
-
-		// Only show Advanced AuditLog options if AuditLog integration is set to true
-		if config.AuditLog {
-			options = append(options, GcpAdvancedOptAuditLog)
-		}
-
-		options = append(options,
-			GcpAdvancedOptExistingServiceAccount,
-			GcpAdvancedOptIntegrationName,
-			GcpAdvancedOptLocation,
-			GcpAdvancedOptProjects,
-			GcpAdvancedOptDone)
-		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Prompt: &survey.Select{
-				Message: "Which options would you like to configure?",
-				Options: options,
-			},
-			Response: &answer,
-		}); err != nil {
-			return err
-		}
-
-		// Based on response, prompt for actions
-		switch answer {
-		case GcpAdvancedOptAgentless:
-			if err := promptGcpAgentlessQuestions(config, extraState); err != nil {
-				return err
-			}
-		case GcpAdvancedOptAuditLog:
-			if err := promptGcpAuditLogQuestions(config, extraState); err != nil {
-				return err
-			}
-		case GcpAdvancedOptExistingServiceAccount:
-			if err := promptGcpExistingServiceAccountQuestions(config); err != nil {
-				return err
-			}
-		case GcpAdvancedOptIntegrationName:
-			if err := promptGcpIntegrationNameQuestions(config); err != nil {
-				return err
-			}
-		case GcpAdvancedOptLocation:
-			if err := promptCustomizeGcpOutputLocation(extraState); err != nil {
-				return err
-			}
-		case GcpAdvancedOptProjects:
-			if err := promptCustomizeGcpProjects(config); err != nil {
-				return err
-			}
-		}
-
-		// Re-prompt if not done
-		innerAskAgain := true
-		if answer == GcpAdvancedOptDone {
-			innerAskAgain = false
-		}
-
-		if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-			Checks:   []*bool{&innerAskAgain},
-			Prompt:   &survey.Confirm{Message: QuestionGcpAnotherAdvancedOpt, Default: false},
-			Response: &innerAskAgain,
-		}); err != nil {
-			return err
-		}
-
-		if !innerAskAgain {
-			answer = GcpAdvancedOptDone
+	if projects != "" {
+		for _, id := range strings.Split(projects, ",") {
+			config.Projects = append(config.Projects, strings.TrimSpace(id))
 		}
 	}
 
 	return nil
 }
 
+// writeGcpGenerationArgsCache writes the current state to the cache
 func gcpConfigIsEmpty(g *gcp.GenerateGcpTfConfigurationArgs) bool {
 	return !g.Agentless &&
 		!g.AuditLog &&
@@ -691,23 +755,109 @@ func promptGcpGenerate(
 		config.ExistingServiceAccount = existingServiceAccount
 	}
 
-	// These are the core questions that should be asked.
-	if err := SurveyMultipleQuestionWithValidation(
-		[]SurveyQuestionWithValidationArgs{
-			{
-				Prompt:   &survey.Confirm{Message: QuestionGcpEnableAgentless, Default: config.Agentless},
-				Response: &config.Agentless,
+	// Ask for project ID first as it's required for all integrations
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt: &survey.Input{
+				Message: QuestionGcpProjectID,
+				Default: config.GcpProjectId,
 			},
-			{
-				Prompt:   &survey.Confirm{Message: QuestionGcpEnableConfiguration, Default: config.Configuration},
-				Response: &config.Configuration,
-			},
-			{
-				Prompt:   &survey.Confirm{Message: QuestionGcpEnableAuditLog, Default: config.AuditLog},
-				Response: &config.AuditLog,
-			},
-		}); err != nil {
+			Opts:     []survey.AskOpt{survey.WithValidator(validateGcpProjectId)},
+			Required: true,
+			Response: &config.GcpProjectId,
+		},
+	}); err != nil {
 		return err
+	}
+
+	// Ask organization integration
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt: &survey.Confirm{
+				Message: QuestionGcpOrganizationIntegration,
+				Default: config.OrganizationIntegration,
+			},
+			Response: &config.OrganizationIntegration,
+		},
+	}); err != nil {
+		return err
+	}
+
+	// Ask for organization ID if organization integration is enabled
+	if config.OrganizationIntegration {
+		if err := promptGcpOrganizationQuestions(config); err != nil {
+			return err
+		}
+	}
+
+	// Ask about each integration type and immediately ask related questions
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon: IconGcpAgentless,
+			Prompt: &survey.Confirm{
+				Message: QuestionGcpEnableAgentless,
+				Default: config.Agentless,
+			},
+			Response: &config.Agentless,
+		},
+	}); err != nil {
+		return err
+	}
+
+	// If Agentless is enabled, ask Agentless-specific questions immediately
+	if config.Agentless {
+		if err := promptGcpAgentlessQuestions(config); err != nil {
+			return err
+		}
+	}
+
+	// Ask for organization ID if organization integration is not enabled and agentless is enabled
+	if !config.OrganizationIntegration && config.Agentless {
+		if err := promptGcpOrganizationQuestions(config); err != nil {
+			return err
+		}
+	}
+
+	// Ask about Configuration integration
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon: IconGcpConfiguration,
+			Prompt: &survey.Confirm{
+				Message: QuestionGcpEnableConfiguration,
+				Default: config.Configuration,
+			},
+			Response: &config.Configuration,
+		},
+	}); err != nil {
+		return err
+	}
+
+	// If Configuration is enabled, ask Configuration-specific questions immediately
+	if config.Configuration {
+		if err := promptGcpConfigurationQuestions(config); err != nil {
+			return err
+		}
+	}
+
+	// Ask about Audit Log integration
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon: IconGcpAuditLog,
+			Prompt: &survey.Confirm{
+				Message: QuestionGcpEnableAuditLog,
+				Default: config.AuditLog,
+			},
+			Response: &config.AuditLog,
+		},
+	}); err != nil {
+		return err
+	}
+
+	// If Audit Log is enabled, ask Audit Log-specific questions immediately
+	if config.AuditLog {
+		if err := promptGcpAuditLogQuestions(config, extraState); err != nil {
+			return err
+		}
 	}
 
 	// Validate one of configuration or audit log was enabled; otherwise error out
@@ -715,68 +865,37 @@ func promptGcpGenerate(
 		return errors.New("must enable agentless, audit log or configuration")
 	}
 
-	configOrAuditLogEnabled := config.Configuration || config.AuditLog
-	regionsInput := ""
-
-	if err := SurveyMultipleQuestionWithValidation(
-		[]SurveyQuestionWithValidationArgs{
-			{
-				Prompt:   &survey.Input{Message: QuestionGcpProjectID, Default: config.GcpProjectId},
-				Opts:     []survey.AskOpt{survey.WithValidator(validateGcpProjectId)},
-				Required: true,
-				Response: &config.GcpProjectId,
-			},
-			{
-				Prompt:   &survey.Input{Message: QuestionGcpRegions, Default: strings.Join(config.Regions, ",")},
-				Checks:   []*bool{&config.Agentless},
-				Response: &regionsInput,
-				Required: true,
-			},
-			{
-				Prompt:   &survey.Confirm{Message: QuestionGcpOrganizationIntegration, Default: config.OrganizationIntegration},
-				Response: &config.OrganizationIntegration,
-			},
-		}); err != nil {
-		return err
-	}
-
-	organizationIdRequired := config.Agentless || config.OrganizationIntegration
-
-	if err := SurveyMultipleQuestionWithValidation(
-		[]SurveyQuestionWithValidationArgs{
-			{
-				Prompt:   &survey.Input{Message: QuestionGcpOrganizationID, Default: config.GcpOrganizationId},
-				Checks:   []*bool{&organizationIdRequired},
-				Required: true,
-				Response: &config.GcpOrganizationId,
-			},
-			{
-				Prompt:   &survey.Input{Message: QuestionGcpServiceAccountCredsPath, Default: config.ServiceAccountCredentials},
-				Opts:     []survey.AskOpt{survey.WithValidator(gcp.ValidateServiceAccountCredentials)},
-				Checks:   []*bool{&configOrAuditLogEnabled},
-				Response: &config.ServiceAccountCredentials,
-			},
-		}); err != nil {
-		return err
-	}
-
-	if regionsInput != "" {
-		config.Regions = strings.Split(regionsInput, ",")
-	}
-
-	// Find out if the customer wants to specify more advanced features
-	if err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Confirm{Message: QuestionGcpConfigureAdvanced, Default: extraState.AskAdvanced},
-		Response: &extraState.AskAdvanced,
-	}); err != nil {
-		return err
-	}
-
-	// Keep prompting for advanced options until the say done
-	if extraState.AskAdvanced {
-		if err := askAdvancedOptions(config, extraState); err != nil {
+	// Ask for multiple projects & service account credentials if configuration or audit log is enabled
+	if config.Configuration || config.AuditLog {
+		if err := promptCustomizeGcpProjects(config); err != nil {
 			return err
 		}
+		if err := promptGcpServiceAccountQuestions(config); err != nil {
+			return err
+		}
+		// If no credentials path provided, ask for direct service account details
+		if config.ServiceAccountCredentials == "" {
+			// yes or no question for using existing service account
+			useExisting := false
+			if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+				{
+					Prompt:   &survey.Confirm{Message: QuestionUseExistingServiceAccount, Default: false},
+					Response: &useExisting,
+				},
+			}); err != nil {
+				return err
+			}
+			if useExisting {
+				if err := promptGcpExistingServiceAccountQuestions(config); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	// Ask for output location
+	if err := promptCustomizeGcpOutputLocation(extraState); err != nil {
+		return err
 	}
 
 	return nil
