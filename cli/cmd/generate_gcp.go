@@ -32,14 +32,14 @@ var (
 	QuestionGcpProjectID                    = "Project ID to be used to provision Lacework resources:"
 	QuestionGcpServiceAccountCredsPath      = "Service account credentials JSON path: (optional)"
 	QuestionGcpRegions                      = "Comma separated list of regions to deploy Agentless:"
-	QuestionGcpProjectFilterList            = "Comma separated list of Google Cloud projects to monitor: (optional)"
+	QuestionGcpProjectFilterList            = "Comma separated list of project IDs to monitor: (optional)"
 	QuestionGcpUseExistingSink              = "Use an existing sink?"
 	QuestionGcpExistingSinkName             = "Existing sink name:"
 	QuestionGcpConfigurationIntegrationName = "Custom Configuration integration name: (optional)"
 	QuestionGcpAuditLogIntegrationName      = "Custom Audit Log integration name: (optional)"
 	QuestionGcpCustomFilter                 = "Custom Audit Log filter which supersedes other filter options: (optional)"
 	QuestionGcpCustomizeOutputLocation      = "Provide the location for the output to be written: (optional)"
-	QuestionGcpCustomizeProjects            = "Provide comma separated list of project IDs: (optional)"
+	QuestionGcpCustomizeProjects            = "Provide comma separated list of project IDs to deploy: (optional)"
 
 	// Service account questions
 	QuestionUseExistingServiceAccount        = "Use existing service account details?"
@@ -664,6 +664,16 @@ func promptCustomizeGcpOutputLocation(extraState *GcpGenerateCommandExtraState) 
 }
 
 func promptCustomizeGcpProjects(config *gcp.GenerateGcpTfConfigurationArgs) error {
+	// Determine the correct label
+	var label string
+	if config.Configuration && config.AuditLog {
+		label = "[Configuration & AuditLog]"
+	} else if config.Configuration {
+		label = IconGcpConfiguration
+	} else {
+		label = IconGcpAuditLog
+	}
+
 	validation := func(val interface{}) error {
 		switch value := val.(type) {
 		case string:
@@ -680,23 +690,24 @@ func promptCustomizeGcpProjects(config *gcp.GenerateGcpTfConfigurationArgs) erro
 		default:
 			return errors.New("value must be a string")
 		}
-
 		return nil
 	}
 
 	var projects string
 
-	err := SurveyQuestionInteractiveOnly(SurveyQuestionWithValidationArgs{
-		Prompt:   &survey.Input{Message: QuestionGcpCustomizeProjects},
-		Response: &projects,
-		Opts:     []survey.AskOpt{survey.WithValidator(validation)},
+	err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon:     label,
+			Prompt:   &survey.Input{Message: QuestionGcpCustomizeProjects},
+			Response: &projects,
+			Opts:     []survey.AskOpt{survey.WithValidator(validation)},
+		},
 	})
 
 	if err != nil {
 		return err
 	}
 
-	// Only process projects if a value was provided
 	if projects != "" {
 		for _, id := range strings.Split(projects, ",") {
 			config.Projects = append(config.Projects, strings.TrimSpace(id))
@@ -759,9 +770,24 @@ func promptGcpGenerate(
 		return err
 	}
 
-	// Ask about multiple projects
-	if err := promptCustomizeGcpProjects(config); err != nil {
+	// Ask organization integration
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Prompt: &survey.Confirm{
+				Message: QuestionGcpOrganizationIntegration,
+				Default: config.OrganizationIntegration,
+			},
+			Response: &config.OrganizationIntegration,
+		},
+	}); err != nil {
 		return err
+	}
+
+	// Ask for organization ID if organization integration is enabled
+	if config.OrganizationIntegration {
+		if err := promptGcpOrganizationQuestions(config); err != nil {
+			return err
+		}
 	}
 
 	// Ask about each integration type and immediately ask related questions
@@ -781,6 +807,13 @@ func promptGcpGenerate(
 	// If Agentless is enabled, ask Agentless-specific questions immediately
 	if config.Agentless {
 		if err := promptGcpAgentlessQuestions(config); err != nil {
+			return err
+		}
+	}
+
+	// Ask for organization ID if organization integration is not enabled and agentless is enabled
+	if !config.OrganizationIntegration && config.Agentless {
+		if err := promptGcpOrganizationQuestions(config); err != nil {
 			return err
 		}
 	}
@@ -832,28 +865,11 @@ func promptGcpGenerate(
 		return errors.New("must enable agentless, audit log or configuration")
 	}
 
-	// Ask organization integration
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Prompt: &survey.Confirm{
-				Message: QuestionGcpOrganizationIntegration,
-				Default: config.OrganizationIntegration,
-			},
-			Response: &config.OrganizationIntegration,
-		},
-	}); err != nil {
-		return err
-	}
-
-	// Ask for organization ID if organization integration is enabled or agentless is enabled
-	if config.OrganizationIntegration || config.Agentless {
-		if err := promptGcpOrganizationQuestions(config); err != nil {
+	// Ask for multiple projects & service account credentials if configuration or audit log is enabled
+	if config.Configuration || config.AuditLog {
+		if err := promptCustomizeGcpProjects(config); err != nil {
 			return err
 		}
-	}
-
-	// Ask for service account credentials if configuration or audit log is enabled
-	if config.Configuration || config.AuditLog {
 		if err := promptGcpServiceAccountQuestions(config); err != nil {
 			return err
 		}
