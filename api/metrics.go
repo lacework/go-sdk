@@ -19,6 +19,7 @@
 package api
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 )
@@ -30,18 +31,22 @@ type MetricsService struct {
 	client *Client
 }
 
-func (svc *MetricsService) Send(event Honeyvent) (response HoneyEventResponse, err error) {
+func (svc *MetricsService) Send(event MetricEvent) (err error) {
 	if disabled := os.Getenv(DisableTelemetry); disabled != "" {
-		return HoneyEventResponse{Data: []Honeyvent{{TraceID: "Telemetry Disabled"}}}, nil
+		return
 	}
 
 	event.setAccountDetails(*svc.client)
-	err = svc.client.RequestEncoderDecoder("POST", apiV2HoneyMetrics, event, &response)
+	event.SampleRate100 = true
+	event.TelemetrySource = "external"
+	event.TelemetryType = "customer"
+
+	err = svc.client.RequestEncoderDecoder("POST", fmt.Sprintf(apiV2OtelMetrics, event.Dataset), event, nil)
 	return
 }
 
-func NewHoneyvent(version, feature, dataset string) Honeyvent {
-	event := Honeyvent{
+func NewMetricEvent(version, feature, dataset string) MetricEvent {
+	event := MetricEvent{
 		Os:      runtime.GOOS,
 		Arch:    runtime.GOARCH,
 		TraceID: newID(),
@@ -53,7 +58,7 @@ func NewHoneyvent(version, feature, dataset string) Honeyvent {
 	return event
 }
 
-func (h *Honeyvent) setAccountDetails(client Client) {
+func (h *MetricEvent) setAccountDetails(client Client) {
 	if h.Account == "" {
 		h.Account = client.account
 	}
@@ -62,8 +67,8 @@ func (h *Honeyvent) setAccountDetails(client Client) {
 	}
 }
 
-// Honeyvent defines what a Honeycomb event looks like for the Lacework CLI
-type Honeyvent struct {
+// MetricEvent defines what a metric event looks like for the Lacework CLI
+type MetricEvent struct {
 	Version       string      `json:"version"`
 	CfgVersion    int         `json:"config_version"`
 	Os            string      `json:"os"`
@@ -89,15 +94,13 @@ type Honeyvent struct {
 	SpanID    string `json:"trace.span_id,omitempty"`
 	ParentID  string `json:"trace.parent_id,omitempty"`
 	ContextID string `json:"trace.context_id,omitempty"`
+
+	SampleRate100   bool   `json:"sample_rate_100,omitempty"`
+	TelemetrySource string `json:"telemetry_source,omitempty"`
+	TelemetryType   string `json:"telemetry_type,omitempty"`
 }
 
-type HoneyEventResponse struct {
-	Data    []Honeyvent `json:"data"`
-	Ok      bool        `json:"ok"`
-	Message string      `json:"message"`
-}
-
-func (e *Honeyvent) AddFeatureField(key string, value interface{}) {
+func (e *MetricEvent) AddFeatureField(key string, value interface{}) {
 	if e.FeatureData == nil {
 		e.FeatureData = map[string]interface{}{key: value}
 		return

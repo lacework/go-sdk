@@ -78,7 +78,7 @@ func app() error {
 		).WithDuration(time.Since(now).Milliseconds()).Send()
 
 		if err != nil {
-			log.Error("unable to send honeyvent", "error", err)
+			log.Error("unable to send MetricEvent", "error", err)
 		}
 	}(highestSev)
 

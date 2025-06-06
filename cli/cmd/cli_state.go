@@ -61,7 +61,7 @@ type cliState struct {
 	LwApi        *api.Client
 	JsonF        *prettyjson.Formatter
 	Log          *zap.SugaredLogger
-	Event        *api.Honeyvent
+	Event        *api.MetricEvent
 	Cache        *diskv.Diskv
 	LwComponents *lwcomponent.State
 
@@ -108,8 +108,8 @@ func NewDefaultState() *cliState {
 		cdkServerPort:  defaultGrpcPort,
 	}
 
-	// initialize honeycomb library and honeyvent
-	c.InitHoneyvent()
+	// initialize MetricEvent
+	c.InitMetricEvent()
 
 	return c
 }
@@ -135,7 +135,7 @@ func (c *cliState) SetProfile(profile string) error {
 // this function verifies parameters and env variables coming from viper
 func (c *cliState) LoadState() error {
 	defer func() {
-		// update global honeyvent with loaded state
+		// update global MetricEvent with loaded state
 		c.Event.Account = c.Account
 		c.Event.Subaccount = c.Subaccount
 		c.Event.Profile = c.Profile

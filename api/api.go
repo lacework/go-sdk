@@ -27,7 +27,7 @@ const (
 	// API v2 Endpoints
 	apiTokens = "v2/access/tokens" // Auth
 
-	apiV2HoneyMetrics = "v2/metrics/honeycomb"
+	apiV2OtelMetrics = "v2/telemetry/OtelMetrics?dataset=%s"
 
 	apiV2UserProfile = "v2/UserProfile"
 

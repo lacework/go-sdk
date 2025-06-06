@@ -190,13 +190,13 @@ func pollScanStatus(requestID string, args []string) error {
 		evalGUID, err := checkScanStatus(requestID)
 		if err != nil {
 			cli.Event.Error = err.Error()
-			cli.SendHoneyvent()
+			cli.SendMetricEvent()
 			return err
 		}
 
 		if evalGUID == "" {
 			cli.Log.Debugw("waiting for a retry", "request_id", requestID, "sleep", expPollTime)
-			cli.SendHoneyvent()
+			cli.SendMetricEvent()
 			time.Sleep(expPollTime)
 			expPollTime = time.Duration(retries*retries) * time.Second
 			continue
@@ -206,7 +206,7 @@ func pollScanStatus(requestID string, args []string) error {
 		params["total_duration_ms"] = time.Since(start).Milliseconds()
 		params["eval_guid"] = evalGUID
 		cli.Event.FeatureData = params
-		cli.SendHoneyvent()
+		cli.SendMetricEvent()
 
 		// reset event fields
 		cli.Event.DurationMs = 0

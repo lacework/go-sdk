@@ -46,12 +46,12 @@ func (c *cliState) Migrations() (err error) {
 
 	defer func() {
 		if err == nil {
-			c.SendHoneyvent()
+			c.SendMetricEvent()
 		} else {
 			err = errors.Wrap(err, "during v2 migration")
 		}
 
-		// update global honeyvent with updated state
+		// update global MetricEvent with updated state
 		c.Event.Account = c.Account
 		c.Event.Subaccount = c.Subaccount
 		c.Event.CfgVersion = c.CfgVersion

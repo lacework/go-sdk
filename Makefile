@@ -17,11 +17,10 @@ COVERAGEHTML?=coverage.html
 GOJUNITOUT?=go-junit.xml
 PACKAGENAME?=lacework-cli
 CLINAME?=lacework
-# Honeycomb variables
-HONEYDATASET?=lacework-cli-dev
+METRIC_DATASET?=lacework-cli-dev
 GO_LDFLAGS="-X github.com/lacework/go-sdk/v2/cli/cmd.Version=$(shell cat VERSION) \
             -X github.com/lacework/go-sdk/v2/cli/cmd.GitSHA=$(shell git rev-parse HEAD) \
-            -X github.com/lacework/go-sdk/v2/cli/cmd.HoneyDataset=$(HONEYDATASET) \
+            -X github.com/lacework/go-sdk/v2/cli/cmd.MetricDataset=$(METRIC_DATASET) \
             -X github.com/lacework/go-sdk/v2/cli/cmd.BuildTime=$(shell date +%Y%m%d%H%M%S)"
 GOFLAGS=-mod=vendor
 CGO_ENABLED?=0

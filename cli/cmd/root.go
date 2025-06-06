@@ -78,7 +78,7 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 )
 
 func cliPersistentPreRun(cmd *cobra.Command, args []string) error {
-	cli.Log.Debugw("updating honeyvent", "dataset", HoneyDataset)
+	cli.Log.Debugw("updating MetricEvent", "dataset", MetricDataset)
 	cli.Event.Command = cmd.CommandPath()
 	cli.Event.Args = args
 	cli.Event.Flags = parseFlags(os.Args[1:])
@@ -105,7 +105,7 @@ func cliPersistentPreRun(cmd *cobra.Command, args []string) error {
 			}
 		}
 	}
-	cli.SendHoneyvent()
+	cli.SendMetricEvent()
 	return nil
 }
 
@@ -113,7 +113,7 @@ func componentPersistentPreRun(cmd *cobra.Command, args []string) error {
 	cli.Event.Command = cmd.CommandPath()
 	cli.Event.Component = cmd.Use
 	cli.Event.Flags = parseFlags(os.Args[1:])
-	defer cli.SendHoneyvent()
+	defer cli.SendMetricEvent()
 
 	// For components, we disable flag parsing, therefore we
 	// split args into those handled by the CLI and those
@@ -131,7 +131,7 @@ func componentPersistentPreRun(cmd *cobra.Command, args []string) error {
 			"provided_flags", cli.componentParser.cliArgs)
 	}
 
-	cli.Log.Debugw("honeyvent updated", "dataset", HoneyDataset)
+	cli.Log.Debugw("MetricEvent updated", "dataset", MetricDataset)
 
 	return cli.NewClient()
 }
@@ -164,9 +164,9 @@ func Execute() (err error) {
 	}
 
 	if err = rootCmd.Execute(); err != nil {
-		// send a new error event to Honeycomb
+		// send a new error event to Elastic
 		cli.Event.Error = err.Error()
-		cli.SendHoneyvent()
+		cli.SendMetricEvent()
 	}
 
 	return

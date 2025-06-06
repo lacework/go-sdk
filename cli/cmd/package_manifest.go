@@ -61,10 +61,10 @@ func (c *cliState) GeneratePackageManifest() (*api.VulnerabilitiesPackageManifes
 		c.Event.DurationMs = time.Since(start).Milliseconds()
 		if err == nil {
 			// if this function returns an error, most likely,
-			// the command will send a honeyvent with that error,
+			// the command will send a MetricEvent with that error,
 			// therefore we should duplicate events and only send
 			// one here if there is NO error
-			c.SendHoneyvent()
+			c.SendMetricEvent()
 		}
 	}()
 
@@ -497,7 +497,7 @@ func fanOutHostScans(manifests ...*api.VulnerabilitiesPackageManifest) (
 		cli.Event.DurationMs = time.Since(start).Milliseconds()
 		// avoid duplicating events
 		if err == nil {
-			cli.SendHoneyvent()
+			cli.SendMetricEvent()
 		}
 	}()
 
