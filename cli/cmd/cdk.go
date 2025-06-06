@@ -121,7 +121,7 @@ func (c *cliState) Honeyvent(ctx context.Context, in *cdk.HoneyventRequest) (*cd
 	}
 
 	// Send the Honeyvent
-	c.SendHoneyvent()
+	c.SendMetricEvent()
 
 	return &cdk.Reply{}, nil
 }

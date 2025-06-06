@@ -419,7 +419,7 @@ func installComponent(args []string) (err error) {
 
 	cli.Event.Component = componentName
 	cli.Event.Feature = "install_component"
-	defer cli.SendHoneyvent()
+	defer cli.SendMetricEvent()
 
 	catalog, err := LoadCatalog(componentName, false)
 	if err != nil {
@@ -896,7 +896,7 @@ func prototypeRunComponentsInstall(_ *cobra.Command, args []string) (err error) 
 
 	cli.Event.Component = componentName
 	cli.Event.Feature = "install_component"
-	defer cli.SendHoneyvent()
+	defer cli.SendMetricEvent()
 
 	cli.StartProgress("Loading components state...")
 	// @afiune maybe move the state to the cache and fetch if it if has expired

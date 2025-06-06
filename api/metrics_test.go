@@ -21,7 +21,7 @@ func TestDisableTelemetry(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	res, err := c.V2.Metrics.Send(api.Honeyvent{})
+	res, err := c.V2.Metrics.Send(api.MetricEvent{})
 
 	assert.Nil(t, err)
 	assert.Equal(t, res.Data[0].TraceID, "Telemetry Disabled")
