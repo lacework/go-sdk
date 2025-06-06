@@ -31,13 +31,17 @@ type MetricsService struct {
 	client *Client
 }
 
-func (svc *MetricsService) Send(event MetricEvent) (response MetricEventResponse, err error) {
+func (svc *MetricsService) Send(event MetricEvent) (err error) {
 	if disabled := os.Getenv(DisableTelemetry); disabled != "" {
-		return MetricEventResponse{Data: []MetricEvent{{TraceID: "Telemetry Disabled"}}}, nil
+		return
 	}
 
 	event.setAccountDetails(*svc.client)
-	err = svc.client.RequestEncoderDecoder("POST", fmt.Sprintf(apiV2OtelMetrics, event.Dataset), event, &response)
+	event.SampleRate100 = true
+	event.TelemetrySource = "external"
+	event.TelemetryType = "customer"
+
+	err = svc.client.RequestEncoderDecoder("POST", fmt.Sprintf(apiV2OtelMetrics, event.Dataset), event, nil)
 	return
 }
 
@@ -90,12 +94,10 @@ type MetricEvent struct {
 	SpanID    string `json:"trace.span_id,omitempty"`
 	ParentID  string `json:"trace.parent_id,omitempty"`
 	ContextID string `json:"trace.context_id,omitempty"`
-}
 
-type MetricEventResponse struct {
-	Data    []MetricEvent `json:"data"`
-	Ok      bool          `json:"ok"`
-	Message string        `json:"message"`
+	SampleRate100   bool   `json:"sample_rate_100,omitempty"`
+	TelemetrySource string `json:"telemetry_source,omitempty"`
+	TelemetryType   string `json:"telemetry_type,omitempty"`
 }
 
 func (e *MetricEvent) AddFeatureField(key string, value interface{}) {

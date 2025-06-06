@@ -177,7 +177,7 @@ func (c *cliState) SendMetricEvent() {
 
 		c.Log.Debugw("sending MetricEvent", "dataset", MetricDataset)
 
-		_, err := c.LwApi.V2.Metrics.Send(event)
+		err := c.LwApi.V2.Metrics.Send(event)
 		if err != nil {
 			c.Log.Debugw("unable to send MetricEvent", "error", err)
 		}
