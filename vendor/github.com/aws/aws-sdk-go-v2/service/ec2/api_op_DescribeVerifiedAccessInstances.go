@@ -6,13 +6,12 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Describe Verified Access instances.
+// Describes the specified Amazon Web Services Verified Access instances.
 func (c *Client) DescribeVerifiedAccessInstances(ctx context.Context, params *DescribeVerifiedAccessInstancesInput, optFns ...func(*Options)) (*DescribeVerifiedAccessInstancesOutput, error) {
 	if params == nil {
 		params = &DescribeVerifiedAccessInstancesInput{}
@@ -32,8 +31,8 @@ type DescribeVerifiedAccessInstancesInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// One or more filters. Filter names and values are case-sensitive.
@@ -46,7 +45,7 @@ type DescribeVerifiedAccessInstancesInput struct {
 	// The token for the next page of results.
 	NextToken *string
 
-	// The IDs of the Amazon Web Services Verified Access instances.
+	// The IDs of the Verified Access instances.
 	VerifiedAccessInstanceIds []string
 
 	noSmithyDocumentSerde
@@ -58,7 +57,7 @@ type DescribeVerifiedAccessInstancesOutput struct {
 	// there are no more results to return.
 	NextToken *string
 
-	// The IDs of the Amazon Web Services Verified Access instances.
+	// Details about the Verified Access instances.
 	VerifiedAccessInstances []types.VerifiedAccessInstance
 
 	// Metadata pertaining to the operation's result.
@@ -68,6 +67,9 @@ type DescribeVerifiedAccessInstancesOutput struct {
 }
 
 func (c *Client) addOperationDescribeVerifiedAccessInstancesMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeVerifiedAccessInstances{}, middleware.After)
 	if err != nil {
 		return err
@@ -76,34 +78,41 @@ func (c *Client) addOperationDescribeVerifiedAccessInstancesMiddlewares(stack *m
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeVerifiedAccessInstances"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -112,7 +121,22 @@ func (c *Client) addOperationDescribeVerifiedAccessInstancesMiddlewares(stack *m
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeVerifiedAccessInstances(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -124,16 +148,23 @@ func (c *Client) addOperationDescribeVerifiedAccessInstancesMiddlewares(stack *m
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// DescribeVerifiedAccessInstancesAPIClient is a client that implements the
-// DescribeVerifiedAccessInstances operation.
-type DescribeVerifiedAccessInstancesAPIClient interface {
-	DescribeVerifiedAccessInstances(context.Context, *DescribeVerifiedAccessInstancesInput, ...func(*Options)) (*DescribeVerifiedAccessInstancesOutput, error)
-}
-
-var _ DescribeVerifiedAccessInstancesAPIClient = (*Client)(nil)
 
 // DescribeVerifiedAccessInstancesPaginatorOptions is the paginator options for
 // DescribeVerifiedAccessInstances
@@ -202,6 +233,9 @@ func (p *DescribeVerifiedAccessInstancesPaginator) NextPage(ctx context.Context,
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeVerifiedAccessInstances(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -221,11 +255,18 @@ func (p *DescribeVerifiedAccessInstancesPaginator) NextPage(ctx context.Context,
 	return result, nil
 }
 
+// DescribeVerifiedAccessInstancesAPIClient is a client that implements the
+// DescribeVerifiedAccessInstances operation.
+type DescribeVerifiedAccessInstancesAPIClient interface {
+	DescribeVerifiedAccessInstances(context.Context, *DescribeVerifiedAccessInstancesInput, ...func(*Options)) (*DescribeVerifiedAccessInstancesOutput, error)
+}
+
+var _ DescribeVerifiedAccessInstancesAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeVerifiedAccessInstances(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeVerifiedAccessInstances",
 	}
 }

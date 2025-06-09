@@ -6,19 +6,19 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Creates a new maintenance window. The value you specify for Duration determines
-// the specific end time for the maintenance window based on the time it begins. No
-// maintenance window tasks are permitted to start after the resulting endtime
-// minus the number of hours you specify for Cutoff. For example, if the
-// maintenance window starts at 3 PM, the duration is three hours, and the value
-// you specify for Cutoff is one hour, no maintenance window tasks can start after
-// 5 PM.
+// Creates a new maintenance window.
+//
+// The value you specify for Duration determines the specific end time for the
+// maintenance window based on the time it begins. No maintenance window tasks are
+// permitted to start after the resulting endtime minus the number of hours you
+// specify for Cutoff . For example, if the maintenance window starts at 3 PM, the
+// duration is three hours, and the value you specify for Cutoff is one hour, no
+// maintenance window tasks can start after 5 PM.
 func (c *Client) CreateMaintenanceWindow(ctx context.Context, params *CreateMaintenanceWindowInput, optFns ...func(*Options)) (*CreateMaintenanceWindowOutput, error) {
 	if params == nil {
 		params = &CreateMaintenanceWindowInput{}
@@ -39,9 +39,10 @@ type CreateMaintenanceWindowInput struct {
 	// Enables a maintenance window task to run on managed nodes, even if you haven't
 	// registered those nodes as targets. If enabled, then you must specify the
 	// unregistered managed nodes (by node ID) when you register a task with the
-	// maintenance window. If you don't enable this option, then you must specify
-	// previously-registered targets when you register a task with the maintenance
-	// window.
+	// maintenance window.
+	//
+	// If you don't enable this option, then you must specify previously-registered
+	// targets when you register a task with the maintenance window.
 	//
 	// This member is required.
 	AllowUnassociatedTargets bool
@@ -55,7 +56,7 @@ type CreateMaintenanceWindowInput struct {
 	// The duration of the maintenance window in hours.
 	//
 	// This member is required.
-	Duration int32
+	Duration *int32
 
 	// The name of the maintenance window.
 	//
@@ -75,44 +76,51 @@ type CreateMaintenanceWindowInput struct {
 	Description *string
 
 	// The date and time, in ISO-8601 Extended format, for when you want the
-	// maintenance window to become inactive. EndDate allows you to set a date and time
-	// in the future when the maintenance window will no longer run.
+	// maintenance window to become inactive. EndDate allows you to set a date and
+	// time in the future when the maintenance window will no longer run.
 	EndDate *string
 
 	// The number of days to wait after the date and time specified by a cron
-	// expression before running the maintenance window. For example, the following
-	// cron expression schedules a maintenance window to run on the third Tuesday of
-	// every month at 11:30 PM. cron(30 23 ? * TUE#3 *) If the schedule offset is 2,
-	// the maintenance window won't run until two days later.
+	// expression before running the maintenance window.
+	//
+	// For example, the following cron expression schedules a maintenance window to
+	// run on the third Tuesday of every month at 11:30 PM.
+	//
+	//     cron(30 23 ? * TUE#3 *)
+	//
+	// If the schedule offset is 2 , the maintenance window won't run until two days
+	// later.
 	ScheduleOffset *int32
 
 	// The time zone that the scheduled maintenance window executions are based on, in
 	// Internet Assigned Numbers Authority (IANA) format. For example:
-	// "America/Los_Angeles", "UTC", or "Asia/Seoul". For more information, see the
-	// Time Zone Database (https://www.iana.org/time-zones) on the IANA website.
+	// "America/Los_Angeles", "UTC", or "Asia/Seoul". For more information, see the [Time Zone Database]on
+	// the IANA website.
+	//
+	// [Time Zone Database]: https://www.iana.org/time-zones
 	ScheduleTimezone *string
 
 	// The date and time, in ISO-8601 Extended format, for when you want the
-	// maintenance window to become active. StartDate allows you to delay activation of
-	// the maintenance window until the specified future date.
+	// maintenance window to become active. StartDate allows you to delay activation
+	// of the maintenance window until the specified future date.
+	//
+	// When using a rate schedule, if you provide a start date that occurs in the
+	// past, the current date and time are used as the start date.
 	StartDate *string
 
-	// Optional metadata that you assign to a resource. Tags enable you to categorize a
-	// resource in different ways, such as by purpose, owner, or environment. For
+	// Optional metadata that you assign to a resource. Tags enable you to categorize
+	// a resource in different ways, such as by purpose, owner, or environment. For
 	// example, you might want to tag a maintenance window to identify the type of
 	// tasks it will run, the types of targets, and the environment it will run in. In
 	// this case, you could specify the following key-value pairs:
 	//
-	// *
-	// Key=TaskType,Value=AgentUpdate
+	//   - Key=TaskType,Value=AgentUpdate
 	//
-	// * Key=OS,Value=Windows
+	//   - Key=OS,Value=Windows
 	//
-	// *
-	// Key=Environment,Value=Production
+	//   - Key=Environment,Value=Production
 	//
-	// To add tags to an existing maintenance window,
-	// use the AddTagsToResource operation.
+	// To add tags to an existing maintenance window, use the AddTagsToResource operation.
 	Tags []types.Tag
 
 	noSmithyDocumentSerde
@@ -130,6 +138,9 @@ type CreateMaintenanceWindowOutput struct {
 }
 
 func (c *Client) addOperationCreateMaintenanceWindowMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsAwsjson11_serializeOpCreateMaintenanceWindow{}, middleware.After)
 	if err != nil {
 		return err
@@ -138,40 +149,59 @@ func (c *Client) addOperationCreateMaintenanceWindowMiddlewares(stack *middlewar
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateMaintenanceWindow"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
 		return err
 	}
 	if err = addIdempotencyToken_opCreateMaintenanceWindowMiddleware(stack, options); err != nil {
@@ -183,6 +213,9 @@ func (c *Client) addOperationCreateMaintenanceWindowMiddlewares(stack *middlewar
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opCreateMaintenanceWindow(options.Region), middleware.Before); err != nil {
 		return err
 	}
+	if err = addRecursionDetection(stack); err != nil {
+		return err
+	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
 		return err
 	}
@@ -190,6 +223,21 @@ func (c *Client) addOperationCreateMaintenanceWindowMiddlewares(stack *middlewar
 		return err
 	}
 	if err = addRequestResponseLogging(stack, options); err != nil {
+		return err
+	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
 		return err
 	}
 	return nil
@@ -232,7 +280,6 @@ func newServiceMetadataMiddleware_opCreateMaintenanceWindow(region string) *awsm
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ssm",
 		OperationName: "CreateMaintenanceWindow",
 	}
 }

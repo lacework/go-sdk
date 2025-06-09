@@ -6,19 +6,16 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Describes one or more of your linked EC2-Classic instances. This request only
-// returns information about EC2-Classic instances linked to a VPC through
-// ClassicLink. You cannot use this request to return information about other
-// instances. We are retiring EC2-Classic. We recommend that you migrate from
-// EC2-Classic to a VPC. For more information, see Migrate from EC2-Classic to a
-// VPC (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html) in
-// the Amazon Elastic Compute Cloud User Guide.
+// This action is deprecated.
+//
+// Describes your linked EC2-Classic instances. This request only returns
+// information about EC2-Classic instances linked to a VPC through ClassicLink. You
+// cannot use this request to return information about other instances.
 func (c *Client) DescribeClassicLinkInstances(ctx context.Context, params *DescribeClassicLinkInstancesInput, optFns ...func(*Options)) (*DescribeClassicLinkInstancesOutput, error) {
 	if params == nil {
 		params = &DescribeClassicLinkInstancesInput{}
@@ -38,41 +35,42 @@ type DescribeClassicLinkInstancesInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
-	// One or more filters.
+	// The filters.
 	//
-	// * group-id - The ID of a VPC security group that's
-	// associated with the instance.
+	//   - group-id - The ID of a VPC security group that's associated with the
+	//   instance.
 	//
-	// * instance-id - The ID of the instance.
+	//   - instance-id - The ID of the instance.
 	//
-	// * tag: -
-	// The key/value combination of a tag assigned to the resource. Use the tag key in
-	// the filter name and the tag value as the filter value. For example, to find all
-	// resources that have a tag with the key Owner and the value TeamA, specify
-	// tag:Owner for the filter name and TeamA for the filter value.
+	//   - tag - The key/value combination of a tag assigned to the resource. Use the
+	//   tag key in the filter name and the tag value as the filter value. For example,
+	//   to find all resources that have a tag with the key Owner and the value TeamA ,
+	//   specify tag:Owner for the filter name and TeamA for the filter value.
 	//
-	// * tag-key - The
-	// key of a tag assigned to the resource. Use this filter to find all resources
-	// assigned a tag with a specific key, regardless of the tag value.
+	//   - tag-key - The key of a tag assigned to the resource. Use this filter to find
+	//   all resources assigned a tag with a specific key, regardless of the tag value.
 	//
-	// * vpc-id - The
-	// ID of the VPC to which the instance is linked. vpc-id - The ID of the VPC that
-	// the instance is linked to.
+	//   - vpc-id - The ID of the VPC to which the instance is linked.
 	Filters []types.Filter
 
-	// One or more instance IDs. Must be instances linked to a VPC through ClassicLink.
+	// The instance IDs. Must be instances linked to a VPC through ClassicLink.
 	InstanceIds []string
 
-	// The maximum number of results to return with a single call. To retrieve the
-	// remaining results, make another call with the returned nextToken value.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. For more
+	// information, see [Pagination].
+	//
 	// Constraint: If the value is greater than 1000, we return only 1000 items.
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	MaxResults *int32
 
-	// The token for the next page of results.
+	// The token returned from a previous paginated request. Pagination continues from
+	// the end of the items returned by the previous request.
 	NextToken *string
 
 	noSmithyDocumentSerde
@@ -83,8 +81,8 @@ type DescribeClassicLinkInstancesOutput struct {
 	// Information about one or more linked EC2-Classic instances.
 	Instances []types.ClassicLinkInstance
 
-	// The token to use to retrieve the next page of results. This value is null when
-	// there are no more results to return.
+	// The token to include in another request to get the next page of items. This
+	// value is null when there are no more items to return.
 	NextToken *string
 
 	// Metadata pertaining to the operation's result.
@@ -94,6 +92,9 @@ type DescribeClassicLinkInstancesOutput struct {
 }
 
 func (c *Client) addOperationDescribeClassicLinkInstancesMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeClassicLinkInstances{}, middleware.After)
 	if err != nil {
 		return err
@@ -102,34 +103,41 @@ func (c *Client) addOperationDescribeClassicLinkInstancesMiddlewares(stack *midd
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeClassicLinkInstances"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -138,7 +146,22 @@ func (c *Client) addOperationDescribeClassicLinkInstancesMiddlewares(stack *midd
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeClassicLinkInstances(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -150,23 +173,34 @@ func (c *Client) addOperationDescribeClassicLinkInstancesMiddlewares(stack *midd
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// DescribeClassicLinkInstancesAPIClient is a client that implements the
-// DescribeClassicLinkInstances operation.
-type DescribeClassicLinkInstancesAPIClient interface {
-	DescribeClassicLinkInstances(context.Context, *DescribeClassicLinkInstancesInput, ...func(*Options)) (*DescribeClassicLinkInstancesOutput, error)
-}
-
-var _ DescribeClassicLinkInstancesAPIClient = (*Client)(nil)
 
 // DescribeClassicLinkInstancesPaginatorOptions is the paginator options for
 // DescribeClassicLinkInstances
 type DescribeClassicLinkInstancesPaginatorOptions struct {
-	// The maximum number of results to return with a single call. To retrieve the
-	// remaining results, make another call with the returned nextToken value.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. For more
+	// information, see [Pagination].
+	//
 	// Constraint: If the value is greater than 1000, we return only 1000 items.
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -229,6 +263,9 @@ func (p *DescribeClassicLinkInstancesPaginator) NextPage(ctx context.Context, op
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeClassicLinkInstances(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -248,11 +285,18 @@ func (p *DescribeClassicLinkInstancesPaginator) NextPage(ctx context.Context, op
 	return result, nil
 }
 
+// DescribeClassicLinkInstancesAPIClient is a client that implements the
+// DescribeClassicLinkInstances operation.
+type DescribeClassicLinkInstancesAPIClient interface {
+	DescribeClassicLinkInstances(context.Context, *DescribeClassicLinkInstancesInput, ...func(*Options)) (*DescribeClassicLinkInstancesOutput, error)
+}
+
+var _ DescribeClassicLinkInstancesAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeClassicLinkInstances(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeClassicLinkInstances",
 	}
 }

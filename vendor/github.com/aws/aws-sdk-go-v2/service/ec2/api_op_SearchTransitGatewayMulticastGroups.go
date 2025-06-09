@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -31,39 +30,39 @@ func (c *Client) SearchTransitGatewayMulticastGroups(ctx context.Context, params
 
 type SearchTransitGatewayMulticastGroupsInput struct {
 
+	// The ID of the transit gateway multicast domain.
+	//
+	// This member is required.
+	TransitGatewayMulticastDomainId *string
+
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// One or more filters. The possible values are:
 	//
-	// * group-ip-address - The IP
-	// address of the transit gateway multicast group.
+	//   - group-ip-address - The IP address of the transit gateway multicast group.
 	//
-	// * is-group-member - The
-	// resource is a group member. Valid values are true | false.
+	//   - is-group-member - The resource is a group member. Valid values are true |
+	//   false .
 	//
-	// * is-group-source -
-	// The resource is a group source. Valid values are true | false.
+	//   - is-group-source - The resource is a group source. Valid values are true |
+	//   false .
 	//
-	// * member-type -
-	// The member type. Valid values are igmp | static.
+	//   - member-type - The member type. Valid values are igmp | static .
 	//
-	// * resource-id - The ID of the
-	// resource.
+	//   - resource-id - The ID of the resource.
 	//
-	// * resource-type - The type of resource. Valid values are vpc | vpn |
-	// direct-connect-gateway | tgw-peering.
+	//   - resource-type - The type of resource. Valid values are vpc | vpn |
+	//   direct-connect-gateway | tgw-peering .
 	//
-	// * source-type - The source type. Valid
-	// values are igmp | static.
+	//   - source-type - The source type. Valid values are igmp | static .
 	//
-	// * subnet-id - The ID of the subnet.
+	//   - subnet-id - The ID of the subnet.
 	//
-	// *
-	// transit-gateway-attachment-id - The id of the transit gateway attachment.
+	//   - transit-gateway-attachment-id - The id of the transit gateway attachment.
 	Filters []types.Filter
 
 	// The maximum number of results to return with a single call. To retrieve the
@@ -72,9 +71,6 @@ type SearchTransitGatewayMulticastGroupsInput struct {
 
 	// The token for the next page of results.
 	NextToken *string
-
-	// The ID of the transit gateway multicast domain.
-	TransitGatewayMulticastDomainId *string
 
 	noSmithyDocumentSerde
 }
@@ -95,6 +91,9 @@ type SearchTransitGatewayMulticastGroupsOutput struct {
 }
 
 func (c *Client) addOperationSearchTransitGatewayMulticastGroupsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpSearchTransitGatewayMulticastGroups{}, middleware.After)
 	if err != nil {
 		return err
@@ -103,34 +102,41 @@ func (c *Client) addOperationSearchTransitGatewayMulticastGroupsMiddlewares(stac
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "SearchTransitGatewayMulticastGroups"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -139,7 +145,25 @@ func (c *Client) addOperationSearchTransitGatewayMulticastGroupsMiddlewares(stac
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
+	if err = addOpSearchTransitGatewayMulticastGroupsValidationMiddleware(stack); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opSearchTransitGatewayMulticastGroups(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -151,19 +175,26 @@ func (c *Client) addOperationSearchTransitGatewayMulticastGroupsMiddlewares(stac
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
-// SearchTransitGatewayMulticastGroupsAPIClient is a client that implements the
-// SearchTransitGatewayMulticastGroups operation.
-type SearchTransitGatewayMulticastGroupsAPIClient interface {
-	SearchTransitGatewayMulticastGroups(context.Context, *SearchTransitGatewayMulticastGroupsInput, ...func(*Options)) (*SearchTransitGatewayMulticastGroupsOutput, error)
-}
-
-var _ SearchTransitGatewayMulticastGroupsAPIClient = (*Client)(nil)
-
-// SearchTransitGatewayMulticastGroupsPaginatorOptions is the paginator options for
-// SearchTransitGatewayMulticastGroups
+// SearchTransitGatewayMulticastGroupsPaginatorOptions is the paginator options
+// for SearchTransitGatewayMulticastGroups
 type SearchTransitGatewayMulticastGroupsPaginatorOptions struct {
 	// The maximum number of results to return with a single call. To retrieve the
 	// remaining results, make another call with the returned nextToken value.
@@ -229,6 +260,9 @@ func (p *SearchTransitGatewayMulticastGroupsPaginator) NextPage(ctx context.Cont
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.SearchTransitGatewayMulticastGroups(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -248,11 +282,18 @@ func (p *SearchTransitGatewayMulticastGroupsPaginator) NextPage(ctx context.Cont
 	return result, nil
 }
 
+// SearchTransitGatewayMulticastGroupsAPIClient is a client that implements the
+// SearchTransitGatewayMulticastGroups operation.
+type SearchTransitGatewayMulticastGroupsAPIClient interface {
+	SearchTransitGatewayMulticastGroups(context.Context, *SearchTransitGatewayMulticastGroupsInput, ...func(*Options)) (*SearchTransitGatewayMulticastGroupsOutput, error)
+}
+
+var _ SearchTransitGatewayMulticastGroupsAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opSearchTransitGatewayMulticastGroups(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "SearchTransitGatewayMulticastGroups",
 	}
 }

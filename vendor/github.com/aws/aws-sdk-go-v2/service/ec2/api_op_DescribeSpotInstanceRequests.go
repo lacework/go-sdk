@@ -7,31 +7,34 @@ import (
 	"errors"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	smithy "github.com/aws/smithy-go"
 	"github.com/aws/smithy-go/middleware"
 	smithytime "github.com/aws/smithy-go/time"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	smithywaiter "github.com/aws/smithy-go/waiter"
-	"github.com/jmespath/go-jmespath"
 	"time"
 )
 
-// Describes the specified Spot Instance requests. You can use
-// DescribeSpotInstanceRequests to find a running Spot Instance by examining the
-// response. If the status of the Spot Instance is fulfilled, the instance ID
-// appears in the response and contains the identifier of the instance.
-// Alternatively, you can use DescribeInstances
-// (https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances)
-// with a filter to look for instances where the instance lifecycle is spot. We
-// recommend that you set MaxResults to a value between 5 and 1000 to limit the
-// number of results returned. This paginates the output, which makes the list more
-// manageable and returns the results faster. If the list of results exceeds your
-// MaxResults value, then that number of results is returned along with a NextToken
-// value that can be passed to a subsequent DescribeSpotInstanceRequests request to
-// retrieve the remaining results. Spot Instance requests are deleted four hours
-// after they are canceled and their instances are terminated.
+// Describes the specified Spot Instance requests.
+//
+// You can use DescribeSpotInstanceRequests to find a running Spot Instance by
+// examining the response. If the status of the Spot Instance is fulfilled , the
+// instance ID appears in the response and contains the identifier of the instance.
+// Alternatively, you can use [DescribeInstances]with a filter to look for instances where the
+// instance lifecycle is spot .
+//
+// We recommend that you set MaxResults to a value between 5 and 1000 to limit the
+// number of items returned. This paginates the output, which makes the list more
+// manageable and returns the items faster. If the list of items exceeds your
+// MaxResults value, then that number of items is returned along with a NextToken
+// value that can be passed to a subsequent DescribeSpotInstanceRequests request
+// to retrieve the remaining items.
+//
+// Spot Instance requests are deleted four hours after they are canceled and their
+// instances are terminated.
+//
+// [DescribeInstances]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances
 func (c *Client) DescribeSpotInstanceRequests(ctx context.Context, params *DescribeSpotInstanceRequestsInput, optFns ...func(*Options)) (*DescribeSpotInstanceRequestsOutput, error) {
 	if params == nil {
 		params = &DescribeSpotInstanceRequestsInput{}
@@ -52,151 +55,128 @@ type DescribeSpotInstanceRequestsInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
-	// One or more filters.
+	// The filters.
 	//
-	// * availability-zone-group - The Availability Zone
-	// group.
+	//   - availability-zone-group - The Availability Zone group.
 	//
-	// * create-time - The time stamp when the Spot Instance request was
-	// created.
+	//   - create-time - The time stamp when the Spot Instance request was created.
 	//
-	// * fault-code - The fault code related to the request.
+	//   - fault-code - The fault code related to the request.
 	//
-	// * fault-message
-	// - The fault message related to the request.
+	//   - fault-message - The fault message related to the request.
 	//
-	// * instance-id - The ID of the
-	// instance that fulfilled the request.
+	//   - instance-id - The ID of the instance that fulfilled the request.
 	//
-	// * launch-group - The Spot Instance launch
-	// group.
+	//   - launch-group - The Spot Instance launch group.
 	//
-	// * launch.block-device-mapping.delete-on-termination - Indicates whether
-	// the EBS volume is deleted on instance termination.
+	//   - launch.block-device-mapping.delete-on-termination - Indicates whether the
+	//   EBS volume is deleted on instance termination.
 	//
-	// *
-	// launch.block-device-mapping.device-name - The device name for the volume in the
-	// block device mapping (for example, /dev/sdh or xvdh).
+	//   - launch.block-device-mapping.device-name - The device name for the volume in
+	//   the block device mapping (for example, /dev/sdh or xvdh ).
 	//
-	// *
-	// launch.block-device-mapping.snapshot-id - The ID of the snapshot for the EBS
-	// volume.
+	//   - launch.block-device-mapping.snapshot-id - The ID of the snapshot for the EBS
+	//   volume.
 	//
-	// * launch.block-device-mapping.volume-size - The size of the EBS volume,
-	// in GiB.
+	//   - launch.block-device-mapping.volume-size - The size of the EBS volume, in GiB.
 	//
-	// * launch.block-device-mapping.volume-type - The type of EBS volume: gp2
-	// for General Purpose SSD, io1 or io2 for Provisioned IOPS SSD, st1 for Throughput
-	// Optimized HDD, sc1for Cold HDD, or standard for Magnetic.
+	//   - launch.block-device-mapping.volume-type - The type of EBS volume: gp2 or gp3
+	//   for General Purpose SSD, io1 or io2 for Provisioned IOPS SSD, st1 for
+	//   Throughput Optimized HDD, sc1 for Cold HDD, or standard for Magnetic.
 	//
-	// * launch.group-id -
-	// The ID of the security group for the instance.
+	//   - launch.group-id - The ID of the security group for the instance.
 	//
-	// * launch.group-name - The name
-	// of the security group for the instance.
+	//   - launch.group-name - The name of the security group for the instance.
 	//
-	// * launch.image-id - The ID of the
-	// AMI.
+	//   - launch.image-id - The ID of the AMI.
 	//
-	// * launch.instance-type - The type of instance (for example, m3.medium).
+	//   - launch.instance-type - The type of instance (for example, m3.medium ).
 	//
-	// *
-	// launch.kernel-id - The kernel ID.
+	//   - launch.kernel-id - The kernel ID.
 	//
-	// * launch.key-name - The name of the key pair
-	// the instance launched with.
+	//   - launch.key-name - The name of the key pair the instance launched with.
 	//
-	// * launch.monitoring-enabled - Whether detailed
-	// monitoring is enabled for the Spot Instance.
+	//   - launch.monitoring-enabled - Whether detailed monitoring is enabled for the
+	//   Spot Instance.
 	//
-	// * launch.ramdisk-id - The RAM disk
-	// ID.
+	//   - launch.ramdisk-id - The RAM disk ID.
 	//
-	// * launched-availability-zone - The Availability Zone in which the request
-	// is launched.
+	//   - launched-availability-zone - The Availability Zone in which the request is
+	//   launched.
 	//
-	// * network-interface.addresses.primary - Indicates whether the IP
-	// address is the primary private IP address.
+	//   - network-interface.addresses.primary - Indicates whether the IP address is
+	//   the primary private IP address.
 	//
-	// *
-	// network-interface.delete-on-termination - Indicates whether the network
-	// interface is deleted when the instance is terminated.
+	//   - network-interface.delete-on-termination - Indicates whether the network
+	//   interface is deleted when the instance is terminated.
 	//
-	// *
-	// network-interface.description - A description of the network interface.
+	//   - network-interface.description - A description of the network interface.
 	//
-	// *
-	// network-interface.device-index - The index of the device for the network
-	// interface attachment on the instance.
+	//   - network-interface.device-index - The index of the device for the network
+	//   interface attachment on the instance.
 	//
-	// * network-interface.group-id - The ID of
-	// the security group associated with the network interface.
+	//   - network-interface.group-id - The ID of the security group associated with
+	//   the network interface.
 	//
-	// *
-	// network-interface.network-interface-id - The ID of the network interface.
+	//   - network-interface.network-interface-id - The ID of the network interface.
 	//
-	// *
-	// network-interface.private-ip-address - The primary private IP address of the
-	// network interface.
+	//   - network-interface.private-ip-address - The primary private IP address of the
+	//   network interface.
 	//
-	// * network-interface.subnet-id - The ID of the subnet for the
-	// instance.
+	//   - network-interface.subnet-id - The ID of the subnet for the instance.
 	//
-	// * product-description - The product description associated with the
-	// instance (Linux/UNIX | Windows).
+	//   - product-description - The product description associated with the instance (
+	//   Linux/UNIX | Windows ).
 	//
-	// * spot-instance-request-id - The Spot Instance
-	// request ID.
+	//   - spot-instance-request-id - The Spot Instance request ID.
 	//
-	// * spot-price - The maximum hourly price for any Spot Instance
-	// launched to fulfill the request.
+	//   - spot-price - The maximum hourly price for any Spot Instance launched to
+	//   fulfill the request.
 	//
-	// * state - The state of the Spot Instance
-	// request (open | active | closed | cancelled | failed). Spot request status
-	// information can help you track your Amazon EC2 Spot Instance requests. For more
-	// information, see Spot request status
-	// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-request-status.html)
-	// in the Amazon EC2 User Guide for Linux Instances.
+	//   - state - The state of the Spot Instance request ( open | active | closed |
+	//   cancelled | failed ). Spot request status information can help you track your
+	//   Amazon EC2 Spot Instance requests. For more information, see [Spot request status]in the Amazon
+	//   EC2 User Guide.
 	//
-	// * status-code - The short
-	// code describing the most recent evaluation of your Spot Instance request.
+	//   - status-code - The short code describing the most recent evaluation of your
+	//   Spot Instance request.
 	//
-	// *
-	// status-message - The message explaining the status of the Spot Instance
-	// request.
+	//   - status-message - The message explaining the status of the Spot Instance
+	//   request.
 	//
-	// * tag: - The key/value combination of a tag assigned to the resource.
-	// Use the tag key in the filter name and the tag value as the filter value. For
-	// example, to find all resources that have a tag with the key Owner and the value
-	// TeamA, specify tag:Owner for the filter name and TeamA for the filter value.
+	//   - tag: - The key/value combination of a tag assigned to the resource. Use the
+	//   tag key in the filter name and the tag value as the filter value. For example,
+	//   to find all resources that have a tag with the key Owner and the value TeamA ,
+	//   specify tag:Owner for the filter name and TeamA for the filter value.
 	//
-	// *
-	// tag-key - The key of a tag assigned to the resource. Use this filter to find all
-	// resources assigned a tag with a specific key, regardless of the tag value.
+	//   - tag-key - The key of a tag assigned to the resource. Use this filter to find
+	//   all resources assigned a tag with a specific key, regardless of the tag value.
 	//
-	// *
-	// type - The type of Spot Instance request (one-time | persistent).
+	//   - type - The type of Spot Instance request ( one-time | persistent ).
 	//
-	// * valid-from
-	// - The start date of the request.
+	//   - valid-from - The start date of the request.
 	//
-	// * valid-until - The end date of the request.
+	//   - valid-until - The end date of the request.
+	//
+	// [Spot request status]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-request-status.html
 	Filters []types.Filter
 
-	// The maximum number of results to return in a single call. Specify a value
-	// between 5 and 1000. To retrieve the remaining results, make another call with
-	// the returned NextToken value.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. For more
+	// information, see [Pagination].
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	MaxResults *int32
 
-	// The token to request the next set of results. This value is null when there are
-	// no more results to return.
+	// The token returned from a previous paginated request. Pagination continues from
+	// the end of the items returned by the previous request.
 	NextToken *string
 
-	// One or more Spot Instance request IDs.
+	// The IDs of the Spot Instance requests.
 	SpotInstanceRequestIds []string
 
 	noSmithyDocumentSerde
@@ -205,11 +185,11 @@ type DescribeSpotInstanceRequestsInput struct {
 // Contains the output of DescribeSpotInstanceRequests.
 type DescribeSpotInstanceRequestsOutput struct {
 
-	// The token to use to retrieve the next set of results. This value is null when
-	// there are no more results to return.
+	// The token to include in another request to get the next page of items. This
+	// value is null when there are no more items to return.
 	NextToken *string
 
-	// One or more Spot Instance requests.
+	// The Spot Instance requests.
 	SpotInstanceRequests []types.SpotInstanceRequest
 
 	// Metadata pertaining to the operation's result.
@@ -219,6 +199,9 @@ type DescribeSpotInstanceRequestsOutput struct {
 }
 
 func (c *Client) addOperationDescribeSpotInstanceRequestsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeSpotInstanceRequests{}, middleware.After)
 	if err != nil {
 		return err
@@ -227,34 +210,41 @@ func (c *Client) addOperationDescribeSpotInstanceRequestsMiddlewares(stack *midd
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeSpotInstanceRequests"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -263,7 +253,22 @@ func (c *Client) addOperationDescribeSpotInstanceRequestsMiddlewares(stack *midd
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeSpotInstanceRequests(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -275,102 +280,22 @@ func (c *Client) addOperationDescribeSpotInstanceRequestsMiddlewares(stack *midd
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
-}
-
-// DescribeSpotInstanceRequestsAPIClient is a client that implements the
-// DescribeSpotInstanceRequests operation.
-type DescribeSpotInstanceRequestsAPIClient interface {
-	DescribeSpotInstanceRequests(context.Context, *DescribeSpotInstanceRequestsInput, ...func(*Options)) (*DescribeSpotInstanceRequestsOutput, error)
-}
-
-var _ DescribeSpotInstanceRequestsAPIClient = (*Client)(nil)
-
-// DescribeSpotInstanceRequestsPaginatorOptions is the paginator options for
-// DescribeSpotInstanceRequests
-type DescribeSpotInstanceRequestsPaginatorOptions struct {
-	// The maximum number of results to return in a single call. Specify a value
-	// between 5 and 1000. To retrieve the remaining results, make another call with
-	// the returned NextToken value.
-	Limit int32
-
-	// Set to true if pagination should stop if the service returns a pagination token
-	// that matches the most recent token provided to the service.
-	StopOnDuplicateToken bool
-}
-
-// DescribeSpotInstanceRequestsPaginator is a paginator for
-// DescribeSpotInstanceRequests
-type DescribeSpotInstanceRequestsPaginator struct {
-	options   DescribeSpotInstanceRequestsPaginatorOptions
-	client    DescribeSpotInstanceRequestsAPIClient
-	params    *DescribeSpotInstanceRequestsInput
-	nextToken *string
-	firstPage bool
-}
-
-// NewDescribeSpotInstanceRequestsPaginator returns a new
-// DescribeSpotInstanceRequestsPaginator
-func NewDescribeSpotInstanceRequestsPaginator(client DescribeSpotInstanceRequestsAPIClient, params *DescribeSpotInstanceRequestsInput, optFns ...func(*DescribeSpotInstanceRequestsPaginatorOptions)) *DescribeSpotInstanceRequestsPaginator {
-	if params == nil {
-		params = &DescribeSpotInstanceRequestsInput{}
-	}
-
-	options := DescribeSpotInstanceRequestsPaginatorOptions{}
-	if params.MaxResults != nil {
-		options.Limit = *params.MaxResults
-	}
-
-	for _, fn := range optFns {
-		fn(&options)
-	}
-
-	return &DescribeSpotInstanceRequestsPaginator{
-		options:   options,
-		client:    client,
-		params:    params,
-		firstPage: true,
-		nextToken: params.NextToken,
-	}
-}
-
-// HasMorePages returns a boolean indicating whether more pages are available
-func (p *DescribeSpotInstanceRequestsPaginator) HasMorePages() bool {
-	return p.firstPage || (p.nextToken != nil && len(*p.nextToken) != 0)
-}
-
-// NextPage retrieves the next DescribeSpotInstanceRequests page.
-func (p *DescribeSpotInstanceRequestsPaginator) NextPage(ctx context.Context, optFns ...func(*Options)) (*DescribeSpotInstanceRequestsOutput, error) {
-	if !p.HasMorePages() {
-		return nil, fmt.Errorf("no more pages available")
-	}
-
-	params := *p.params
-	params.NextToken = p.nextToken
-
-	var limit *int32
-	if p.options.Limit > 0 {
-		limit = &p.options.Limit
-	}
-	params.MaxResults = limit
-
-	result, err := p.client.DescribeSpotInstanceRequests(ctx, &params, optFns...)
-	if err != nil {
-		return nil, err
-	}
-	p.firstPage = false
-
-	prevToken := p.nextToken
-	p.nextToken = result.NextToken
-
-	if p.options.StopOnDuplicateToken &&
-		prevToken != nil &&
-		p.nextToken != nil &&
-		*prevToken == *p.nextToken {
-		p.nextToken = nil
-	}
-
-	return result, nil
 }
 
 // SpotInstanceRequestFulfilledWaiterOptions are waiter options for
@@ -380,17 +305,26 @@ type SpotInstanceRequestFulfilledWaiterOptions struct {
 	// Set of options to modify how an operation is invoked. These apply to all
 	// operations invoked for this client. Use functional options on operation call to
 	// modify this list for per operation behavior.
+	//
+	// Passing options here is functionally equivalent to passing values to this
+	// config's ClientOptions field that extend the inner client's APIOptions directly.
 	APIOptions []func(*middleware.Stack) error
+
+	// Functional options to be passed to all operations invoked by this client.
+	//
+	// Function values that modify the inner APIOptions are applied after the waiter
+	// config's own APIOptions modifiers.
+	ClientOptions []func(*Options)
 
 	// MinDelay is the minimum amount of time to delay between retries. If unset,
 	// SpotInstanceRequestFulfilledWaiter will use default minimum delay of 15 seconds.
 	// Note that MinDelay must resolve to a value lesser than or equal to the MaxDelay.
 	MinDelay time.Duration
 
-	// MaxDelay is the maximum amount of time to delay between retries. If unset or set
-	// to zero, SpotInstanceRequestFulfilledWaiter will use default max delay of 120
-	// seconds. Note that MaxDelay must resolve to value greater than or equal to the
-	// MinDelay.
+	// MaxDelay is the maximum amount of time to delay between retries. If unset or
+	// set to zero, SpotInstanceRequestFulfilledWaiter will use default max delay of
+	// 120 seconds. Note that MaxDelay must resolve to value greater than or equal to
+	// the MinDelay.
 	MaxDelay time.Duration
 
 	// LogWaitAttempts is used to enable logging for waiter retry attempts
@@ -398,12 +332,13 @@ type SpotInstanceRequestFulfilledWaiterOptions struct {
 
 	// Retryable is function that can be used to override the service defined
 	// waiter-behavior based on operation output, or returned error. This function is
-	// used by the waiter to decide if a state is retryable or a terminal state. By
-	// default service-modeled logic will populate this option. This option can thus be
-	// used to define a custom waiter state with fall-back to service-modeled waiter
-	// state mutators.The function returns an error in case of a failure state. In case
-	// of retry state, this function returns a bool value of true and nil error, while
-	// in case of success it returns a bool value of false and nil error.
+	// used by the waiter to decide if a state is retryable or a terminal state.
+	//
+	// By default service-modeled logic will populate this option. This option can
+	// thus be used to define a custom waiter state with fall-back to service-modeled
+	// waiter state mutators.The function returns an error in case of a failure state.
+	// In case of retry state, this function returns a bool value of true and nil
+	// error, while in case of success it returns a bool value of false and nil error.
 	Retryable func(context.Context, *DescribeSpotInstanceRequestsInput, *DescribeSpotInstanceRequestsOutput, error) (bool, error)
 }
 
@@ -482,7 +417,16 @@ func (w *SpotInstanceRequestFulfilledWaiter) WaitForOutput(ctx context.Context, 
 		}
 
 		out, err := w.client.DescribeSpotInstanceRequests(ctx, params, func(o *Options) {
+			baseOpts := []func(*Options){
+				addIsWaiterUserAgent,
+			}
 			o.APIOptions = append(o.APIOptions, apiOptions...)
+			for _, opt := range baseOpts {
+				opt(o)
+			}
+			for _, opt := range options.ClientOptions {
+				opt(o)
+			}
 		})
 
 		retryable, err := options.Retryable(ctx, params, out, err)
@@ -518,29 +462,25 @@ func (w *SpotInstanceRequestFulfilledWaiter) WaitForOutput(ctx context.Context, 
 func spotInstanceRequestFulfilledStateRetryable(ctx context.Context, input *DescribeSpotInstanceRequestsInput, output *DescribeSpotInstanceRequestsOutput, err error) (bool, error) {
 
 	if err == nil {
-		pathValue, err := jmespath.Search("SpotInstanceRequests[].Status.Code", output)
-		if err != nil {
-			return false, fmt.Errorf("error evaluating waiter state: %w", err)
+		v1 := output.SpotInstanceRequests
+		var v2 []string
+		for _, v := range v1 {
+			v3 := v.Status
+			var v4 *string
+			if v3 != nil {
+				v5 := v3.Code
+				v4 = v5
+			}
+			if v4 != nil {
+				v2 = append(v2, *v4)
+			}
 		}
-
 		expectedValue := "fulfilled"
-		var match = true
-		listOfValues, ok := pathValue.([]interface{})
-		if !ok {
-			return false, fmt.Errorf("waiter comparator expected list got %T", pathValue)
-		}
-
-		if len(listOfValues) == 0 {
-			match = false
-		}
-		for _, v := range listOfValues {
-			value, ok := v.(*string)
-			if !ok {
-				return false, fmt.Errorf("waiter comparator expected *string value, got %T", pathValue)
-			}
-
-			if string(*value) != expectedValue {
+		match := len(v2) > 0
+		for _, v := range v2 {
+			if string(v) != expectedValue {
 				match = false
+				break
 			}
 		}
 
@@ -550,29 +490,25 @@ func spotInstanceRequestFulfilledStateRetryable(ctx context.Context, input *Desc
 	}
 
 	if err == nil {
-		pathValue, err := jmespath.Search("SpotInstanceRequests[].Status.Code", output)
-		if err != nil {
-			return false, fmt.Errorf("error evaluating waiter state: %w", err)
+		v1 := output.SpotInstanceRequests
+		var v2 []string
+		for _, v := range v1 {
+			v3 := v.Status
+			var v4 *string
+			if v3 != nil {
+				v5 := v3.Code
+				v4 = v5
+			}
+			if v4 != nil {
+				v2 = append(v2, *v4)
+			}
 		}
-
 		expectedValue := "request-canceled-and-instance-running"
-		var match = true
-		listOfValues, ok := pathValue.([]interface{})
-		if !ok {
-			return false, fmt.Errorf("waiter comparator expected list got %T", pathValue)
-		}
-
-		if len(listOfValues) == 0 {
-			match = false
-		}
-		for _, v := range listOfValues {
-			value, ok := v.(*string)
-			if !ok {
-				return false, fmt.Errorf("waiter comparator expected *string value, got %T", pathValue)
-			}
-
-			if string(*value) != expectedValue {
+		match := len(v2) > 0
+		for _, v := range v2 {
+			if string(v) != expectedValue {
 				match = false
+				break
 			}
 		}
 
@@ -582,98 +518,114 @@ func spotInstanceRequestFulfilledStateRetryable(ctx context.Context, input *Desc
 	}
 
 	if err == nil {
-		pathValue, err := jmespath.Search("SpotInstanceRequests[].Status.Code", output)
-		if err != nil {
-			return false, fmt.Errorf("error evaluating waiter state: %w", err)
+		v1 := output.SpotInstanceRequests
+		var v2 []string
+		for _, v := range v1 {
+			v3 := v.Status
+			var v4 *string
+			if v3 != nil {
+				v5 := v3.Code
+				v4 = v5
+			}
+			if v4 != nil {
+				v2 = append(v2, *v4)
+			}
 		}
-
 		expectedValue := "schedule-expired"
-		listOfValues, ok := pathValue.([]interface{})
-		if !ok {
-			return false, fmt.Errorf("waiter comparator expected list got %T", pathValue)
+		var match bool
+		for _, v := range v2 {
+			if string(v) == expectedValue {
+				match = true
+				break
+			}
 		}
 
-		for _, v := range listOfValues {
-			value, ok := v.(*string)
-			if !ok {
-				return false, fmt.Errorf("waiter comparator expected *string value, got %T", pathValue)
-			}
-
-			if string(*value) == expectedValue {
-				return false, fmt.Errorf("waiter state transitioned to Failure")
-			}
+		if match {
+			return false, fmt.Errorf("waiter state transitioned to Failure")
 		}
 	}
 
 	if err == nil {
-		pathValue, err := jmespath.Search("SpotInstanceRequests[].Status.Code", output)
-		if err != nil {
-			return false, fmt.Errorf("error evaluating waiter state: %w", err)
+		v1 := output.SpotInstanceRequests
+		var v2 []string
+		for _, v := range v1 {
+			v3 := v.Status
+			var v4 *string
+			if v3 != nil {
+				v5 := v3.Code
+				v4 = v5
+			}
+			if v4 != nil {
+				v2 = append(v2, *v4)
+			}
 		}
-
 		expectedValue := "canceled-before-fulfillment"
-		listOfValues, ok := pathValue.([]interface{})
-		if !ok {
-			return false, fmt.Errorf("waiter comparator expected list got %T", pathValue)
+		var match bool
+		for _, v := range v2 {
+			if string(v) == expectedValue {
+				match = true
+				break
+			}
 		}
 
-		for _, v := range listOfValues {
-			value, ok := v.(*string)
-			if !ok {
-				return false, fmt.Errorf("waiter comparator expected *string value, got %T", pathValue)
-			}
-
-			if string(*value) == expectedValue {
-				return false, fmt.Errorf("waiter state transitioned to Failure")
-			}
+		if match {
+			return false, fmt.Errorf("waiter state transitioned to Failure")
 		}
 	}
 
 	if err == nil {
-		pathValue, err := jmespath.Search("SpotInstanceRequests[].Status.Code", output)
-		if err != nil {
-			return false, fmt.Errorf("error evaluating waiter state: %w", err)
+		v1 := output.SpotInstanceRequests
+		var v2 []string
+		for _, v := range v1 {
+			v3 := v.Status
+			var v4 *string
+			if v3 != nil {
+				v5 := v3.Code
+				v4 = v5
+			}
+			if v4 != nil {
+				v2 = append(v2, *v4)
+			}
 		}
-
 		expectedValue := "bad-parameters"
-		listOfValues, ok := pathValue.([]interface{})
-		if !ok {
-			return false, fmt.Errorf("waiter comparator expected list got %T", pathValue)
+		var match bool
+		for _, v := range v2 {
+			if string(v) == expectedValue {
+				match = true
+				break
+			}
 		}
 
-		for _, v := range listOfValues {
-			value, ok := v.(*string)
-			if !ok {
-				return false, fmt.Errorf("waiter comparator expected *string value, got %T", pathValue)
-			}
-
-			if string(*value) == expectedValue {
-				return false, fmt.Errorf("waiter state transitioned to Failure")
-			}
+		if match {
+			return false, fmt.Errorf("waiter state transitioned to Failure")
 		}
 	}
 
 	if err == nil {
-		pathValue, err := jmespath.Search("SpotInstanceRequests[].Status.Code", output)
-		if err != nil {
-			return false, fmt.Errorf("error evaluating waiter state: %w", err)
+		v1 := output.SpotInstanceRequests
+		var v2 []string
+		for _, v := range v1 {
+			v3 := v.Status
+			var v4 *string
+			if v3 != nil {
+				v5 := v3.Code
+				v4 = v5
+			}
+			if v4 != nil {
+				v2 = append(v2, *v4)
+			}
 		}
-
 		expectedValue := "system-error"
-		listOfValues, ok := pathValue.([]interface{})
-		if !ok {
-			return false, fmt.Errorf("waiter comparator expected list got %T", pathValue)
+		var match bool
+		for _, v := range v2 {
+			if string(v) == expectedValue {
+				match = true
+				break
+			}
 		}
 
-		for _, v := range listOfValues {
-			value, ok := v.(*string)
-			if !ok {
-				return false, fmt.Errorf("waiter comparator expected *string value, got %T", pathValue)
-			}
-
-			if string(*value) == expectedValue {
-				return false, fmt.Errorf("waiter state transitioned to Failure")
-			}
+		if match {
+			return false, fmt.Errorf("waiter state transitioned to Failure")
 		}
 	}
 
@@ -689,14 +641,116 @@ func spotInstanceRequestFulfilledStateRetryable(ctx context.Context, input *Desc
 		}
 	}
 
+	if err != nil {
+		return false, err
+	}
 	return true, nil
 }
+
+// DescribeSpotInstanceRequestsPaginatorOptions is the paginator options for
+// DescribeSpotInstanceRequests
+type DescribeSpotInstanceRequestsPaginatorOptions struct {
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. For more
+	// information, see [Pagination].
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
+	Limit int32
+
+	// Set to true if pagination should stop if the service returns a pagination token
+	// that matches the most recent token provided to the service.
+	StopOnDuplicateToken bool
+}
+
+// DescribeSpotInstanceRequestsPaginator is a paginator for
+// DescribeSpotInstanceRequests
+type DescribeSpotInstanceRequestsPaginator struct {
+	options   DescribeSpotInstanceRequestsPaginatorOptions
+	client    DescribeSpotInstanceRequestsAPIClient
+	params    *DescribeSpotInstanceRequestsInput
+	nextToken *string
+	firstPage bool
+}
+
+// NewDescribeSpotInstanceRequestsPaginator returns a new
+// DescribeSpotInstanceRequestsPaginator
+func NewDescribeSpotInstanceRequestsPaginator(client DescribeSpotInstanceRequestsAPIClient, params *DescribeSpotInstanceRequestsInput, optFns ...func(*DescribeSpotInstanceRequestsPaginatorOptions)) *DescribeSpotInstanceRequestsPaginator {
+	if params == nil {
+		params = &DescribeSpotInstanceRequestsInput{}
+	}
+
+	options := DescribeSpotInstanceRequestsPaginatorOptions{}
+	if params.MaxResults != nil {
+		options.Limit = *params.MaxResults
+	}
+
+	for _, fn := range optFns {
+		fn(&options)
+	}
+
+	return &DescribeSpotInstanceRequestsPaginator{
+		options:   options,
+		client:    client,
+		params:    params,
+		firstPage: true,
+		nextToken: params.NextToken,
+	}
+}
+
+// HasMorePages returns a boolean indicating whether more pages are available
+func (p *DescribeSpotInstanceRequestsPaginator) HasMorePages() bool {
+	return p.firstPage || (p.nextToken != nil && len(*p.nextToken) != 0)
+}
+
+// NextPage retrieves the next DescribeSpotInstanceRequests page.
+func (p *DescribeSpotInstanceRequestsPaginator) NextPage(ctx context.Context, optFns ...func(*Options)) (*DescribeSpotInstanceRequestsOutput, error) {
+	if !p.HasMorePages() {
+		return nil, fmt.Errorf("no more pages available")
+	}
+
+	params := *p.params
+	params.NextToken = p.nextToken
+
+	var limit *int32
+	if p.options.Limit > 0 {
+		limit = &p.options.Limit
+	}
+	params.MaxResults = limit
+
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
+	result, err := p.client.DescribeSpotInstanceRequests(ctx, &params, optFns...)
+	if err != nil {
+		return nil, err
+	}
+	p.firstPage = false
+
+	prevToken := p.nextToken
+	p.nextToken = result.NextToken
+
+	if p.options.StopOnDuplicateToken &&
+		prevToken != nil &&
+		p.nextToken != nil &&
+		*prevToken == *p.nextToken {
+		p.nextToken = nil
+	}
+
+	return result, nil
+}
+
+// DescribeSpotInstanceRequestsAPIClient is a client that implements the
+// DescribeSpotInstanceRequests operation.
+type DescribeSpotInstanceRequestsAPIClient interface {
+	DescribeSpotInstanceRequests(context.Context, *DescribeSpotInstanceRequestsInput, ...func(*Options)) (*DescribeSpotInstanceRequestsOutput, error)
+}
+
+var _ DescribeSpotInstanceRequestsAPIClient = (*Client)(nil)
 
 func newServiceMetadataMiddleware_opDescribeSpotInstanceRequests(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeSpotInstanceRequests",
 	}
 }

@@ -4,34 +4,46 @@ package ec2
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Deletes the specified EC2 Fleet. After you delete an EC2 Fleet, it launches no
-// new instances. You must specify whether a deleted EC2 Fleet should also
-// terminate its instances. If you choose to terminate the instances, the EC2 Fleet
-// enters the deleted_terminating state. Otherwise, the EC2 Fleet enters the
-// deleted_running state, and the instances continue to run until they are
-// interrupted or you terminate them manually. For instant fleets, EC2 Fleet must
-// terminate the instances when the fleet is deleted. A deleted instant fleet with
-// running instances is not supported. Restrictions
+// Deletes the specified EC2 Fleet request.
 //
-// * You can delete up to 25
-// instant fleets in a single request. If you exceed this number, no instant fleets
-// are deleted and an error is returned. There is no restriction on the number of
-// fleets of type maintain or request that can be deleted in a single request.
+// After you delete an EC2 Fleet request, it launches no new instances.
 //
-// *
-// Up to 1000 instances can be terminated in a single request to delete instant
-// fleets.
+// You must also specify whether a deleted EC2 Fleet request should terminate its
+// instances. If you choose to terminate the instances, the EC2 Fleet request
+// enters the deleted_terminating state. Otherwise, it enters the deleted_running
+// state, and the instances continue to run until they are interrupted or you
+// terminate them manually.
 //
-// For more information, see Delete an EC2 Fleet
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/manage-ec2-fleet.html#delete-fleet)
-// in the Amazon EC2 User Guide.
+// A deleted instant fleet with running instances is not supported. When you
+// delete an instant fleet, Amazon EC2 automatically terminates all its instances.
+// For fleets with more than 1000 instances, the deletion request might fail. If
+// your fleet has more than 1000 instances, first terminate most of the instances
+// manually, leaving 1000 or fewer. Then delete the fleet, and the remaining
+// instances will be terminated automatically.
+//
+// Restrictions
+//
+//   - You can delete up to 25 fleets of type instant in a single request.
+//
+//   - You can delete up to 100 fleets of type maintain or request in a single
+//     request.
+//
+//   - You can delete up to 125 fleets in a single request, provided you do not
+//     exceed the quota for each fleet type, as specified above.
+//
+//   - If you exceed the specified number of fleets to delete, no fleets are
+//     deleted.
+//
+// For more information, see [Delete an EC2 Fleet request and the instances in the fleet] in the Amazon EC2 User Guide.
+//
+// [Delete an EC2 Fleet request and the instances in the fleet]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/delete-fleet.html
 func (c *Client) DeleteFleets(ctx context.Context, params *DeleteFleetsInput, optFns ...func(*Options)) (*DeleteFleetsOutput, error) {
 	if params == nil {
 		params = &DeleteFleetsInput{}
@@ -51,23 +63,28 @@ type DeleteFleetsInput struct {
 
 	// The IDs of the EC2 Fleets.
 	//
+	// Constraints: In a single request, you can specify up to 25 instant fleet IDs
+	// and up to 100 maintain or request fleet IDs.
+	//
 	// This member is required.
 	FleetIds []string
 
-	// Indicates whether to terminate the instances when the EC2 Fleet is deleted. The
-	// default is to terminate the instances. To let the instances continue to run
-	// after the EC2 Fleet is deleted, specify NoTerminateInstances. Supported only for
-	// fleets of type maintain and request. For instant fleets, you cannot specify
-	// NoTerminateInstances. A deleted instant fleet with running instances is not
-	// supported.
+	// Indicates whether to terminate the associated instances when the EC2 Fleet is
+	// deleted. The default is to terminate the instances.
+	//
+	// To let the instances continue to run after the EC2 Fleet is deleted, specify
+	// no-terminate-instances . Supported only for fleets of type maintain and request .
+	//
+	// For instant fleets, you cannot specify NoTerminateInstances . A deleted instant
+	// fleet with running instances is not supported.
 	//
 	// This member is required.
 	TerminateInstances *bool
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	noSmithyDocumentSerde
@@ -88,6 +105,9 @@ type DeleteFleetsOutput struct {
 }
 
 func (c *Client) addOperationDeleteFleetsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDeleteFleets{}, middleware.After)
 	if err != nil {
 		return err
@@ -96,34 +116,41 @@ func (c *Client) addOperationDeleteFleetsMiddlewares(stack *middleware.Stack, op
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DeleteFleets"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -132,10 +159,25 @@ func (c *Client) addOperationDeleteFleetsMiddlewares(stack *middleware.Stack, op
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpDeleteFleetsValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDeleteFleets(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -147,6 +189,21 @@ func (c *Client) addOperationDeleteFleetsMiddlewares(stack *middleware.Stack, op
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -154,7 +211,6 @@ func newServiceMetadataMiddleware_opDeleteFleets(region string) *awsmiddleware.R
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DeleteFleets",
 	}
 }

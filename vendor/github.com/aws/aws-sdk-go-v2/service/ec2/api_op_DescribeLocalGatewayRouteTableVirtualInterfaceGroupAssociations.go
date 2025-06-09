@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -33,33 +32,29 @@ type DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput struct
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// One or more filters.
 	//
-	// * local-gateway-id - The ID of a local gateway.
+	//   - local-gateway-id - The ID of a local gateway.
 	//
-	// *
-	// local-gateway-route-table-arn - The Amazon Resource Name (ARN) of the local
-	// gateway route table for the virtual interface group.
+	//   - local-gateway-route-table-arn - The Amazon Resource Name (ARN) of the local
+	//   gateway route table for the virtual interface group.
 	//
-	// *
-	// local-gateway-route-table-id - The ID of the local gateway route table.
+	//   - local-gateway-route-table-id - The ID of the local gateway route table.
 	//
-	// *
-	// local-gateway-route-table-virtual-interface-group-association-id - The ID of the
-	// association.
+	//   - local-gateway-route-table-virtual-interface-group-association-id - The ID of
+	//   the association.
 	//
-	// * local-gateway-route-table-virtual-interface-group-id - The ID of
-	// the virtual interface group.
+	//   - local-gateway-route-table-virtual-interface-group-id - The ID of the virtual
+	//   interface group.
 	//
-	// * owner-id - The ID of the Amazon Web Services
-	// account that owns the local gateway virtual interface group association.
+	//   - owner-id - The ID of the Amazon Web Services account that owns the local
+	//   gateway virtual interface group association.
 	//
-	// *
-	// state - The state of the association.
+	//   - state - The state of the association.
 	Filters []types.Filter
 
 	// The IDs of the associations.
@@ -91,6 +86,9 @@ type DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput struc
 }
 
 func (c *Client) addOperationDescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations{}, middleware.After)
 	if err != nil {
 		return err
@@ -99,34 +97,41 @@ func (c *Client) addOperationDescribeLocalGatewayRouteTableVirtualInterfaceGroup
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -135,7 +140,22 @@ func (c *Client) addOperationDescribeLocalGatewayRouteTableVirtualInterfaceGroup
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -147,17 +167,23 @@ func (c *Client) addOperationDescribeLocalGatewayRouteTableVirtualInterfaceGroup
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsAPIClient is a
-// client that implements the
-// DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations operation.
-type DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsAPIClient interface {
-	DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations(context.Context, *DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput, ...func(*Options)) (*DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput, error)
-}
-
-var _ DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsAPIClient = (*Client)(nil)
 
 // DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsPaginatorOptions
 // is the paginator options for
@@ -229,6 +255,9 @@ func (p *DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsPaginato
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -248,11 +277,19 @@ func (p *DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsPaginato
 	return result, nil
 }
 
+// DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsAPIClient is a
+// client that implements the
+// DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations operation.
+type DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsAPIClient interface {
+	DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations(context.Context, *DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsInput, ...func(*Options)) (*DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsOutput, error)
+}
+
+var _ DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociationsAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opDescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeLocalGatewayRouteTableVirtualInterfaceGroupAssociations",
 	}
 }

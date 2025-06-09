@@ -4,43 +4,27 @@ package ec2
 
 import (
 	"context"
+	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// We are retiring EC2-Classic. We recommend that you migrate from EC2-Classic to a
-// VPC. For more information, see Migrate from EC2-Classic to a VPC
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html) in the
-// Amazon Elastic Compute Cloud User Guide. Modifies the VPC peering connection
-// options on one side of a VPC peering connection. You can do the following:
+// Modifies the VPC peering connection options on one side of a VPC peering
+// connection.
 //
-// *
-// Enable/disable communication over the peering connection between an EC2-Classic
-// instance that's linked to your VPC (using ClassicLink) and instances in the peer
-// VPC.
-//
-// * Enable/disable communication over the peering connection between
-// instances in your VPC and an EC2-Classic instance that's linked to the peer
-// VPC.
-//
-// * Enable/disable the ability to resolve public DNS hostnames to private IP
-// addresses when queried from instances in the peer VPC.
-//
-// If the peered VPCs are
-// in the same Amazon Web Services account, you can enable DNS resolution for
-// queries from the local VPC. This ensures that queries from the local VPC resolve
-// to private IP addresses in the peer VPC. This option is not available if the
-// peered VPCs are in different different Amazon Web Services accounts or different
-// Regions. For peered VPCs in different Amazon Web Services accounts, each Amazon
-// Web Services account owner must initiate a separate request to modify the
-// peering connection options. For inter-region peering connections, you must use
-// the Region for the requester VPC to modify the requester VPC peering options and
-// the Region for the accepter VPC to modify the accepter VPC peering options. To
-// verify which VPCs are the accepter and the requester for a VPC peering
-// connection, use the DescribeVpcPeeringConnections command.
+// If the peered VPCs are in the same Amazon Web Services account, you can enable
+// DNS resolution for queries from the local VPC. This ensures that queries from
+// the local VPC resolve to private IP addresses in the peer VPC. This option is
+// not available if the peered VPCs are in different Amazon Web Services accounts
+// or different Regions. For peered VPCs in different Amazon Web Services accounts,
+// each Amazon Web Services account owner must initiate a separate request to
+// modify the peering connection options. For inter-region peering connections, you
+// must use the Region for the requester VPC to modify the requester VPC peering
+// options and the Region for the accepter VPC to modify the accepter VPC peering
+// options. To verify which VPCs are the accepter and the requester for a VPC
+// peering connection, use the DescribeVpcPeeringConnectionscommand.
 func (c *Client) ModifyVpcPeeringConnectionOptions(ctx context.Context, params *ModifyVpcPeeringConnectionOptionsInput, optFns ...func(*Options)) (*ModifyVpcPeeringConnectionOptionsOutput, error) {
 	if params == nil {
 		params = &ModifyVpcPeeringConnectionOptionsInput{}
@@ -68,8 +52,8 @@ type ModifyVpcPeeringConnectionOptionsInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// The VPC peering connection options for the requester VPC.
@@ -93,6 +77,9 @@ type ModifyVpcPeeringConnectionOptionsOutput struct {
 }
 
 func (c *Client) addOperationModifyVpcPeeringConnectionOptionsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpModifyVpcPeeringConnectionOptions{}, middleware.After)
 	if err != nil {
 		return err
@@ -101,34 +88,41 @@ func (c *Client) addOperationModifyVpcPeeringConnectionOptionsMiddlewares(stack 
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "ModifyVpcPeeringConnectionOptions"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -137,10 +131,25 @@ func (c *Client) addOperationModifyVpcPeeringConnectionOptionsMiddlewares(stack 
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpModifyVpcPeeringConnectionOptionsValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opModifyVpcPeeringConnectionOptions(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -152,6 +161,21 @@ func (c *Client) addOperationModifyVpcPeeringConnectionOptionsMiddlewares(stack 
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -159,7 +183,6 @@ func newServiceMetadataMiddleware_opModifyVpcPeeringConnectionOptions(region str
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "ModifyVpcPeeringConnectionOptions",
 	}
 }

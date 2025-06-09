@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
@@ -14,9 +13,9 @@ import (
 )
 
 // Retrieve historical information about a CIDR within an IPAM scope. For more
-// information, see View the history of IP addresses
-// (https://docs.aws.amazon.com/vpc/latest/ipam/view-history-cidr-ipam.html) in the
-// Amazon VPC IPAM User Guide.
+// information, see [View the history of IP addresses]in the Amazon VPC IPAM User Guide.
+//
+// [View the history of IP addresses]: https://docs.aws.amazon.com/vpc/latest/ipam/view-history-cidr-ipam.html
 func (c *Client) GetIpamAddressHistory(ctx context.Context, params *GetIpamAddressHistoryInput, optFns ...func(*Options)) (*GetIpamAddressHistoryOutput, error) {
 	if params == nil {
 		params = &GetIpamAddressHistoryInput{}
@@ -48,8 +47,8 @@ type GetIpamAddressHistoryInput struct {
 
 	// A check for whether you have the required permissions for the action without
 	// actually making the request and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// The end of the time period for which you are looking for history. If you omit
@@ -91,6 +90,9 @@ type GetIpamAddressHistoryOutput struct {
 }
 
 func (c *Client) addOperationGetIpamAddressHistoryMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpGetIpamAddressHistory{}, middleware.After)
 	if err != nil {
 		return err
@@ -99,34 +101,41 @@ func (c *Client) addOperationGetIpamAddressHistoryMiddlewares(stack *middleware.
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "GetIpamAddressHistory"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -135,10 +144,25 @@ func (c *Client) addOperationGetIpamAddressHistoryMiddlewares(stack *middleware.
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = addOpGetIpamAddressHistoryValidationMiddleware(stack); err != nil {
 		return err
 	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetIpamAddressHistory(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -150,16 +174,23 @@ func (c *Client) addOperationGetIpamAddressHistoryMiddlewares(stack *middleware.
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
-
-// GetIpamAddressHistoryAPIClient is a client that implements the
-// GetIpamAddressHistory operation.
-type GetIpamAddressHistoryAPIClient interface {
-	GetIpamAddressHistory(context.Context, *GetIpamAddressHistoryInput, ...func(*Options)) (*GetIpamAddressHistoryOutput, error)
-}
-
-var _ GetIpamAddressHistoryAPIClient = (*Client)(nil)
 
 // GetIpamAddressHistoryPaginatorOptions is the paginator options for
 // GetIpamAddressHistory
@@ -226,6 +257,9 @@ func (p *GetIpamAddressHistoryPaginator) NextPage(ctx context.Context, optFns ..
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.GetIpamAddressHistory(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -245,11 +279,18 @@ func (p *GetIpamAddressHistoryPaginator) NextPage(ctx context.Context, optFns ..
 	return result, nil
 }
 
+// GetIpamAddressHistoryAPIClient is a client that implements the
+// GetIpamAddressHistory operation.
+type GetIpamAddressHistoryAPIClient interface {
+	GetIpamAddressHistory(context.Context, *GetIpamAddressHistoryInput, ...func(*Options)) (*GetIpamAddressHistoryOutput, error)
+}
+
+var _ GetIpamAddressHistoryAPIClient = (*Client)(nil)
+
 func newServiceMetadataMiddleware_opGetIpamAddressHistory(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "GetIpamAddressHistory",
 	}
 }

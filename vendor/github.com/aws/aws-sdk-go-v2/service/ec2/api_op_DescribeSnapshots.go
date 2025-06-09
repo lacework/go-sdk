@@ -6,59 +6,66 @@ import (
 	"context"
 	"fmt"
 	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
-	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/aws/smithy-go/middleware"
 	smithytime "github.com/aws/smithy-go/time"
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 	smithywaiter "github.com/aws/smithy-go/waiter"
-	"github.com/jmespath/go-jmespath"
 	"time"
 )
 
 // Describes the specified EBS snapshots available to you or all of the EBS
-// snapshots available to you. The snapshots available to you include public
-// snapshots, private snapshots that you own, and private snapshots owned by other
-// Amazon Web Services accounts for which you have explicit create volume
-// permissions. The create volume permissions fall into the following
-// categories:
+// snapshots available to you.
 //
-// * public: The owner of the snapshot granted create volume
-// permissions for the snapshot to the all group. All Amazon Web Services accounts
-// have create volume permissions for these snapshots.
+// The snapshots available to you include public snapshots, private snapshots that
+// you own, and private snapshots owned by other Amazon Web Services accounts for
+// which you have explicit create volume permissions.
 //
-// * explicit: The owner of
-// the snapshot granted create volume permissions to a specific Amazon Web Services
-// account.
+// The create volume permissions fall into the following categories:
 //
-// * implicit: An Amazon Web Services account has implicit create volume
-// permissions for all snapshots it owns.
+//   - public: The owner of the snapshot granted create volume permissions for the
+//     snapshot to the all group. All Amazon Web Services accounts have create volume
+//     permissions for these snapshots.
 //
-// The list of snapshots returned can be
-// filtered by specifying snapshot IDs, snapshot owners, or Amazon Web Services
-// accounts with create volume permissions. If no options are specified, Amazon EC2
-// returns all snapshots for which you have create volume permissions. If you
-// specify one or more snapshot IDs, only snapshots that have the specified IDs are
-// returned. If you specify an invalid snapshot ID, an error is returned. If you
-// specify a snapshot ID for which you do not have access, it is not included in
-// the returned results. If you specify one or more snapshot owners using the
-// OwnerIds option, only snapshots from the specified owners and for which you have
-// access are returned. The results can include the Amazon Web Services account IDs
-// of the specified owners, amazon for snapshots owned by Amazon, or self for
-// snapshots that you own. If you specify a list of restorable users, only
-// snapshots with create snapshot permissions for those users are returned. You can
-// specify Amazon Web Services account IDs (if you own the snapshots), self for
-// snapshots for which you own or have explicit permissions, or all for public
-// snapshots. If you are describing a long list of snapshots, we recommend that you
-// paginate the output to make the list more manageable. The MaxResults parameter
-// sets the maximum number of results returned in a single page. If the list of
-// results exceeds your MaxResults value, then that number of results is returned
-// along with a NextToken value that can be passed to a subsequent
-// DescribeSnapshots request to retrieve the remaining results. To get the state of
-// fast snapshot restores for a snapshot, use DescribeFastSnapshotRestores. For
-// more information about EBS snapshots, see Amazon EBS snapshots
-// (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSSnapshots.html) in the
-// Amazon Elastic Compute Cloud User Guide.
+//   - explicit: The owner of the snapshot granted create volume permissions to a
+//     specific Amazon Web Services account.
+//
+//   - implicit: An Amazon Web Services account has implicit create volume
+//     permissions for all snapshots it owns.
+//
+// The list of snapshots returned can be filtered by specifying snapshot IDs,
+// snapshot owners, or Amazon Web Services accounts with create volume permissions.
+// If no options are specified, Amazon EC2 returns all snapshots for which you have
+// create volume permissions.
+//
+// If you specify one or more snapshot IDs, only snapshots that have the specified
+// IDs are returned. If you specify an invalid snapshot ID, an error is returned.
+// If you specify a snapshot ID for which you do not have access, it is not
+// included in the returned results.
+//
+// If you specify one or more snapshot owners using the OwnerIds option, only
+// snapshots from the specified owners and for which you have access are returned.
+// The results can include the Amazon Web Services account IDs of the specified
+// owners, amazon for snapshots owned by Amazon, or self for snapshots that you
+// own.
+//
+// If you specify a list of restorable users, only snapshots with create snapshot
+// permissions for those users are returned. You can specify Amazon Web Services
+// account IDs (if you own the snapshots), self for snapshots for which you own or
+// have explicit permissions, or all for public snapshots.
+//
+// If you are describing a long list of snapshots, we recommend that you paginate
+// the output to make the list more manageable. For more information, see [Pagination].
+//
+// To get the state of fast snapshot restores for a snapshot, use DescribeFastSnapshotRestores.
+//
+// For more information about EBS snapshots, see [Amazon EBS snapshots] in the Amazon EBS User Guide.
+//
+// We strongly recommend using only paginated requests. Unpaginated requests are
+// susceptible to throttling and timeouts.
+//
+// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
+// [Amazon EBS snapshots]: https://docs.aws.amazon.com/ebs/latest/userguide/ebs-snapshots.html
 func (c *Client) DescribeSnapshots(ctx context.Context, params *DescribeSnapshotsInput, optFns ...func(*Options)) (*DescribeSnapshotsOutput, error) {
 	if params == nil {
 		params = &DescribeSnapshotsInput{}
@@ -78,83 +85,72 @@ type DescribeSnapshotsInput struct {
 
 	// Checks whether you have the required permissions for the action, without
 	// actually making the request, and provides an error response. If you have the
-	// required permissions, the error response is DryRunOperation. Otherwise, it is
-	// UnauthorizedOperation.
+	// required permissions, the error response is DryRunOperation . Otherwise, it is
+	// UnauthorizedOperation .
 	DryRun *bool
 
 	// The filters.
 	//
-	// * description - A description of the snapshot.
+	//   - description - A description of the snapshot.
 	//
-	// * encrypted -
-	// Indicates whether the snapshot is encrypted (true | false)
+	//   - encrypted - Indicates whether the snapshot is encrypted ( true | false )
 	//
-	// * owner-alias - The
-	// owner alias, from an Amazon-maintained list (amazon). This is not the
-	// user-configured Amazon Web Services account alias set using the IAM console. We
-	// recommend that you use the related parameter instead of this filter.
+	//   - owner-alias - The owner alias, from an Amazon-maintained list ( amazon ).
+	//   This is not the user-configured Amazon Web Services account alias set using the
+	//   IAM console. We recommend that you use the related parameter instead of this
+	//   filter.
 	//
-	// * owner-id
-	// - The Amazon Web Services account ID of the owner. We recommend that you use the
-	// related parameter instead of this filter.
+	//   - owner-id - The Amazon Web Services account ID of the owner. We recommend
+	//   that you use the related parameter instead of this filter.
 	//
-	// * progress - The progress of the
-	// snapshot, as a percentage (for example, 80%).
+	//   - progress - The progress of the snapshot, as a percentage (for example, 80%).
 	//
-	// * snapshot-id - The snapshot
-	// ID.
+	//   - snapshot-id - The snapshot ID.
 	//
-	// * start-time - The time stamp when the snapshot was initiated.
+	//   - start-time - The time stamp when the snapshot was initiated.
 	//
-	// * status -
-	// The status of the snapshot (pending | completed | error).
+	//   - status - The status of the snapshot ( pending | completed | error ).
 	//
-	// * storage-tier - The
-	// storage tier of the snapshot (archive | standard).
+	//   - storage-tier - The storage tier of the snapshot ( archive | standard ).
 	//
-	// * tag: - The key/value
-	// combination of a tag assigned to the resource. Use the tag key in the filter
-	// name and the tag value as the filter value. For example, to find all resources
-	// that have a tag with the key Owner and the value TeamA, specify tag:Owner for
-	// the filter name and TeamA for the filter value.
+	//   - transfer-type - The type of operation used to create the snapshot (
+	//   time-based | standard ).
 	//
-	// * tag-key - The key of a tag
-	// assigned to the resource. Use this filter to find all resources assigned a tag
-	// with a specific key, regardless of the tag value.
+	//   - tag : - The key/value combination of a tag assigned to the resource. Use the
+	//   tag key in the filter name and the tag value as the filter value. For example,
+	//   to find all resources that have a tag with the key Owner and the value TeamA ,
+	//   specify tag:Owner for the filter name and TeamA for the filter value.
 	//
-	// * volume-id - The ID of the
-	// volume the snapshot is for.
+	//   - tag-key - The key of a tag assigned to the resource. Use this filter to find
+	//   all resources assigned a tag with a specific key, regardless of the tag value.
 	//
-	// * volume-size - The size of the volume, in GiB.
+	//   - volume-id - The ID of the volume the snapshot is for.
+	//
+	//   - volume-size - The size of the volume, in GiB.
 	Filters []types.Filter
 
-	// The maximum number of snapshot results returned by DescribeSnapshots in
-	// paginated output. When this parameter is used, DescribeSnapshots only returns
-	// MaxResults results in a single page along with a NextToken response element. The
-	// remaining results of the initial request can be seen by sending another
-	// DescribeSnapshots request with the returned NextToken value. This value can be
-	// between 5 and 1,000; if MaxResults is given a value larger than 1,000, only
-	// 1,000 results are returned. If this parameter is not used, then
-	// DescribeSnapshots returns all results. You cannot specify this parameter and the
-	// snapshot IDs parameter in the same request.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. For more
+	// information, see [Pagination].
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	MaxResults *int32
 
-	// The NextToken value returned from a previous paginated DescribeSnapshots request
-	// where MaxResults was used and the results exceeded the value of that parameter.
-	// Pagination continues from the end of the previous results that returned the
-	// NextToken value. This value is null when there are no more results to return.
+	// The token returned from a previous paginated request. Pagination continues from
+	// the end of the items returned by the previous request.
 	NextToken *string
 
 	// Scopes the results to snapshots with the specified owners. You can specify a
-	// combination of Amazon Web Services account IDs, self, and amazon.
+	// combination of Amazon Web Services account IDs, self , and amazon .
 	OwnerIds []string
 
 	// The IDs of the Amazon Web Services accounts that can create volumes from the
 	// snapshot.
 	RestorableByUserIds []string
 
-	// The snapshot IDs. Default: Describes the snapshots for which you have create
-	// volume permissions.
+	// The snapshot IDs.
+	//
+	// Default: Describes the snapshots for which you have create volume permissions.
 	SnapshotIds []string
 
 	noSmithyDocumentSerde
@@ -162,10 +158,8 @@ type DescribeSnapshotsInput struct {
 
 type DescribeSnapshotsOutput struct {
 
-	// The NextToken value to include in a future DescribeSnapshots request. When the
-	// results of a DescribeSnapshots request exceed MaxResults, this value can be used
-	// to retrieve the next page of results. This value is null when there are no more
-	// results to return.
+	// The token to include in another request to get the next page of items. This
+	// value is null when there are no more items to return.
 	NextToken *string
 
 	// Information about the snapshots.
@@ -178,6 +172,9 @@ type DescribeSnapshotsOutput struct {
 }
 
 func (c *Client) addOperationDescribeSnapshotsMiddlewares(stack *middleware.Stack, options Options) (err error) {
+	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
+		return err
+	}
 	err = stack.Serialize.Add(&awsEc2query_serializeOpDescribeSnapshots{}, middleware.After)
 	if err != nil {
 		return err
@@ -186,34 +183,41 @@ func (c *Client) addOperationDescribeSnapshotsMiddlewares(stack *middleware.Stac
 	if err != nil {
 		return err
 	}
+	if err := addProtocolFinalizerMiddlewares(stack, options, "DescribeSnapshots"); err != nil {
+		return fmt.Errorf("add protocol finalizers: %v", err)
+	}
+
+	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
+		return err
+	}
 	if err = addSetLoggerMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddClientRequestIDMiddleware(stack); err != nil {
+	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
-	if err = smithyhttp.AddComputeContentLengthMiddleware(stack); err != nil {
+	if err = addComputeContentLength(stack); err != nil {
 		return err
 	}
 	if err = addResolveEndpointMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = v4.AddComputePayloadSHA256Middleware(stack); err != nil {
+	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetryMiddlewares(stack, options); err != nil {
+	if err = addRetry(stack, options); err != nil {
 		return err
 	}
-	if err = addHTTPSignerV4Middleware(stack, options); err != nil {
+	if err = addRawResponseToMetadata(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRawResponseToMetadata(stack); err != nil {
+	if err = addRecordResponseTiming(stack); err != nil {
 		return err
 	}
-	if err = awsmiddleware.AddRecordResponseTiming(stack); err != nil {
+	if err = addSpanRetryLoop(stack, options); err != nil {
 		return err
 	}
-	if err = addClientUserAgent(stack); err != nil {
+	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -222,7 +226,22 @@ func (c *Client) addOperationDescribeSnapshotsMiddlewares(stack *middleware.Stac
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
+	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
+		return err
+	}
+	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addCredentialSource(stack, options); err != nil {
+		return err
+	}
 	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDescribeSnapshots(options.Region), middleware.Before); err != nil {
+		return err
+	}
+	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addRequestIDRetrieverMiddleware(stack); err != nil {
@@ -234,28 +253,238 @@ func (c *Client) addOperationDescribeSnapshotsMiddlewares(stack *middleware.Stac
 	if err = addRequestResponseLogging(stack, options); err != nil {
 		return err
 	}
+	if err = addDisableHTTPSMiddleware(stack, options); err != nil {
+		return err
+	}
+	if err = addSpanInitializeStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanInitializeEnd(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestStart(stack); err != nil {
+		return err
+	}
+	if err = addSpanBuildRequestEnd(stack); err != nil {
+		return err
+	}
 	return nil
 }
 
-// DescribeSnapshotsAPIClient is a client that implements the DescribeSnapshots
-// operation.
-type DescribeSnapshotsAPIClient interface {
-	DescribeSnapshots(context.Context, *DescribeSnapshotsInput, ...func(*Options)) (*DescribeSnapshotsOutput, error)
+// SnapshotCompletedWaiterOptions are waiter options for SnapshotCompletedWaiter
+type SnapshotCompletedWaiterOptions struct {
+
+	// Set of options to modify how an operation is invoked. These apply to all
+	// operations invoked for this client. Use functional options on operation call to
+	// modify this list for per operation behavior.
+	//
+	// Passing options here is functionally equivalent to passing values to this
+	// config's ClientOptions field that extend the inner client's APIOptions directly.
+	APIOptions []func(*middleware.Stack) error
+
+	// Functional options to be passed to all operations invoked by this client.
+	//
+	// Function values that modify the inner APIOptions are applied after the waiter
+	// config's own APIOptions modifiers.
+	ClientOptions []func(*Options)
+
+	// MinDelay is the minimum amount of time to delay between retries. If unset,
+	// SnapshotCompletedWaiter will use default minimum delay of 15 seconds. Note that
+	// MinDelay must resolve to a value lesser than or equal to the MaxDelay.
+	MinDelay time.Duration
+
+	// MaxDelay is the maximum amount of time to delay between retries. If unset or
+	// set to zero, SnapshotCompletedWaiter will use default max delay of 120 seconds.
+	// Note that MaxDelay must resolve to value greater than or equal to the MinDelay.
+	MaxDelay time.Duration
+
+	// LogWaitAttempts is used to enable logging for waiter retry attempts
+	LogWaitAttempts bool
+
+	// Retryable is function that can be used to override the service defined
+	// waiter-behavior based on operation output, or returned error. This function is
+	// used by the waiter to decide if a state is retryable or a terminal state.
+	//
+	// By default service-modeled logic will populate this option. This option can
+	// thus be used to define a custom waiter state with fall-back to service-modeled
+	// waiter state mutators.The function returns an error in case of a failure state.
+	// In case of retry state, this function returns a bool value of true and nil
+	// error, while in case of success it returns a bool value of false and nil error.
+	Retryable func(context.Context, *DescribeSnapshotsInput, *DescribeSnapshotsOutput, error) (bool, error)
 }
 
-var _ DescribeSnapshotsAPIClient = (*Client)(nil)
+// SnapshotCompletedWaiter defines the waiters for SnapshotCompleted
+type SnapshotCompletedWaiter struct {
+	client DescribeSnapshotsAPIClient
+
+	options SnapshotCompletedWaiterOptions
+}
+
+// NewSnapshotCompletedWaiter constructs a SnapshotCompletedWaiter.
+func NewSnapshotCompletedWaiter(client DescribeSnapshotsAPIClient, optFns ...func(*SnapshotCompletedWaiterOptions)) *SnapshotCompletedWaiter {
+	options := SnapshotCompletedWaiterOptions{}
+	options.MinDelay = 15 * time.Second
+	options.MaxDelay = 120 * time.Second
+	options.Retryable = snapshotCompletedStateRetryable
+
+	for _, fn := range optFns {
+		fn(&options)
+	}
+	return &SnapshotCompletedWaiter{
+		client:  client,
+		options: options,
+	}
+}
+
+// Wait calls the waiter function for SnapshotCompleted waiter. The maxWaitDur is
+// the maximum wait duration the waiter will wait. The maxWaitDur is required and
+// must be greater than zero.
+func (w *SnapshotCompletedWaiter) Wait(ctx context.Context, params *DescribeSnapshotsInput, maxWaitDur time.Duration, optFns ...func(*SnapshotCompletedWaiterOptions)) error {
+	_, err := w.WaitForOutput(ctx, params, maxWaitDur, optFns...)
+	return err
+}
+
+// WaitForOutput calls the waiter function for SnapshotCompleted waiter and
+// returns the output of the successful operation. The maxWaitDur is the maximum
+// wait duration the waiter will wait. The maxWaitDur is required and must be
+// greater than zero.
+func (w *SnapshotCompletedWaiter) WaitForOutput(ctx context.Context, params *DescribeSnapshotsInput, maxWaitDur time.Duration, optFns ...func(*SnapshotCompletedWaiterOptions)) (*DescribeSnapshotsOutput, error) {
+	if maxWaitDur <= 0 {
+		return nil, fmt.Errorf("maximum wait time for waiter must be greater than zero")
+	}
+
+	options := w.options
+	for _, fn := range optFns {
+		fn(&options)
+	}
+
+	if options.MaxDelay <= 0 {
+		options.MaxDelay = 120 * time.Second
+	}
+
+	if options.MinDelay > options.MaxDelay {
+		return nil, fmt.Errorf("minimum waiter delay %v must be lesser than or equal to maximum waiter delay of %v.", options.MinDelay, options.MaxDelay)
+	}
+
+	ctx, cancelFn := context.WithTimeout(ctx, maxWaitDur)
+	defer cancelFn()
+
+	logger := smithywaiter.Logger{}
+	remainingTime := maxWaitDur
+
+	var attempt int64
+	for {
+
+		attempt++
+		apiOptions := options.APIOptions
+		start := time.Now()
+
+		if options.LogWaitAttempts {
+			logger.Attempt = attempt
+			apiOptions = append([]func(*middleware.Stack) error{}, options.APIOptions...)
+			apiOptions = append(apiOptions, logger.AddLogger)
+		}
+
+		out, err := w.client.DescribeSnapshots(ctx, params, func(o *Options) {
+			baseOpts := []func(*Options){
+				addIsWaiterUserAgent,
+			}
+			o.APIOptions = append(o.APIOptions, apiOptions...)
+			for _, opt := range baseOpts {
+				opt(o)
+			}
+			for _, opt := range options.ClientOptions {
+				opt(o)
+			}
+		})
+
+		retryable, err := options.Retryable(ctx, params, out, err)
+		if err != nil {
+			return nil, err
+		}
+		if !retryable {
+			return out, nil
+		}
+
+		remainingTime -= time.Since(start)
+		if remainingTime < options.MinDelay || remainingTime <= 0 {
+			break
+		}
+
+		// compute exponential backoff between waiter retries
+		delay, err := smithywaiter.ComputeDelay(
+			attempt, options.MinDelay, options.MaxDelay, remainingTime,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error computing waiter delay, %w", err)
+		}
+
+		remainingTime -= delay
+		// sleep for the delay amount before invoking a request
+		if err := smithytime.SleepWithContext(ctx, delay); err != nil {
+			return nil, fmt.Errorf("request cancelled while waiting, %w", err)
+		}
+	}
+	return nil, fmt.Errorf("exceeded max wait time for SnapshotCompleted waiter")
+}
+
+func snapshotCompletedStateRetryable(ctx context.Context, input *DescribeSnapshotsInput, output *DescribeSnapshotsOutput, err error) (bool, error) {
+
+	if err == nil {
+		v1 := output.Snapshots
+		var v2 []types.SnapshotState
+		for _, v := range v1 {
+			v3 := v.State
+			v2 = append(v2, v3)
+		}
+		expectedValue := "completed"
+		match := len(v2) > 0
+		for _, v := range v2 {
+			if string(v) != expectedValue {
+				match = false
+				break
+			}
+		}
+
+		if match {
+			return false, nil
+		}
+	}
+
+	if err == nil {
+		v1 := output.Snapshots
+		var v2 []types.SnapshotState
+		for _, v := range v1 {
+			v3 := v.State
+			v2 = append(v2, v3)
+		}
+		expectedValue := "error"
+		var match bool
+		for _, v := range v2 {
+			if string(v) == expectedValue {
+				match = true
+				break
+			}
+		}
+
+		if match {
+			return false, fmt.Errorf("waiter state transitioned to Failure")
+		}
+	}
+
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
 
 // DescribeSnapshotsPaginatorOptions is the paginator options for DescribeSnapshots
 type DescribeSnapshotsPaginatorOptions struct {
-	// The maximum number of snapshot results returned by DescribeSnapshots in
-	// paginated output. When this parameter is used, DescribeSnapshots only returns
-	// MaxResults results in a single page along with a NextToken response element. The
-	// remaining results of the initial request can be seen by sending another
-	// DescribeSnapshots request with the returned NextToken value. This value can be
-	// between 5 and 1,000; if MaxResults is given a value larger than 1,000, only
-	// 1,000 results are returned. If this parameter is not used, then
-	// DescribeSnapshots returns all results. You cannot specify this parameter and the
-	// snapshot IDs parameter in the same request.
+	// The maximum number of items to return for this request. To get the next page of
+	// items, make another request with the token returned in the output. For more
+	// information, see [Pagination].
+	//
+	// [Pagination]: https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination
 	Limit int32
 
 	// Set to true if pagination should stop if the service returns a pagination token
@@ -316,6 +545,9 @@ func (p *DescribeSnapshotsPaginator) NextPage(ctx context.Context, optFns ...fun
 	}
 	params.MaxResults = limit
 
+	optFns = append([]func(*Options){
+		addIsPaginatorUserAgent,
+	}, optFns...)
 	result, err := p.client.DescribeSnapshots(ctx, &params, optFns...)
 	if err != nil {
 		return nil, err
@@ -335,210 +567,18 @@ func (p *DescribeSnapshotsPaginator) NextPage(ctx context.Context, optFns ...fun
 	return result, nil
 }
 
-// SnapshotCompletedWaiterOptions are waiter options for SnapshotCompletedWaiter
-type SnapshotCompletedWaiterOptions struct {
-
-	// Set of options to modify how an operation is invoked. These apply to all
-	// operations invoked for this client. Use functional options on operation call to
-	// modify this list for per operation behavior.
-	APIOptions []func(*middleware.Stack) error
-
-	// MinDelay is the minimum amount of time to delay between retries. If unset,
-	// SnapshotCompletedWaiter will use default minimum delay of 15 seconds. Note that
-	// MinDelay must resolve to a value lesser than or equal to the MaxDelay.
-	MinDelay time.Duration
-
-	// MaxDelay is the maximum amount of time to delay between retries. If unset or set
-	// to zero, SnapshotCompletedWaiter will use default max delay of 120 seconds. Note
-	// that MaxDelay must resolve to value greater than or equal to the MinDelay.
-	MaxDelay time.Duration
-
-	// LogWaitAttempts is used to enable logging for waiter retry attempts
-	LogWaitAttempts bool
-
-	// Retryable is function that can be used to override the service defined
-	// waiter-behavior based on operation output, or returned error. This function is
-	// used by the waiter to decide if a state is retryable or a terminal state. By
-	// default service-modeled logic will populate this option. This option can thus be
-	// used to define a custom waiter state with fall-back to service-modeled waiter
-	// state mutators.The function returns an error in case of a failure state. In case
-	// of retry state, this function returns a bool value of true and nil error, while
-	// in case of success it returns a bool value of false and nil error.
-	Retryable func(context.Context, *DescribeSnapshotsInput, *DescribeSnapshotsOutput, error) (bool, error)
+// DescribeSnapshotsAPIClient is a client that implements the DescribeSnapshots
+// operation.
+type DescribeSnapshotsAPIClient interface {
+	DescribeSnapshots(context.Context, *DescribeSnapshotsInput, ...func(*Options)) (*DescribeSnapshotsOutput, error)
 }
 
-// SnapshotCompletedWaiter defines the waiters for SnapshotCompleted
-type SnapshotCompletedWaiter struct {
-	client DescribeSnapshotsAPIClient
-
-	options SnapshotCompletedWaiterOptions
-}
-
-// NewSnapshotCompletedWaiter constructs a SnapshotCompletedWaiter.
-func NewSnapshotCompletedWaiter(client DescribeSnapshotsAPIClient, optFns ...func(*SnapshotCompletedWaiterOptions)) *SnapshotCompletedWaiter {
-	options := SnapshotCompletedWaiterOptions{}
-	options.MinDelay = 15 * time.Second
-	options.MaxDelay = 120 * time.Second
-	options.Retryable = snapshotCompletedStateRetryable
-
-	for _, fn := range optFns {
-		fn(&options)
-	}
-	return &SnapshotCompletedWaiter{
-		client:  client,
-		options: options,
-	}
-}
-
-// Wait calls the waiter function for SnapshotCompleted waiter. The maxWaitDur is
-// the maximum wait duration the waiter will wait. The maxWaitDur is required and
-// must be greater than zero.
-func (w *SnapshotCompletedWaiter) Wait(ctx context.Context, params *DescribeSnapshotsInput, maxWaitDur time.Duration, optFns ...func(*SnapshotCompletedWaiterOptions)) error {
-	_, err := w.WaitForOutput(ctx, params, maxWaitDur, optFns...)
-	return err
-}
-
-// WaitForOutput calls the waiter function for SnapshotCompleted waiter and returns
-// the output of the successful operation. The maxWaitDur is the maximum wait
-// duration the waiter will wait. The maxWaitDur is required and must be greater
-// than zero.
-func (w *SnapshotCompletedWaiter) WaitForOutput(ctx context.Context, params *DescribeSnapshotsInput, maxWaitDur time.Duration, optFns ...func(*SnapshotCompletedWaiterOptions)) (*DescribeSnapshotsOutput, error) {
-	if maxWaitDur <= 0 {
-		return nil, fmt.Errorf("maximum wait time for waiter must be greater than zero")
-	}
-
-	options := w.options
-	for _, fn := range optFns {
-		fn(&options)
-	}
-
-	if options.MaxDelay <= 0 {
-		options.MaxDelay = 120 * time.Second
-	}
-
-	if options.MinDelay > options.MaxDelay {
-		return nil, fmt.Errorf("minimum waiter delay %v must be lesser than or equal to maximum waiter delay of %v.", options.MinDelay, options.MaxDelay)
-	}
-
-	ctx, cancelFn := context.WithTimeout(ctx, maxWaitDur)
-	defer cancelFn()
-
-	logger := smithywaiter.Logger{}
-	remainingTime := maxWaitDur
-
-	var attempt int64
-	for {
-
-		attempt++
-		apiOptions := options.APIOptions
-		start := time.Now()
-
-		if options.LogWaitAttempts {
-			logger.Attempt = attempt
-			apiOptions = append([]func(*middleware.Stack) error{}, options.APIOptions...)
-			apiOptions = append(apiOptions, logger.AddLogger)
-		}
-
-		out, err := w.client.DescribeSnapshots(ctx, params, func(o *Options) {
-			o.APIOptions = append(o.APIOptions, apiOptions...)
-		})
-
-		retryable, err := options.Retryable(ctx, params, out, err)
-		if err != nil {
-			return nil, err
-		}
-		if !retryable {
-			return out, nil
-		}
-
-		remainingTime -= time.Since(start)
-		if remainingTime < options.MinDelay || remainingTime <= 0 {
-			break
-		}
-
-		// compute exponential backoff between waiter retries
-		delay, err := smithywaiter.ComputeDelay(
-			attempt, options.MinDelay, options.MaxDelay, remainingTime,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("error computing waiter delay, %w", err)
-		}
-
-		remainingTime -= delay
-		// sleep for the delay amount before invoking a request
-		if err := smithytime.SleepWithContext(ctx, delay); err != nil {
-			return nil, fmt.Errorf("request cancelled while waiting, %w", err)
-		}
-	}
-	return nil, fmt.Errorf("exceeded max wait time for SnapshotCompleted waiter")
-}
-
-func snapshotCompletedStateRetryable(ctx context.Context, input *DescribeSnapshotsInput, output *DescribeSnapshotsOutput, err error) (bool, error) {
-
-	if err == nil {
-		pathValue, err := jmespath.Search("Snapshots[].State", output)
-		if err != nil {
-			return false, fmt.Errorf("error evaluating waiter state: %w", err)
-		}
-
-		expectedValue := "completed"
-		var match = true
-		listOfValues, ok := pathValue.([]interface{})
-		if !ok {
-			return false, fmt.Errorf("waiter comparator expected list got %T", pathValue)
-		}
-
-		if len(listOfValues) == 0 {
-			match = false
-		}
-		for _, v := range listOfValues {
-			value, ok := v.(types.SnapshotState)
-			if !ok {
-				return false, fmt.Errorf("waiter comparator expected types.SnapshotState value, got %T", pathValue)
-			}
-
-			if string(value) != expectedValue {
-				match = false
-			}
-		}
-
-		if match {
-			return false, nil
-		}
-	}
-
-	if err == nil {
-		pathValue, err := jmespath.Search("Snapshots[].State", output)
-		if err != nil {
-			return false, fmt.Errorf("error evaluating waiter state: %w", err)
-		}
-
-		expectedValue := "error"
-		listOfValues, ok := pathValue.([]interface{})
-		if !ok {
-			return false, fmt.Errorf("waiter comparator expected list got %T", pathValue)
-		}
-
-		for _, v := range listOfValues {
-			value, ok := v.(types.SnapshotState)
-			if !ok {
-				return false, fmt.Errorf("waiter comparator expected types.SnapshotState value, got %T", pathValue)
-			}
-
-			if string(value) == expectedValue {
-				return false, fmt.Errorf("waiter state transitioned to Failure")
-			}
-		}
-	}
-
-	return true, nil
-}
+var _ DescribeSnapshotsAPIClient = (*Client)(nil)
 
 func newServiceMetadataMiddleware_opDescribeSnapshots(region string) *awsmiddleware.RegisterServiceMetadata {
 	return &awsmiddleware.RegisterServiceMetadata{
 		Region:        region,
 		ServiceID:     ServiceID,
-		SigningName:   "ec2",
 		OperationName: "DescribeSnapshots",
 	}
 }
