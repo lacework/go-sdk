@@ -25,22 +25,21 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/honeycombio/libhoney-go"
 	"github.com/lacework/go-sdk/v2/api"
 	"github.com/lacework/go-sdk/v2/lwdomain"
 )
 
 var (
-	// HoneyDataset is the dataset in Honeycomb that we send tracing
+	// MetricDataset is the dataset in Elastic that we send tracing
 	// data this variable will be set depending on the environment we
 	// are running on. During development, we send all events and
 	// tracing data to a default dataset.
-	HoneyDataset = "lacework-cli-dev"
+	MetricDataset = "lacework-cli-dev"
 )
 
 const (
 	// DisableTelemetry is an environment variable that can be used to
-	// disable telemetry sent to Honeycomb
+	// disable telemetry sent to Elastic
 	DisableTelemetry = "LW_TELEMETRY_DISABLE"
 
 	// HomebrewInstall is an environment variable that denotes the
@@ -54,13 +53,13 @@ const (
 	// List of Features
 	//
 	// A feature within the Lacework CLI is any functionality that
-	// can't be traced or tracked by the default event sent to Honeycomb,
+	// can't be traced or tracked by the default event sent to Elastic,
 	// it is a behavior that we, Lacework engineers, would like to
 	// trace and understand its usage and adoption.
 	//
-	// By default the Feature field within the Honeyvent is empty,
+	// By default the Feature field within the MetricEvent is empty,
 	// define a new feature below and set it before sending a new
-	// Honeyvent. Additionally, there is a FeatureData field that
+	// MetricEvent. Additionally, there is a FeatureData field that
 	// any feature can use to inject any specific information
 	// related to that feature.
 	//
@@ -69,7 +68,7 @@ const (
 	// ```go
 	// cli.Event.Feature = featPollCtrScan
 	// cli.Event.AddFeatureField("key", "value")
-	// cli.SendHoneyvent()
+	// cli.SendMetricEvent()
 	// ```
 	//
 	// Polling mechanism feature
@@ -91,11 +90,11 @@ const (
 	featMigrateConfigV2 = "migrate_config_v2"
 )
 
-// InitHoneyvent initialize honeycomb library and main Honeyvent, such event
+// InitMetricEvent initialize Elastic library and main MetricEvent, such event
 // could be modified during a command execution to add extra parameters such
 // as error message, feature data, etc.
-func (c *cliState) InitHoneyvent() {
-	c.Event = &api.Honeyvent{
+func (c *cliState) InitMetricEvent() {
+	c.Event = &api.MetricEvent{
 		Os:            runtime.GOOS,
 		Arch:          runtime.GOARCH,
 		Version:       Version,
@@ -106,36 +105,33 @@ func (c *cliState) InitHoneyvent() {
 		CfgVersion:    c.CfgVersion,
 		TraceID:       newID(),
 		InstallMethod: installMethod(),
-		Dataset:       HoneyDataset,
+		Dataset:       MetricDataset,
 	}
 }
 
 // Wait should be called before finishing the execution of any CLI command,
-// it waits for pending workers (a.k.a. honeyvents) to be transmitted
+// it waits for pending workers (a.k.a. MetricEvents) to be transmitted
 func (c *cliState) Wait() {
 	// wait for any missing worker
 	c.workers.Wait()
-
-	// flush any pending calls to Honeycomb
-	libhoney.Close()
 
 	// stop gRPC server gracefully
 	c.Stop()
 }
 
-// SendHoneyvent is used throughout the CLI to send Honeyvents, these events
+// SendMetricEvent is used throughout the CLI to send metric events, these events
 // have tracing data to understand how the commands are being executed, what
 // features are used and the overall command flow. This function sends the
 // events via goroutines so that we don't block the execution of the main process
 //
 // NOTE: the CLI will send at least one event per command execution
-func (c *cliState) SendHoneyvent() {
+func (c *cliState) SendMetricEvent() {
 	if disabled := os.Getenv(DisableTelemetry); disabled != "" {
 		return
 	}
 
 	if c.LwApi == nil {
-		c.Log.Debug("unable to send honeyvent", "error")
+		c.Log.Debug("unable to send MetricEvent", "error")
 		return
 	}
 
@@ -154,8 +150,7 @@ func (c *cliState) SendHoneyvent() {
 
 	// Lacework accounts are NOT case-sensitive but some users configure them
 	// in uppercase and others in lowercase, therefore we will normalize all
-	// account to be lowercase so that we don't see different accounts in
-	// Honeycomb.
+	// account to be lowercase so that we don't see different accounts in metrics.
 	c.Event.Account = strings.ToLower(c.Event.Account)
 
 	// Detect if the account has the full domain, if so, subtract the account
@@ -166,31 +161,30 @@ func (c *cliState) SendHoneyvent() {
 		}
 	}
 
-	c.Log.Debugw("new honeyvent", "dataset", HoneyDataset,
+	c.Log.Debugw("new metric event", "dataset", MetricDataset,
 		"trace_id", c.Event.TraceID,
 		"span_id", c.Event.SpanID,
 		"parent_id", c.Event.ParentID,
 		"context_id", c.Event.ContextID,
 	)
-	honeyvent := libhoney.NewEvent()
-	_ = honeyvent.Add(c.Event)
-	honeycombEvent := *c.Event
-	honeycombEvent.Dataset = c.Event.Dataset
+
+	event := *c.Event
+	event.Dataset = c.Event.Dataset
 
 	c.workers.Add(1)
-	go func(wg *sync.WaitGroup, event *libhoney.Event, honeycombEvent api.Honeyvent) {
+	go func(wg *sync.WaitGroup, event api.MetricEvent) {
 		defer wg.Done()
 
-		c.Log.Debugw("sending honeyvent", "dataset", HoneyDataset)
+		c.Log.Debugw("sending MetricEvent", "dataset", MetricDataset)
 
-		_, err := c.LwApi.V2.Metrics.Send(honeycombEvent)
+		err := c.LwApi.V2.Metrics.Send(event)
 		if err != nil {
-			c.Log.Debugw("unable to send honeyvent", "error", err)
+			c.Log.Debugw("unable to send MetricEvent", "error", err)
 		}
 
-	}(&c.workers, honeyvent, honeycombEvent)
+	}(&c.workers, event)
 
-	// after adding a worker to submit a honeyvent, we remove
+	// after adding a worker to submit a metric event, we remove
 	// all temporal fields such as feature, feature.data, error
 	c.Event.DurationMs = 0
 	c.Event.Error = ""

@@ -29,7 +29,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHoneyventDefaultParameters(t *testing.T) {
+func TestMetricEventDefaultParameters(t *testing.T) {
 	assert.NotNil(t, cli.Event)
 	assert.Equal(t, Version, cli.Event.Version)
 	assert.Equal(t, runtime.GOOS, cli.Event.Os)
@@ -43,7 +43,7 @@ func TestHoneyventDefaultParameters(t *testing.T) {
 	assert.Empty(t, cli.Event.InstallMethod)
 }
 
-func TestSendHoneyventTracingFields(t *testing.T) {
+func TestSendMetricEventTracingFields(t *testing.T) {
 	// by default, the span_id must be empty
 	assert.Empty(t, cli.Event.SpanID)
 	assert.Empty(t, cli.Event.ParentID)
@@ -57,8 +57,8 @@ func TestSendHoneyventTracingFields(t *testing.T) {
 
 	cli.LwApi = client
 
-	// mocking sending first honeyvent
-	cli.SendHoneyvent()
+	// mocking sending first MetricEvent
+	cli.SendMetricEvent()
 
 	// the span_id should be set to the cli id
 	// but the parent_id must continue to be empty
@@ -66,9 +66,9 @@ func TestSendHoneyventTracingFields(t *testing.T) {
 	assert.Empty(t, cli.Event.ParentID)
 	assert.Empty(t, cli.Event.ContextID)
 
-	// mocking sending second honeyvent after setting a context ID
+	// mocking sending second MetricEvent after setting a context ID
 	os.Setenv("LACEWORK_CONTEXT_ID", "test-id")
-	cli.SendHoneyvent()
+	cli.SendMetricEvent()
 
 	// any further event should set the parent_id as the cli id
 	// and generate a new id for the span_id
@@ -79,7 +79,7 @@ func TestSendHoneyventTracingFields(t *testing.T) {
 	assert.Equal(t, "test-id", cli.Event.ContextID)
 }
 
-func TestSendHoneyventFeatureFields(t *testing.T) {
+func TestSendMetricEventFeatureFields(t *testing.T) {
 	// by default, the feature, feature.data and duration_ms should be empty
 	assert.Empty(t, cli.Event.DurationMs)
 	assert.Empty(t, cli.Event.Error)
@@ -101,10 +101,10 @@ func TestSendHoneyventFeatureFields(t *testing.T) {
 	cli.Event.DurationMs = 639023
 	cli.Event.Error = "something happened"
 
-	// mocking sending honeyvent
-	cli.SendHoneyvent()
+	// mocking sending MetricEvent
+	cli.SendMetricEvent()
 
-	// after submitting the honeyvent, the global
+	// after submitting the MetricEvent, the global
 	// event struct should be resetted
 	assert.Empty(t, cli.Event.DurationMs)
 	assert.Empty(t, cli.Event.Error)
@@ -112,8 +112,8 @@ func TestSendHoneyventFeatureFields(t *testing.T) {
 	assert.Empty(t, cli.Event.FeatureData)
 }
 
-func TestSendHoneyventDisableTelemetry(t *testing.T) {
-	// testing that the func SendHoneyvent won't run when the
+func TestSendMetricEventDisableTelemetry(t *testing.T) {
+	// testing that the func SendMetricEvent won't run when the
 	// environment variable 'DisableTelemetry'  is set
 	os.Setenv(DisableTelemetry, "1")
 	defer os.Setenv(DisableTelemetry, "")
@@ -128,8 +128,8 @@ func TestSendHoneyventDisableTelemetry(t *testing.T) {
 	// setting up a test feature
 	cli.Event.Feature = "test_feature"
 
-	// mocking sending honeyvent
-	cli.SendHoneyvent()
+	// mocking sending MetricEvent
+	cli.SendMetricEvent()
 
 	// all these fields should not be empty after sending the event
 	assert.Equal(t, "test_feature", cli.Event.Feature)
@@ -137,7 +137,7 @@ func TestSendHoneyventDisableTelemetry(t *testing.T) {
 	// events when it is set (disabled)
 }
 
-func TestSendHoneyventHomebrewInstall(t *testing.T) {
+func TestSendMetricEventHomebrewInstall(t *testing.T) {
 	// testing that the install method will be "Homebrew"
 	// environment variable 'LW_HOMEBREW_INSTALL'  is set
 	os.Setenv(HomebrewInstall, "1")
@@ -150,17 +150,17 @@ func TestSendHoneyventHomebrewInstall(t *testing.T) {
 	)
 	cli.LwApi = client
 
-	// init honeyvent as InstallMethod is set on init
-	cli.InitHoneyvent()
+	// init MetricEvent as InstallMethod is set on init
+	cli.InitMetricEvent()
 
-	// mocking sending honeyvent
-	cli.SendHoneyvent()
+	// mocking sending MetricEvent
+	cli.SendMetricEvent()
 
 	assert.NotEmpty(t, cli.Event.InstallMethod)
 	assert.Equal(t, "HOMEBREW", cli.Event.InstallMethod)
 }
 
-func TestSendHoneyventAccountToLower(t *testing.T) {
+func TestSendMetricEventAccountToLower(t *testing.T) {
 	cli.Event.Account = "all-lower-OR-ALL-UPPER"
 
 	fakeServer := lacework.MockServer()
@@ -170,10 +170,10 @@ func TestSendHoneyventAccountToLower(t *testing.T) {
 	)
 	cli.LwApi = client
 
-	// mocking sending honeyvent
-	cli.SendHoneyvent()
+	// mocking sending MetricEvent
+	cli.SendMetricEvent()
 
-	// after submitting the honeyvent, the global
+	// after submitting the MetricEvent, the global
 	// event struct should be resetted
 	assert.Equal(t, "all-lower-or-all-upper", cli.Event.Account)
 }

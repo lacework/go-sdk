@@ -35,7 +35,7 @@ jobs:
 
       - name: Build Artifacts
         env:
-          HONEYDATASET: ${{ secrets.PROD_HONEYDATASET }}
+          METRIC_DATASET: ${{ secrets.METRIC_DATASET }}
         run: |
           make prepare
           scripts/release.sh build

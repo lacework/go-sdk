@@ -174,7 +174,7 @@ func dailyComponentUpdateAvailable(componentName string) (bool, error) {
 
 	if versionCache.CheckComponentBefore(componentName, checkTime) {
 		cli.Event.Feature = featDailyCompVerCheck
-		defer cli.SendHoneyvent()
+		defer cli.SendMetricEvent()
 
 		versionCache.ComponentsLastCheck[componentName] = nowTime
 		cli.Log.Debugw("storing new version cache", "content", versionCache)
@@ -203,7 +203,7 @@ func firstTimeVersionCheck(dir, file string) error {
 		if err != nil {
 			cli.Event.FeatureData = map[string]interface{}{"silent_error": err.Error()}
 		}
-		cli.SendHoneyvent()
+		cli.SendMetricEvent()
 	}()
 
 	if err = os.MkdirAll(dir, 0755); err != nil {
@@ -254,7 +254,7 @@ func dailyVersionCheck() error {
 
 	if versionCache.LastCheckTime.Before(checkTime) {
 		cli.Event.Feature = featDailyVerCheck
-		defer cli.SendHoneyvent()
+		defer cli.SendMetricEvent()
 
 		versionCache.LastCheckTime = nowTime
 		cli.Log.Debugw("storing new version cache", "content", versionCache)
