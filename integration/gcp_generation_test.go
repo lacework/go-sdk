@@ -33,6 +33,8 @@ func TestGenerationGcpErrorOnNoSelectionGcp(t *testing.T) {
 	runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "n"},
@@ -54,13 +56,19 @@ func TestGenerationGcpSimple(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -88,17 +96,15 @@ func TestGenerationGcpAgentless(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "n"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpRegions, "us-east1"},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "y"},
 				MsgRsp{cmd.QuestionGcpOrganizationID, organizationId},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAgentless, 0},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "y"},
+				MsgRsp{cmd.QuestionGcpRegions, "us-east1"},
 				MsgRsp{cmd.QuestionGcpProjectFilterList, "p1,p2"},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -130,17 +136,15 @@ func TestGenerationGcpAgentlessProjectLevel(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAgentless, "y"},
+				MsgRsp{cmd.QuestionGcpRegions, "us-east1"},
+				MsgRsp{cmd.QuestionGcpProjectFilterList, "p1,p2"},
+				MsgRsp{cmd.QuestionGcpOrganizationID, organizationId},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "n"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpRegions, "us-east1"},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpOrganizationID, organizationId},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAgentless, 0},
-				MsgRsp{cmd.QuestionGcpProjectFilterList, "p1,p2"},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -172,13 +176,16 @@ func TestGenerationGcpConfig(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "n"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -206,13 +213,18 @@ func TestGenerationGcpAuditLog(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -240,17 +252,18 @@ func TestGenerationGcpAuditLogPubSub(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -277,18 +290,19 @@ func TestGenerationGcpAuditLogPubSubOrg(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "y"},
 				MsgRsp{cmd.QuestionGcpOrganizationID, organizationId},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -318,18 +332,22 @@ func TestGenerationGcpAllIntegrationsOrg(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "y"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpRegions, "us-east1"},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "y"},
 				MsgRsp{cmd.QuestionGcpOrganizationID, organizationId},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAgentless, 0},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "y"},
+				MsgRsp{cmd.QuestionGcpRegions, "us-east1"},
 				MsgRsp{cmd.QuestionGcpProjectFilterList, ""},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -361,13 +379,19 @@ func TestGenerationGcpPrefixAndWait(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -417,13 +441,18 @@ func TestGenerationGcpSACreds(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, serviceAccountFilePath},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -452,18 +481,20 @@ func TestGenerationGcpAuditLogWithExistingSink(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "y"},
 				MsgRsp{cmd.QuestionGcpExistingSinkName, "sink"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -491,17 +522,21 @@ func TestGenerationGcpExistingSA(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 1},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "y"},
 				MsgRsp{cmd.QuestionExistingServiceAccountName, "SA_1"},
 				MsgRsp{cmd.QuestionExistingServiceAccountPrivateKey, "cGFzc3dvcmRNY1Bhc3N3b3JkRmFjZQ=="},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -533,21 +568,21 @@ func TestGenerationGcpPubSubUseExistingSA(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 0},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
 				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 1},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "y"},
 				MsgRsp{cmd.QuestionExistingServiceAccountName, "SA_1"},
 				MsgRsp{cmd.QuestionExistingServiceAccountPrivateKey, "cGFzc3dvcmRNY1Bhc3N3b3JkRmFjZQ=="},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -579,17 +614,19 @@ func TestGenerationGcpConfigurationWithCustomIntegrationName(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 2},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, "customConfigurationIntegrationName"},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
 				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -620,17 +657,19 @@ func TestGenerationGcpAuditLogWithCustomIntegrationName(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 2},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
 				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
 				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, "customAuditLogIntegrationName"},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -664,16 +703,19 @@ func TestGenerationGcpCustomizedOutputLocation(t *testing.T) {
 	runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 3},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
 				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, dir},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -691,74 +733,6 @@ func TestGenerationGcpCustomizedOutputLocation(t *testing.T) {
 		gcp.WithProjectId(projectId),
 	).Generate()
 	assert.Equal(t, buildTf, string(result))
-}
-
-// Test Bailing out of Advanced Options
-func TestGenerationGcpAdvancedOptsDone(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-
-	tfResult := runGcpGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 5},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"gcp",
-	)
-
-	assertTerraformSaved(t, final)
-
-	buildTf, _ := gcp.NewTerraform(false, true, true, true,
-		gcp.WithProjectId(projectId),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
-}
-
-// Test Bailing out of Advanced Options with Configuration enabled only
-func TestGenerationGcpAdvancedOptsDoneConfigurationOnly(t *testing.T) {
-	os.Setenv("LW_NOCACHE", "true")
-	defer os.Setenv("LW_NOCACHE", "")
-	var final string
-
-	tfResult := runGcpGenerateTest(t,
-		func(c *expect.Console) {
-			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "n"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptDone, 4},
-				MsgRsp{cmd.QuestionRunTfPlan, "n"},
-			})
-			final, _ = c.ExpectEOF()
-		},
-		"generate",
-		"cloud-account",
-		"gcp",
-	)
-
-	assertTerraformSaved(t, final)
-
-	buildTf, _ := gcp.NewTerraform(false, true, false, true,
-		gcp.WithProjectId(projectId),
-	).Generate()
-	assert.Equal(t, buildTf, tfResult)
 }
 
 // Test existing main.tf prompt
@@ -781,16 +755,19 @@ func TestGenerationGcpWithExistingTerraform(t *testing.T) {
 	runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptAuditLog, 3},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
 				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, dir},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
 				MsgRsp{fmt.Sprintf("%s/main.tf already exists, overwrite?", dir), "n"},
 			})
 		},
@@ -817,14 +794,20 @@ func TestGenerationGcpFolders(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "y"},
 				MsgRsp{cmd.QuestionGcpOrganizationID, organizationId},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -860,14 +843,20 @@ func TestGenerationGcpFoldersShorthand(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "y"},
 				MsgRsp{cmd.QuestionGcpOrganizationID, organizationId},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -903,14 +892,20 @@ func TestGenerationGcpIncludeRootProjects(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "y"},
 				MsgRsp{cmd.QuestionGcpOrganizationID, organizationId},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -944,14 +939,20 @@ func TestGenerationGcpIncludeRootProjectsFalse(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "y"},
 				MsgRsp{cmd.QuestionGcpOrganizationID, organizationId},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -985,13 +986,18 @@ func TestGenerationGcpAuditLogFiltersTrue(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -1022,13 +1028,18 @@ func TestGenerationGcpAuditLogFiltersFalse(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -1059,15 +1070,20 @@ func TestGenerationGcpInvalidProjectId(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, "1"},
 				MsgOnly{cmd.InvalidProjectIDMessage},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -1099,13 +1115,18 @@ func TestGenerationGcpOverwrite(t *testing.T) {
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -1120,13 +1141,18 @@ func TestGenerationGcpOverwrite(t *testing.T) {
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{"already exists, overwrite?", "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -1157,13 +1183,18 @@ func TestGenerationGcpOverwriteOutput(t *testing.T) {
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 			final, _ = c.ExpectEOF()
@@ -1180,13 +1211,18 @@ func TestGenerationGcpOverwriteOutput(t *testing.T) {
 	runFakeTerminalTestFromDir(t, dir,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionGcpProjectID, projectId},
+				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionGcpEnableConfiguration, "n"},
 				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
-				MsgRsp{cmd.QuestionGcpProjectID, projectId},
-				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{"already exists, overwrite?", "n"},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
@@ -1212,13 +1248,19 @@ func TestGenerationGcpLaceworkProfile(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -1250,13 +1292,19 @@ func TestGenerationGcpMultipleProjects(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
+				MsgRsp{cmd.QuestionGcpCustomizeProjects, ""},
 				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "n"},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
@@ -1294,16 +1342,19 @@ func TestGenerationGcpMultipleProjectsInteractive(t *testing.T) {
 	tfResult := runGcpGenerateTest(t,
 		func(c *expect.Console) {
 			expectsCliOutput(t, c, []MsgRspHandler{
-				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
-				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
-				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
 				MsgRsp{cmd.QuestionGcpProjectID, projectId},
 				MsgRsp{cmd.QuestionGcpOrganizationIntegration, "n"},
-				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
-				MsgRsp{cmd.QuestionGcpConfigureAdvanced, "y"},
-				MsgMenu{cmd.GcpAdvancedOptProjects, 4},
+				MsgRsp{cmd.QuestionGcpEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionGcpEnableConfiguration, "y"},
+				MsgRsp{cmd.QuestionGcpConfigurationIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpEnableAuditLog, "y"},
+				MsgRsp{cmd.QuestionGcpUseExistingSink, "n"},
+				MsgRsp{cmd.QuestionGcpAuditLogIntegrationName, ""},
+				MsgRsp{cmd.QuestionGcpCustomFilter, ""},
 				MsgRsp{cmd.QuestionGcpCustomizeProjects, "project1, project2  ,project3"},
-				MsgRsp{cmd.QuestionGcpAnotherAdvancedOpt, "n"},
+				MsgRsp{cmd.QuestionGcpServiceAccountCredsPath, ""},
+				MsgRsp{cmd.QuestionUseExistingServiceAccount, "n"},
+				MsgRsp{cmd.QuestionGcpCustomizeOutputLocation, ""},
 				MsgRsp{cmd.QuestionRunTfPlan, "n"},
 			})
 
