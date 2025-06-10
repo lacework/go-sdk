@@ -91,6 +91,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           CI_ACCOUNT: ${{ secrets.CI_ACCOUNT }}
           CI_SUBACCOUNT: ${{ secrets.CI_SUBACCOUNT }}
           CI_API_KEY: ${{ secrets.CI_API_KEY }}
