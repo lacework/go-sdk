@@ -1,0 +1,82 @@
+package azure
+
+type IntegrationType string
+
+const (
+	Config      IntegrationType = "azure_config"
+	ActivityLog IntegrationType = "azure_activity_log"
+	Agentless   IntegrationType = "azure_agentless"
+)
+
+var RequiredPermissions = map[IntegrationType][]string{
+	Config: {
+		"Microsoft.Authorization/roleAssignments/read",
+		"Microsoft.Authorization/roleDefinitions/read",
+		"Microsoft.Resources/subscriptions/read",
+		"Microsoft.Resources/subscriptions/locations/read",
+		"Microsoft.Resources/subscriptions/resourceGroups/read",
+		"Microsoft.Resources/subscriptions/resourceGroups/write",
+		"Microsoft.Resources/deployments/read",
+		"Microsoft.Resources/deployments/write",
+		"Microsoft.Resources/deployments/validate/action",
+		"Microsoft.Resources/deployments/operationStatuses/read",
+		"Microsoft.Resources/deployments/operations/read",
+		"Microsoft.Resources/deployments/operations/write",
+		"Microsoft.Resources/deployments/operations/read",
+		"Microsoft.Resources/deployments/operations/write",
+		"Microsoft.Resources/deployments/operations/read",
+		"Microsoft.Resources/deployments/operations/write",
+		"Microsoft.Resources/deployments/operations/read",
+		"Microsoft.Resources/deployments/operations/write",
+		"Microsoft.Resources/deployments/operations/read",
+		"Microsoft.Resources/deployments/operations/write",
+	},
+	ActivityLog: {
+		"Microsoft.Insights/eventtypes/values/read",
+		"Microsoft.Insights/logs/read",
+		"Microsoft.Insights/diagnosticSettings/read",
+		"Microsoft.Insights/diagnosticSettings/write",
+		"Microsoft.Insights/diagnosticSettings/delete",
+		"Microsoft.Insights/metricDefinitions/read",
+		"Microsoft.Insights/metrics/read",
+		"Microsoft.OperationalInsights/workspaces/read",
+		"Microsoft.OperationalInsights/workspaces/write",
+		"Microsoft.OperationalInsights/workspaces/delete",
+		"Microsoft.OperationalInsights/workspaces/sharedKeys/read",
+		"Microsoft.OperationalInsights/workspaces/sharedKeys/regenerate/action",
+		"Microsoft.OperationalInsights/workspaces/storageinsightconfigs/read",
+		"Microsoft.OperationalInsights/workspaces/storageinsightconfigs/write",
+		"Microsoft.OperationalInsights/workspaces/storageinsightconfigs/delete",
+		"Microsoft.OperationalInsights/workspaces/managementGroups/read",
+		"Microsoft.OperationalInsights/workspaces/managementGroups/write",
+		"Microsoft.OperationalInsights/workspaces/managementGroups/delete",
+		"Microsoft.OperationalInsights/workspaces/managementGroups/read",
+		"Microsoft.OperationalInsights/workspaces/managementGroups/write",
+		"Microsoft.OperationalInsights/workspaces/managementGroups/delete",
+	},
+	Agentless: {
+		"Microsoft.App/jobs/*",
+		"Microsoft.App/managedEnvironments/*",
+		"Microsoft.Authorization/roleAssignments/*",
+		"Microsoft.Authorization/roleDefinitions/*",
+		"Microsoft.Compute/virtualMachines/read",
+		"Microsoft.Compute/virtualMachines/delete",
+		"Microsoft.Compute/virtualMachineScaleSets/read",
+		"Microsoft.Compute/virtualMachineScaleSets/virtualMachines/read",
+		"Microsoft.KeyVault/vaults/*",
+		"Microsoft.KeyVault/locations/deletedVaults/purge/*",
+		"Microsoft.KeyVault/locations/operationResults/*",
+		"Microsoft.ManagedIdentity/userAssignedIdentities/*",
+		"Microsoft.Network/natGateways/*",
+		"Microsoft.Network/networkSecurityGroups/*",
+		"Microsoft.Network/publicIPAddresses/*",
+		"Microsoft.Network/virtualNetworks/*",
+		"Microsoft.OperationalInsights/workspaces/*",
+		"Microsoft.OperationalInsights/workspaces/sharedKeys/*",
+		"Microsoft.Resources/subscriptions/resourcegroups/*",
+		"Microsoft.Storage/storageAccounts/*",
+		"Microsoft.Storage/storageAccounts/blobServices/*",
+		"Microsoft.Storage/storageAccounts/fileServices/*",
+		"Microsoft.Storage/storageAccounts/listKeys/*",
+	},
+}
