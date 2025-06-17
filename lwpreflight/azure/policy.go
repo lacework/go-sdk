@@ -3,7 +3,6 @@ package azure
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -38,24 +37,21 @@ func FetchPolicies(p *Preflight) error {
 
 		for _, assignment := range page.Value {
 			if assignment.Properties != nil && assignment.Properties.RoleDefinitionID != nil {
-				log.Printf("Fetching role definition for ID: %s", *assignment.Properties.RoleDefinitionID)
 				// Get role definition to check permissions
 				roleDefClient, err := armauthorization.NewRoleDefinitionsClient(cred, nil)
 				if err != nil {
-					return fmt.Errorf("failed to create role definitions client: %v", err)
+					return err
 				}
 
 				roleDef, err := roleDefClient.GetByID(context.Background(), *assignment.Properties.RoleDefinitionID, nil)
 				if err != nil {
-					return fmt.Errorf("failed to get role definition: %v", err)
+					return err
 				}
 
 				if roleDef.Properties != nil && roleDef.Properties.Permissions != nil {
-					log.Printf("Permissions for role %s:", *roleDef.Properties.RoleName)
 					for _, permission := range roleDef.Properties.Permissions {
 						for _, action := range permission.Actions {
 							if action != nil {
-								log.Printf("  - %s", *action)
 								p.permissions[*action] = true
 							}
 						}
@@ -65,6 +61,5 @@ func FetchPolicies(p *Preflight) error {
 		}
 	}
 
-	log.Printf("Complete list of permissions stored: %v", p.permissions)
 	return nil
 }

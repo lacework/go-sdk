@@ -12,7 +12,6 @@ type Details struct {
 }
 
 func FetchDetails(p *Preflight) error {
-	// Get subscription details
 	client, err := armsubscriptions.NewClient(p.cred, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create subscriptions client: %v", err)

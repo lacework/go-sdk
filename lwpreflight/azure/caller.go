@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"errors"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
@@ -33,13 +34,13 @@ func FetchCaller(p *Preflight) error {
 	// Parse JWT token to get caller info
 	claims, err := parseJWTClaims(token.Token)
 	if err != nil {
-		return fmt.Errorf("failed to parse token claims: %v", err)
+		return err
 	}
 
 	// Check if caller has Owner or Contributor role
 	isAdmin, err := checkAdminRole(p.cred, claims.ObjectID, p.subscriptionID)
 	if err != nil {
-		return fmt.Errorf("failed to check admin role: %v", err)
+		return err
 	}
 
 	p.caller = Caller{
@@ -56,7 +57,7 @@ func FetchCaller(p *Preflight) error {
 func checkAdminRole(cred azcore.TokenCredential, objectID, subscriptionID string) (bool, error) {
 	client, err := armauthorization.NewRoleAssignmentsClient(subscriptionID, cred, nil)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to check admin role: %v", err)
 	}
 
 	pager := client.NewListPager(&armauthorization.RoleAssignmentsClientListOptions{
@@ -66,7 +67,7 @@ func checkAdminRole(cred azcore.TokenCredential, objectID, subscriptionID string
 	for pager.More() {
 		page, err := pager.NextPage(context.Background())
 		if err != nil {
-			return false, err
+			return false, fmt.Errorf("failed to check admin role: %v", err)
 		}
 
 		for _, assignment := range page.Value {
@@ -93,7 +94,7 @@ type JWTClaims struct {
 func parseJWTClaims(token string) (*JWTClaims, error) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
-		return nil, fmt.Errorf("invalid token format")
+		return nil, errors.New("invalid token format")
 	}
 
 	claimsJSON, err := base64.RawURLEncoding.DecodeString(parts[1])
