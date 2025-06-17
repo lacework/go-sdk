@@ -13,6 +13,7 @@ var RequiredPermissions = map[IntegrationType][]string{
 		"Microsoft.Authorization/roleAssignments/read",
 		"Microsoft.Authorization/roleAssignments/write",
 	},
+
 	ActivityLog: {
 		"Microsoft.Authorization/roleAssignments/read",
 		"Microsoft.Authorization/roleAssignments/write",
@@ -49,6 +50,7 @@ var RequiredPermissions = map[IntegrationType][]string{
 		"Microsoft.Insights/diagnosticSettings/write",
 		"Microsoft.Insights/diagnosticSettings/delete",
 	},
+
 	Agentless: {
 		"Microsoft.App/jobs/*",
 		"Microsoft.App/managedEnvironments/*",

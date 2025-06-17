@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
-	"errors"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
@@ -57,7 +57,7 @@ func FetchCaller(p *Preflight) error {
 func checkAdminRole(cred azcore.TokenCredential, objectID, subscriptionID string) (bool, error) {
 	client, err := armauthorization.NewRoleAssignmentsClient(subscriptionID, cred, nil)
 	if err != nil {
-		return false, fmt.Errorf("failed to check admin role: %v", err)
+		return false, fmt.Errorf("failed checkAdminRole: %v", err)
 	}
 
 	pager := client.NewListPager(&armauthorization.RoleAssignmentsClientListOptions{
@@ -67,7 +67,7 @@ func checkAdminRole(cred azcore.TokenCredential, objectID, subscriptionID string
 	for pager.More() {
 		page, err := pager.NextPage(context.Background())
 		if err != nil {
-			return false, fmt.Errorf("failed to check admin role: %v", err)
+			return false, fmt.Errorf("failed checkAdminRole: %v", err)
 		}
 
 		for _, assignment := range page.Value {

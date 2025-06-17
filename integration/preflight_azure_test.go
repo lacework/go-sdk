@@ -12,19 +12,19 @@ import (
 
 func TestPreflightAzure(t *testing.T) {
 	const (
-		SubscriptionID = "0c21d8f2-6a26-47b1-9d9c-ae935147b344"
-		TenantID       = "3a376159-a4aa-4cab-8840-e9b286374a30"
+		SubscriptionID = "1fe75302-1906-45bc-bdc1-79b76799dd74"
 	)
 
 	clientID := os.Getenv("AZURE_CLIENT_ID")
 	clientSecret := os.Getenv("AZURE_CLIENT_SECRET")
+	tenantID := os.Getenv("AZURE_TENANT_ID")
 
 	preflight, err := azure.New(azure.Params{
 		Agentless:      true,
 		Config:         true,
 		ActivityLog:    true,
 		SubscriptionID: SubscriptionID,
-		TenantID:       TenantID,
+		TenantID:       tenantID,
 		ClientID:       clientID,
 		ClientSecret:   clientSecret,
 	})
@@ -32,13 +32,12 @@ func TestPreflightAzure(t *testing.T) {
 	assert.NoError(t, err)
 
 	result, err := preflight.Run()
-
 	assert.NoError(t, err)
 	assert.NotEmpty(t, result.Caller.ObjectID)
 	assert.False(t, result.Caller.IsAdmin)
 	assert.NotEmpty(t, result.Caller.TenantID)
 	assert.NotEmpty(t, result.Details.Regions)
 	assert.Contains(t, result.Errors["azure_agentless"], "Required permission missing: Microsoft.Compute/virtualMachineScaleSets/read")
-	assert.Contains(t, result.Errors["azure_activity_log"], "Required permission missing: Microsoft.Insights/eventtypes/values/read")
-	assert.Contains(t, result.Errors["azure_config"], "Required permission missing: Microsoft.Resources/deployments/write")
+	assert.Contains(t, result.Errors["azure_activity_log"], "Required permission missing: Microsoft.Insights/diagnosticSettings/delete")
+	assert.Contains(t, result.Errors["azure_config"], "Required permission missing: Microsoft.Authorization/roleAssignments/write")
 }
