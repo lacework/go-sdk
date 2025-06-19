@@ -76,6 +76,8 @@ func FetchDetails(p *Preflight) error {
 }
 
 func fetchOrg(p *Preflight) error {
+	p.verboseWriter.Write("Discovering organization information")
+
 	ctx := context.Background()
 	orgSvc := organizations.NewFromConfig(p.awsConfig)
 
@@ -101,6 +103,8 @@ func fetchOrg(p *Preflight) error {
 	p.details.IsManagementAccount = *orgOutput.Organization.MasterAccountId == p.caller.AccountID
 	p.details.OrgID = *orgOutput.Organization.Id
 
+	p.verboseWriter.Write("Discovering all accounts in the organization")
+
 	// Get account IDs in the org
 	accountsOutput, err := orgSvc.ListAccounts(ctx, nil)
 	if err != nil {
@@ -110,12 +114,16 @@ func fetchOrg(p *Preflight) error {
 		p.details.OrgAccountIDs = append(p.details.OrgAccountIDs, *a.Id)
 	}
 
+	p.verboseWriter.Write("Discovering root organization unit")
+
 	// Get root org unit ID and all org unit IDs
 	rootsOutput, err := orgSvc.ListRoots(ctx, nil)
 	if err != nil {
 		return err
 	}
 	if len(rootsOutput.Roots) > 0 {
+		p.verboseWriter.Write("Discovering all organization units")
+
 		p.details.RootOrgUnitID = *rootsOutput.Roots[0].Id
 		orgUnitsOutput, err := orgSvc.ListOrganizationalUnitsForParent(
 			ctx,
@@ -130,6 +138,8 @@ func fetchOrg(p *Preflight) error {
 			p.details.OrgUnitIDs = append(p.details.OrgUnitIDs, *ou.Id)
 		}
 	}
+
+	p.verboseWriter.Write("Discovering enabled services in the organization")
 
 	// Check enabled services
 	servicesOutput, err := orgSvc.ListAWSServiceAccessForOrganization(ctx, nil)
@@ -146,6 +156,8 @@ func fetchOrg(p *Preflight) error {
 }
 
 func fetchRegions(p *Preflight) error {
+	p.verboseWriter.Write("Discovering enabled regions")
+
 	ec2Svc := ec2.NewFromConfig(p.awsConfig)
 	output, err := ec2Svc.DescribeRegions(context.Background(), nil)
 	if err != nil {
@@ -197,6 +209,8 @@ To determine if an existing trail is eligible CloudTrail integration:
  4. No need to check KMS
 */
 func fetchEligibleTrail(p *Preflight) (*cloudtrailTypes.Trail, error) {
+	p.verboseWriter.Write("Discovering existing eligible CloudTrail")
+
 	ctx := context.Background()
 
 	trailSvc := cloudtrail.NewFromConfig(p.awsConfig)
@@ -236,6 +250,8 @@ func fetchEligibleTrail(p *Preflight) (*cloudtrailTypes.Trail, error) {
 }
 
 func fetchControlTowerTrail(p *Preflight) (*cloudtrailTypes.Trail, error) {
+	p.verboseWriter.Write("Discovering existing eligible CloudTrail for Control Tower")
+
 	ctx := context.Background()
 
 	trailSvc := cloudtrail.NewFromConfig(p.awsConfig)
@@ -276,6 +292,8 @@ func fetchControlTowerTrail(p *Preflight) (*cloudtrailTypes.Trail, error) {
 }
 
 func fetchEKSClusters(p *Preflight) error {
+	p.verboseWriter.Write("Discovering EKS clusters")
+
 	var numRegions = len(p.details.Regions)
 	var wg sync.WaitGroup
 	var ch = make(chan EKSCluster, numRegions)
@@ -291,7 +309,7 @@ func fetchEKSClusters(p *Preflight) error {
 			output, err := eksSvc.ListClusters(context.Background(), nil)
 			if err != nil {
 				logger.Log.Warnf(
-					"Discovering EKS Cluster details: unable to check region %s\nERROR %s",
+					"Discovering EKS Clusters: unable to check region %s. ERROR: %s",
 					region, err.Error(),
 				)
 			} else {

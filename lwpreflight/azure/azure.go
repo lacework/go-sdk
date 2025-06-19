@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/lacework/go-sdk/v2/lwpreflight/verbosewriter"
 )
 
 type Preflight struct {
@@ -18,6 +19,8 @@ type Preflight struct {
 	caller  Caller
 	details Details
 	errors  map[IntegrationType][]string
+
+	verboseWriter verbosewriter.WriteCloser
 }
 
 type Result struct {
@@ -85,9 +88,15 @@ func New(params Params) (*Preflight, error) {
 		tasks:            tasks,
 		details:          Details{},
 		errors:           map[IntegrationType][]string{},
+		verboseWriter:    verbosewriter.New(),
 	}
 
 	return preflight, nil
+}
+
+// Overwrite the default verbose writer
+func (p *Preflight) SetVerboseWriter(vw verbosewriter.WriteCloser) {
+	p.verboseWriter = vw
 }
 
 func (p *Preflight) Run() (*Result, error) {

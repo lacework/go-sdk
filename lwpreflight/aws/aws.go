@@ -2,10 +2,12 @@ package aws
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/lacework/go-sdk/v2/lwpreflight/verbosewriter"
 )
 
 type Preflight struct {
@@ -19,6 +21,8 @@ type Preflight struct {
 	caller  Caller
 	details Details
 	errors  map[IntegrationType][]string
+
+	verboseWriter verbosewriter.WriteCloser
 }
 
 type Result struct {
@@ -90,15 +94,24 @@ func New(params Params) (*Preflight, error) {
 		tasks:                   tasks,
 		details:                 Details{},
 		errors:                  map[IntegrationType][]string{},
+		verboseWriter:           verbosewriter.New(),
 	}
 
 	return preflight, nil
 }
 
+// Overwrite the default verbose writer
+func (p *Preflight) SetVerboseWriter(vw verbosewriter.WriteCloser) {
+	p.verboseWriter = vw
+}
+
 func (p *Preflight) Run() (*Result, error) {
+	defer p.verboseWriter.Close()
+
 	for _, task := range p.tasks {
 		err := task(p)
 		if err != nil {
+			p.verboseWriter.Write(fmt.Sprintf("Error running preflight task: %s", err.Error()))
 			return nil, err
 		}
 	}

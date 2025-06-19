@@ -21,6 +21,8 @@ func (c *Caller) IsAssumedRole() bool {
 }
 
 func FetchCaller(p *Preflight) error {
+	p.verboseWriter.Write("Discovering caller information")
+
 	stsSvc := sts.NewFromConfig(p.awsConfig)
 
 	caller, err := stsSvc.GetCallerIdentity(context.Background(), nil)

@@ -10,6 +10,8 @@ func CheckPermissions(p *Preflight) error {
 	}
 
 	for _, integrationType := range p.integrationTypes {
+		p.verboseWriter.Write(fmt.Sprintf("Checking permissions for %s", integrationType))
+
 		requiredPermissions := RequiredPermissions[integrationType]
 		for _, permission := range requiredPermissions {
 			if !p.permissions[permission] {
