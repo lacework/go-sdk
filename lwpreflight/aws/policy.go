@@ -3,6 +3,7 @@ package aws
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -28,6 +29,7 @@ func FetchPolicies(p *Preflight) error {
 
 	if p.caller.IsRoot {
 		logger.Log.Info("Skip fetching IAM policies for root user")
+		p.verboseWriter.Write("Skip fetching IAM policies for root user")
 		return nil
 	}
 
@@ -35,30 +37,36 @@ func FetchPolicies(p *Preflight) error {
 	documents := []string{}
 
 	if p.caller.IsAssumedRole() {
+		p.verboseWriter.Write(fmt.Sprintf("Discovering managed IAM policies for %s", p.caller.Name))
 		docs, err := fetchManangedRolePolicies(ctx, iamSvc, p.caller.Name)
 		if err != nil {
 			return err
 		}
 		documents = append(documents, docs...)
 
+		p.verboseWriter.Write(fmt.Sprintf("Discovering inline IAM policies for %s", p.caller.Name))
 		docs, err = fetchInlineRolePolicies(ctx, iamSvc, p.caller.Name)
 		if err != nil {
 			return err
 		}
 		documents = append(documents, docs...)
 	} else {
+		p.verboseWriter.Write(fmt.Sprintf("Discovering managed IAM policies for %s", p.caller.Name))
+
 		docs, err := fetchManagedUserPolicies(ctx, iamSvc, p.caller.Name)
 		if err != nil {
 			return err
 		}
 		documents = append(documents, docs...)
 
+		p.verboseWriter.Write(fmt.Sprintf("Discovering inline IAM policies for %s", p.caller.Name))
 		docs, err = fetchInlineUserPolicies(ctx, iamSvc, p.caller.Name)
 		if err != nil {
 			return err
 		}
 		documents = append(documents, docs...)
 
+		p.verboseWriter.Write(fmt.Sprintf("Discovering IAM groups for %s", p.caller.Name))
 		docs, err = fetchUserGroupPolicies(ctx, iamSvc, p.caller.Name)
 		if err != nil {
 			return err

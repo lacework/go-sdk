@@ -19,6 +19,8 @@ func FetchPolicies(p *Preflight) error {
 		return fmt.Errorf("failed to create credential: %v", err)
 	}
 
+	p.verboseWriter.Write(fmt.Sprintf("Discovering role assigments for subscription %s", p.subscriptionID))
+
 	// Get role assignments for the caller
 	client, err := armauthorization.NewRoleAssignmentsClient(p.subscriptionID, cred, nil)
 	if err != nil {

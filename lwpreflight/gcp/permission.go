@@ -6,6 +6,8 @@ import (
 
 func CheckPermissions(p *Preflight) error {
 	for _, integrationType := range p.integrationTypes {
+		p.verboseWriter.Write(fmt.Sprintf("Checking permissions for %s", integrationType))
+
 		for _, permission := range RequiredPermissions[integrationType] {
 			if !p.permissions[permission] {
 				p.errors[integrationType] = append(

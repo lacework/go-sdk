@@ -18,8 +18,10 @@ func FetchPolicies(p *Preflight) error {
 	var policies []*cloudresourcemanagerV3.Policy
 
 	if p.orgID != "" {
+		p.verboseWriter.Write(fmt.Sprintf("Discovering IAM policies for organization %s", p.orgID))
 		policies, err = fetchOrgPolicies(p)
 	} else {
+		p.verboseWriter.Write(fmt.Sprintf("Discovering IAM policies for project %s", p.projectID))
 		policies, err = fetchProjectPolicies(p)
 	}
 	if err != nil {

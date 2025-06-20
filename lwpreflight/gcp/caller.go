@@ -12,6 +12,8 @@ type Caller struct {
 }
 
 func FetchCaller(p *Preflight) error {
+	p.verboseWriter.Write("Discovering caller information")
+
 	oauth2Svc, err := oauth2.NewService(context.Background(), p.gcpClientOption)
 	if err != nil {
 		return err

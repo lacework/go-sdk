@@ -17,6 +17,8 @@ func FetchDetails(p *Preflight) error {
 		return fmt.Errorf("failed to create subscriptions client: %v", err)
 	}
 
+	p.verboseWriter.Write("Discovering available regions")
+
 	// Get available locations using the pager
 	pager := client.NewListLocationsPager(p.subscriptionID, nil)
 	regions := make([]string, 0)

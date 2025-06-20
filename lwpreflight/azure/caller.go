@@ -23,6 +23,8 @@ type Caller struct {
 }
 
 func FetchCaller(p *Preflight) error {
+	p.verboseWriter.Write("Discovering caller information")
+
 	// Get caller identity
 	token, err := p.cred.GetToken(context.Background(), policy.TokenRequestOptions{
 		Scopes: []string{"https://management.azure.com/.default"},

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/lacework/go-sdk/v2/lwpreflight/verbosewriter"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 )
@@ -20,6 +21,8 @@ type Preflight struct {
 	caller  Caller
 	details Details
 	errors  map[IntegrationType][]string
+
+	verboseWriter verbosewriter.WriteCloser
 }
 
 type Result struct {
@@ -71,6 +74,7 @@ func New(params Params) (*Preflight, error) {
 		tasks:            tasks,
 		details:          Details{},
 		errors:           map[IntegrationType][]string{},
+		verboseWriter:    verbosewriter.New(),
 	}
 
 	if params.AccessToken != "" {
@@ -95,6 +99,11 @@ func New(params Params) (*Preflight, error) {
 	}
 
 	return preflight, nil
+}
+
+// Overwrite the default verbose writer
+func (p *Preflight) SetVerboseWriter(vw verbosewriter.WriteCloser) {
+	p.verboseWriter = vw
 }
 
 func (p *Preflight) Run() (*Result, error) {

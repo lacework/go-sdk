@@ -25,6 +25,8 @@ func FetchDetails(p *Preflight) error {
 }
 
 func fetchSchedulerRegions(p *Preflight) error {
+	p.verboseWriter.Write("Discovering scheduler regions")
+
 	schedulerSvc, err := scheduler.NewService(context.Background(), p.gcpClientOption)
 	if err != nil {
 		return err
