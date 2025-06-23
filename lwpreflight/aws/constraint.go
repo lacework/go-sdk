@@ -30,7 +30,7 @@ func CheckVPCQuota(p *Preflight) error {
 		return err
 	}
 
-	if int(*quotaOutput.Quota.Value) <= len(vpcsOutput.Vpcs) {
+	if len(vpcsOutput.Vpcs) >= int(*quotaOutput.Quota.Value) {
 		p.errors[Agentless] = append(
 			p.errors[Agentless],
 			fmt.Sprintf("VPC Quota limit exceeded in region %s", p.awsConfig.Region),
