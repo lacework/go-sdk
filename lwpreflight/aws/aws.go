@@ -77,6 +77,7 @@ func New(params Params) (*Preflight, error) {
 
 	if params.Agentless {
 		integrationTypes = append(integrationTypes, Agentless)
+		tasks = append(tasks, CheckVPCQuota)
 	}
 	if params.Config {
 		integrationTypes = append(integrationTypes, Config)

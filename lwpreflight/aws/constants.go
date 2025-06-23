@@ -115,6 +115,7 @@ var RequiredPermissions = map[IntegrationType][]string{
 		"secretsmanager:GetResourcePolicy",
 		"secretsmanager:GetSecretValue",
 		"secretsmanager:PutSecretValue",
+		"servicequotas:GetServiceQuota",
 	},
 	Config: {
 		"cloudformation:CreateStack",
