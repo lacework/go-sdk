@@ -12,7 +12,7 @@ type Details struct {
 }
 
 func FetchDetails(p *Preflight) error {
-	client, err := armsubscriptions.NewClient(p.cred, nil)
+	client, err := armsubscriptions.NewClient(p.azureConfig.cred, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create subscriptions client: %v", err)
 	}
@@ -20,7 +20,7 @@ func FetchDetails(p *Preflight) error {
 	p.verboseWriter.Write("Discovering available regions")
 
 	// Get available locations using the pager
-	pager := client.NewListLocationsPager(p.subscriptionID, nil)
+	pager := client.NewListLocationsPager(p.azureConfig.subscriptionID, nil)
 	regions := make([]string, 0)
 	for pager.More() {
 		page, err := pager.NextPage(context.Background())

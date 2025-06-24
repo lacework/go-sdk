@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
 )
 
@@ -14,15 +13,10 @@ func FetchPolicies(p *Preflight) error {
 		return nil
 	}
 
-	cred, err := azidentity.NewDefaultAzureCredential(nil)
-	if err != nil {
-		return fmt.Errorf("failed to create credential: %v", err)
-	}
-
-	p.verboseWriter.Write(fmt.Sprintf("Discovering role assigments for subscription %s", p.subscriptionID))
+	p.verboseWriter.Write(fmt.Sprintf("Discovering role assigments for subscription %s", p.azureConfig.subscriptionID))
 
 	// Get role assignments for the caller
-	client, err := armauthorization.NewRoleAssignmentsClient(p.subscriptionID, cred, nil)
+	client, err := armauthorization.NewRoleAssignmentsClient(p.azureConfig.subscriptionID, p.azureConfig.cred, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create role assignments client: %v", err)
 	}
@@ -40,7 +34,7 @@ func FetchPolicies(p *Preflight) error {
 		for _, assignment := range page.Value {
 			if assignment.Properties != nil && assignment.Properties.RoleDefinitionID != nil {
 				// Get role definition to check permissions
-				roleDefClient, err := armauthorization.NewRoleDefinitionsClient(cred, nil)
+				roleDefClient, err := armauthorization.NewRoleDefinitionsClient(p.azureConfig.cred, nil)
 				if err != nil {
 					return err
 				}

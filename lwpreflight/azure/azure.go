@@ -8,10 +8,15 @@ import (
 	"github.com/lacework/go-sdk/v2/lwpreflight/verbosewriter"
 )
 
+type azureConfig struct {
+	cred           azcore.TokenCredential
+	subscriptionID string
+	tenantID       string
+	region         string
+}
+
 type Preflight struct {
-	cred             azcore.TokenCredential
-	subscriptionID   string
-	tenantID         string
+	azureConfig      azureConfig
 	integrationTypes []IntegrationType
 	tasks            []func(p *Preflight) error
 	permissions      map[string]bool
@@ -37,6 +42,7 @@ type Params struct {
 	TenantID       string
 	ClientID       string
 	ClientSecret   string
+	Region         string
 }
 
 func New(params Params) (*Preflight, error) {
@@ -56,6 +62,7 @@ func New(params Params) (*Preflight, error) {
 	}
 	if params.Agentless {
 		integrationTypes = append(integrationTypes, Agentless)
+		tasks = append(tasks, CheckVNetQuota)
 	}
 
 	if params.SubscriptionID == "" {
@@ -79,10 +86,15 @@ func New(params Params) (*Preflight, error) {
 		return nil, err
 	}
 
+	cfg := azureConfig{
+		cred:           cred,
+		subscriptionID: params.SubscriptionID,
+		tenantID:       params.TenantID,
+		region:         params.Region,
+	}
+
 	preflight := &Preflight{
-		cred:             cred,
-		subscriptionID:   params.SubscriptionID,
-		tenantID:         params.TenantID,
+		azureConfig:      cfg,
 		integrationTypes: integrationTypes,
 		permissions:      map[string]bool{},
 		tasks:            tasks,
