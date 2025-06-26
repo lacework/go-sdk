@@ -14,10 +14,7 @@ func CheckVNetQuota(p *Preflight) error {
 	if region == "" {
 		region = "eastus" // fallback default
 	}
-	if p.verboseWriter != nil {
-		p.verboseWriter.Write(fmt.Sprintf("Checking VNet quota for region %s\n", region))
-	}
-
+	p.verboseWriter.Write(fmt.Sprintf("Checking VNet quota for region %s\n", region))
 	usageClient, err := armnetwork.NewUsagesClient(p.azureConfig.subscriptionID, p.azureConfig.cred, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create usage client: %w", err)
@@ -44,9 +41,8 @@ func CheckVNetQuota(p *Preflight) error {
 						p.errors[Agentless],
 						fmt.Sprintf("VNet quota limit exceeded in region %s (Current: %d, Limit: %d)", region, current, limit),
 					)
-				} else if p.verboseWriter != nil {
-					p.verboseWriter.Write(fmt.Sprintf("VNet usage in region %s: %d/%d\n", region, current, limit))
 				}
+				p.verboseWriter.Write(fmt.Sprintf("VNet usage in region %s: %d/%d\n", region, current, limit))
 				return nil // Only one VNet quota per region
 			}
 		}
