@@ -16,15 +16,17 @@ import (
 
 // Question labels
 const (
-	IconAzureConfig = "[Configuration]"
-	IconActivityLog = "[Activity Log]"
-	IconEntraID     = "[Entra ID Activity Log]"
-	IconAD          = "[Active Directory Application]"
+	IconAzureConfig 	= "[Configuration]"
+	IconActivityLog 	= "[Activity Log]"
+	IconEntraID     	= "[Entra ID Activity Log]"
+	IconAD          	= "[Active Directory Application]"
+	IconAzureAgentless 	= "[Agentless]"
 )
 
 var (
 	// Define question text here so they can be reused in testing
 	// Core questions
+	QuestionAzureEnableAgentless     = "Enable Agentless integration?"
 	QuestionAzureEnableConfig        = "Enable Configuration integration?"
 	QuestionAzureConfigName          = "Custom Configuration integration name: (optional)"
 	QuestionEnableActivityLog        = "Enable Activity Log Integration?"
@@ -225,6 +227,7 @@ the new cloud account. In interactive mode, this command will:
 			data := azure.NewTerraform(
 				GenerateAzureCommandState.Config,
 				GenerateAzureCommandState.ActivityLog,
+				GenerateAzureCommandState.Agentless,
 				GenerateAzureCommandState.EntraIdActivityLog,
 				GenerateAzureCommandState.CreateAdIntegration,
 				mods...)
@@ -390,6 +393,12 @@ func initGenerateAzureTfCommandFlags() {
 		"activity_log_integration_name",
 		"",
 		"specify a custom activity log integration name")
+
+	generateAzureTfCommand.PersistentFlags().BoolVar(
+		&GenerateAzureCommandState.Agentless,
+		"agentless",
+		false,
+		"enable agentless integration")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.EntraIdActivityLog,
@@ -756,6 +765,25 @@ func promptAzureGenerate(
 		}
 	}
 
+	// Ask Agentless integration
+	if err := SurveyMultipleQuestionWithValidation(
+		[]SurveyQuestionWithValidationArgs{
+			{
+				Icon:     IconAzureAgentless,
+				Prompt:   &survey.Confirm{Message: QuestionAzureEnableAgentless, Default: config.Agentless},
+				Response: &config.Agentless,
+			},
+		}); err != nil {
+		return err
+	}
+
+	// Ask Activity Log questions immediately if enabled
+	if config.Agentless {
+		if err := promptAzureAgentlessQuestions(config); err != nil {
+			return err
+		}
+	}
+
 	// Ask Entra ID integration
 	if err := SurveyMultipleQuestionWithValidation(
 		[]SurveyQuestionWithValidationArgs{
@@ -776,8 +804,8 @@ func promptAzureGenerate(
 	}
 
 	// Validate one of config or activity log was enabled; otherwise error out
-	if !config.Config && !config.ActivityLog && !config.EntraIdActivityLog {
-		return errors.New("must enable at least one of: Configuration or Activity Log integration")
+	if !config.Config && !config.ActivityLog && !config.Agentless && !config.EntraIdActivityLog {
+		return errors.New("must enable at least one of: Configuration, Agentless or Activity Log integrations")
 	}
 
 	// Ask AD integration
@@ -887,6 +915,22 @@ func promptAzureActivityLogQuestions(config *azure.GenerateAzureTfConfigurationA
 		return err
 	}
 	config.StorageLocation = region
+
+	return nil
+}
+
+
+func promptAzureAgentlessQuestions(config *azure.GenerateAzureTfConfigurationArgs) error {
+	// Ask for Agentless integration
+	// if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+	// 	{
+	// 		Icon:     IconEntraID,
+	// 		Prompt:   &survey.Input{Message: QuestionEntraIdActivityLogName, Default: config.EntraIdIntegrationName},
+	// 		Response: &config.EntraIdIntegrationName,
+	// 	},
+	// }); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
