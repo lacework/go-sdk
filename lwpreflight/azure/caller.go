@@ -26,7 +26,7 @@ func FetchCaller(p *Preflight) error {
 	p.verboseWriter.Write("Discovering caller information")
 
 	// Get caller identity
-	token, err := p.cred.GetToken(context.Background(), policy.TokenRequestOptions{
+	token, err := p.azureConfig.cred.GetToken(context.Background(), policy.TokenRequestOptions{
 		Scopes: []string{"https://management.azure.com/.default"},
 	})
 	if err != nil {
@@ -40,7 +40,7 @@ func FetchCaller(p *Preflight) error {
 	}
 
 	// Check if caller has Owner or Contributor role
-	isAdmin, err := checkAdminRole(p.cred, claims.ObjectID, p.subscriptionID)
+	isAdmin, err := checkAdminRole(p.azureConfig.cred, claims.ObjectID, p.azureConfig.subscriptionID)
 	if err != nil {
 		return err
 	}
