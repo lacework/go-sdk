@@ -14,6 +14,9 @@ type GenerateAzureTfConfigurationArgs struct {
 	// Should we add Config integration in LW?
 	Config bool
 
+	// Should we add Agentless integration in LW?
+	Agentless bool
+
 	// Should we create an Entra ID integration in LW?
 	EntraIdActivityLog bool
 
@@ -93,8 +96,8 @@ type GenerateAzureTfConfigurationArgs struct {
 // Ensure all combinations of inputs are valid for supported spec
 func (args *GenerateAzureTfConfigurationArgs) validate() error {
 	// Validate one of config or activity log was enabled; otherwise error out
-	if !args.ActivityLog && !args.Config && !args.EntraIdActivityLog {
-		return errors.New("audit log or config integration must be enabled")
+	if !args.ActivityLog && !args.Agentless && !args.Config && !args.EntraIdActivityLog {
+		return errors.New("audit log, agentless or config integration must be enabled")
 	}
 
 	if (args.ActivityLog || args.Config || args.EntraIdActivityLog) && args.SubscriptionID == "" {
@@ -127,12 +130,13 @@ type AzureTerraformModifier func(c *GenerateAzureTfConfigurationArgs)
 //
 // Note: Additional configuration details may be set using modifiers of the AzureTerraformModifier type
 func NewTerraform(
-	enableConfig bool, enableActivityLog bool, enableEntraIdActivityLog, createAdIntegration bool,
+	enableConfig bool, enableActivityLog bool, enableAgentless bool, enableEntraIdActivityLog, createAdIntegration bool,
 	mods ...AzureTerraformModifier,
 ) *GenerateAzureTfConfigurationArgs {
 	config := &GenerateAzureTfConfigurationArgs{
 		ActivityLog:         enableActivityLog,
 		Config:              enableConfig,
+		Agentless: 			 enableAgentless,
 		EntraIdActivityLog:  enableEntraIdActivityLog,
 		CreateAdIntegration: createAdIntegration,
 	}
@@ -350,6 +354,11 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate azure activity log module")
 	}
 
+	agentlessLogModule, err := createAgentless(args)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to generate azure agentless module")
+	}
+
 	entraIdActivityLogModule, err := createEntraIdActivityLog(args)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate azure Entra ID activity log module")
@@ -374,6 +383,7 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 			laceworkADProvider,
 			configModule,
 			activityLogModule,
+			agentlessLogModule,
 			entraIdActivityLogModule,
 			outputBlocks,
 			args.ExtraBlocks),
@@ -609,6 +619,63 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 
 		moduleBlock, err := lwgenerate.NewModule(
 			"az_activity_log",
+			lwgenerate.LWAzureActivityLogSource,
+			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.LWAzureActivityLogVersion))...,
+		).ToBlock()
+
+		if err != nil {
+			return nil, err
+		}
+		blocks = append(blocks, moduleBlock)
+
+	}
+	return blocks, nil
+}
+
+func createAgentless(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, error) {
+	blocks := []*hclwrite.Block{}
+	if args.ActivityLog {
+		attributes := map[string]interface{}{}
+		moduleDetails := []lwgenerate.HclModuleModifier{}
+
+		// Check if we have created an Active Directory integration
+		if args.CreateAdIntegration {
+			attributes["use_existing_ad_application"] = true
+			attributes["application_id"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "az_ad_application", "application_id"})
+			attributes["application_password"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "az_ad_application", "application_password"})
+			attributes["service_principal_id"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", "az_ad_application", "service_principal_id"})
+		} else {
+			attributes["use_existing_ad_application"] = true
+			attributes["application_id"] = args.AdApplicationId
+			attributes["application_password"] = args.AdApplicationPassword
+			attributes["service_principal_id"] = args.AdServicePrincipalId
+		}
+
+		// // Only set subscription ids if all subscriptions flag is not set
+		// if !args.AllSubscriptions {
+		// 	if len(args.SubscriptionIds) > 0 {
+		// 		attributes["subscription_ids"] = args.SubscriptionIds
+		// 	}
+		// } else {
+		// 	// Set Subscription information
+		// 	attributes["all_subscriptions"] = args.AllSubscriptions
+		// }
+
+
+		// // Set the location if needed
+		// if args.StorageLocation != "" {
+		// 	attributes["location"] = args.StorageLocation
+		// }
+
+		moduleDetails = append(moduleDetails,
+			lwgenerate.HclModuleWithAttributes(attributes),
+		)
+
+		moduleBlock, err := lwgenerate.NewModule(
+			"az_agentless",
 			lwgenerate.LWAzureActivityLogSource,
 			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.LWAzureActivityLogVersion))...,
 		).ToBlock()
