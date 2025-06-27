@@ -1,12 +1,10 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v2.3.0`.
+Another day, another release. These are the release notes for the version `v2.3.1`.
 
-## Features
-* feat(preflight): build preflight package for AZURE (#1725) (lokeshv-fortinet)([353f9d71](https://github.com/lacework/go-sdk/commit/353f9d7185d1556752d6ecdf90b1d8e1f203307f))
 ## Other Changes
-* chore(preflight): add AWS VPC quota check for Agentless (#1729) (Pengyuan Zhao)([1b8e69f4](https://github.com/lacework/go-sdk/commit/1b8e69f451a2da078d29206860d74183feb234d9))
-* chore: add verbose writer to show preflight progress messages (#1728) (Pengyuan Zhao)([0050d427](https://github.com/lacework/go-sdk/commit/0050d42794114ffdee7b4bf7e612a5dd721d485a))
-* ci: version bump to v2.2.1-dev (Lacework)([d0e8ae2b](https://github.com/lacework/go-sdk/commit/d0e8ae2bcfdcf8938065aad8776610d701fd3a9c))
+* chore: make go-vendor (#1735) (Pengyuan Zhao)([ab2ecd9a](https://github.com/lacework/go-sdk/commit/ab2ecd9ab57d6382ebf43003c246f8976af917cf))
+* chore(preflight): add AZURE VNET quota check for Agentless (#1733) (lokeshv-fortinet)([3e63261c](https://github.com/lacework/go-sdk/commit/3e63261cca2d76abd6c7c17871551b1f8fbdbf43))
+* ci: version bump to v2.3.1-dev (Lacework)([52a68956](https://github.com/lacework/go-sdk/commit/52a68956d301dfdc39b6819ee8b99544ca2f8915))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
