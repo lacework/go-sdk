@@ -2,6 +2,8 @@
 package azure
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/lacework/go-sdk/v2/lwgenerate"
 	"github.com/pkg/errors"
@@ -91,6 +93,15 @@ type GenerateAzureTfConfigurationArgs struct {
 
 	// Custom outputs
 	CustomOutputs []lwgenerate.HclOutput
+
+	// Should agentless scanning be global?
+	Global *bool
+
+	// Should we create a Log Analytics Workspace for agentless scanning?
+	CreateLogAnalyticsWorkspace *bool
+
+	// Integration level for agentless scanning (e.g., "SUBSCRIPTION", "TENANT")
+	IntegrationLevel string
 }
 
 // Ensure all combinations of inputs are valid for supported spec
@@ -105,9 +116,11 @@ func (args *GenerateAzureTfConfigurationArgs) validate() error {
 	}
 
 	// Validate that active directory settings are correct
-	if !args.CreateAdIntegration && (args.AdApplicationId == "" ||
-		args.AdServicePrincipalId == "" || args.AdApplicationPassword == "") {
-		return errors.New("Active directory details must be set")
+	if !args.CreateAdIntegration && (args.Config || args.ActivityLog || args.EntraIdActivityLog) {
+		if (args.AdApplicationId == "" ||
+			args.AdServicePrincipalId == "" || args.AdApplicationPassword == "") {
+			return errors.New("Active directory details must be set")
+		}
 	}
 
 	// Validate the Mangement Group
@@ -136,9 +149,10 @@ func NewTerraform(
 	config := &GenerateAzureTfConfigurationArgs{
 		ActivityLog:         enableActivityLog,
 		Config:              enableConfig,
-		Agentless: 			 enableAgentless,
+		Agentless:enableAgentless,
 		EntraIdActivityLog:  enableEntraIdActivityLog,
 		CreateAdIntegration: createAdIntegration,
+		IntegrationLevel:    "SUBSCRIPTION", // Default integration level
 	}
 	for _, m := range mods {
 		m(config)
@@ -308,6 +322,27 @@ func WithLaceworkProfile(name string) AzureTerraformModifier {
 func WithSubscriptionID(subcriptionID string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.SubscriptionID = subcriptionID
+	}
+}
+
+// WithGlobal sets the Global field for agentless scanning
+func WithGlobal(global bool) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.Global = &global
+	}
+}
+
+// WithCreateLogAnalyticsWorkspace sets the CreateLogAnalyticsWorkspace field for agentless scanning
+func WithCreateLogAnalyticsWorkspace(create bool) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.CreateLogAnalyticsWorkspace = &create
+	}
+}
+
+// WithIntegrationLevel sets the IntegrationLevel field for agentless scanning
+func WithIntegrationLevel(level string) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.IntegrationLevel = level
 	}
 }
 
@@ -634,41 +669,29 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 
 func createAgentless(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
-	if args.ActivityLog {
+	if args.Agentless {
 		attributes := map[string]interface{}{}
 		moduleDetails := []lwgenerate.HclModuleModifier{}
 
-		// Check if we have created an Active Directory integration
-		if args.CreateAdIntegration {
-			attributes["use_existing_ad_application"] = true
-			attributes["application_id"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", "az_ad_application", "application_id"})
-			attributes["application_password"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", "az_ad_application", "application_password"})
-			attributes["service_principal_id"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", "az_ad_application", "service_principal_id"})
+		// only include supported arguments if they are set
+		if args.CreateLogAnalyticsWorkspace != nil {
+			attributes["create_log_analytics_workspace"] = *args.CreateLogAnalyticsWorkspace
+		}
+		if args.Global != nil {
+			attributes["global"] = *args.Global
+		}
+		if args.IntegrationLevel == "" {
+			// Default integration level is "SUBSCRIPTION"
+			attributes["integration_level"] = "SUBSCRIPTION"
 		} else {
-			attributes["use_existing_ad_application"] = true
-			attributes["application_id"] = args.AdApplicationId
-			attributes["application_password"] = args.AdApplicationPassword
-			attributes["service_principal_id"] = args.AdServicePrincipalId
+			// If IntegrationLevel is set, use it
+			attributes["integration_level"] = args.IntegrationLevel
 		}
 
-		// // Only set subscription ids if all subscriptions flag is not set
-		// if !args.AllSubscriptions {
-		// 	if len(args.SubscriptionIds) > 0 {
-		// 		attributes["subscription_ids"] = args.SubscriptionIds
-		// 	}
-		// } else {
-		// 	// Set Subscription information
-		// 	attributes["all_subscriptions"] = args.AllSubscriptions
-		// }
-
-
-		// // Set the location if needed
-		// if args.StorageLocation != "" {
-		// 	attributes["location"] = args.StorageLocation
-		// }
+		// for SUBSCRIPTION integration level, we need to set the subscription id
+		if args.IntegrationLevel == "SUBSCRIPTION" && args.SubscriptionID != "" {
+			attributes["included_subscriptions"] = []string{fmt.Sprintf("/subscriptions/%s", args.SubscriptionID)}
+		}
 
 		moduleDetails = append(moduleDetails,
 			lwgenerate.HclModuleWithAttributes(attributes),
@@ -676,15 +699,14 @@ func createAgentless(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block,
 
 		moduleBlock, err := lwgenerate.NewModule(
 			"az_agentless",
-			lwgenerate.LWAzureActivityLogSource,
-			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.LWAzureActivityLogVersion))...,
+			lwgenerate.LWAzureAgentlessSource,
+			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.LWAzureAgentlessVersion))...,
 		).ToBlock()
 
 		if err != nil {
 			return nil, err
 		}
 		blocks = append(blocks, moduleBlock)
-
 	}
 	return blocks, nil
 }
