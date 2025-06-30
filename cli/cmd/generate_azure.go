@@ -198,8 +198,20 @@ the new cloud account. In interactive mode, this command will:
 				azure.WithEventHubPartitionCount(GenerateAzureCommandState.EventHubPartitionCount),
 			}
 
+			if GenerateAzureCommandState.Global != nil {
+				mods = append(mods, azure.WithGlobal(*GenerateAzureCommandState.Global))
+			}
+			if GenerateAzureCommandState.CreateLogAnalyticsWorkspace != nil {
+				mods = append(mods, azure.WithCreateLogAnalyticsWorkspace(*GenerateAzureCommandState.CreateLogAnalyticsWorkspace))
+			}
+
+			// Always set the integration level to subscription
+			if GenerateAzureCommandState.Agentless {
+				mods = append(mods, azure.WithIntegrationLevel("SUBSCRIPTION"))
+			}
+
 			// Check if AD Creation is required, need to set values for current integration
-			if !GenerateAzureCommandState.CreateAdIntegration {
+			if !GenerateAzureCommandState.CreateAdIntegration && (GenerateAzureCommandState.Config || GenerateAzureCommandState.ActivityLog || GenerateAzureCommandState.EntraIdActivityLog) {
 				mods = append(mods, azure.WithAdApplicationId(GenerateAzureCommandState.AdApplicationId))
 				mods = append(mods, azure.WithAdApplicationPassword(GenerateAzureCommandState.AdApplicationPassword))
 				mods = append(mods, azure.WithAdServicePrincipalId(GenerateAzureCommandState.AdServicePrincipalId))
@@ -821,7 +833,7 @@ func promptAzureGenerate(
 	}
 
 	// If AD integration is not being created, ask for existing AD details immediately
-	if !config.CreateAdIntegration {
+	if !config.CreateAdIntegration && (config.Config || config.ActivityLog || config.EntraIdActivityLog) {
 		if err := promptAzureAdIntegrationQuestions(config); err != nil {
 			return err
 		}
@@ -921,16 +933,36 @@ func promptAzureActivityLogQuestions(config *azure.GenerateAzureTfConfigurationA
 
 
 func promptAzureAgentlessQuestions(config *azure.GenerateAzureTfConfigurationArgs) error {
-	// Ask for Agentless integration
-	// if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-	// 	{
-	// 		Icon:     IconEntraID,
-	// 		Prompt:   &survey.Input{Message: QuestionEntraIdActivityLogName, Default: config.EntraIdIntegrationName},
-	// 		Response: &config.EntraIdIntegrationName,
-	// 	},
-	// }); err != nil {
-	// 	return err
-	// }
+	// prompt for global setting
+	if config.Global == nil {
+		defaultGlobal := true
+		config.Global = &defaultGlobal
+	}
+
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon:     IconAzureAgentless,
+			Prompt:   &survey.Confirm{Message: "Enable global agentless scanning?", Default: *config.Global},
+			Response: config.Global,
+		},
+	}); err != nil {
+		return err
+	}
+
+	// prompt for log analytics workspace creation
+	if config.CreateLogAnalyticsWorkspace == nil {
+		defaultCreateLogAnalyticsWorkspace := true
+		config.CreateLogAnalyticsWorkspace = &defaultCreateLogAnalyticsWorkspace
+	}
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon:     IconAzureAgentless,
+			Prompt:   &survey.Confirm{Message: "Create Log Analytics Workspace?", Default: *config.CreateLogAnalyticsWorkspace},
+			Response: config.CreateLogAnalyticsWorkspace,
+		},
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
