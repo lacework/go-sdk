@@ -16,10 +16,11 @@ type azureConfig struct {
 }
 
 type Preflight struct {
-	azureConfig      azureConfig
-	integrationTypes []IntegrationType
-	tasks            []func(p *Preflight) error
-	permissions      map[string]bool
+	azureConfig             azureConfig
+	integrationTypes        []IntegrationType
+	tasks                   []func(p *Preflight) error
+	permissions             map[string]bool
+	permissionsWithWildcard []string
 
 	caller  Caller
 	details Details
@@ -94,13 +95,14 @@ func New(params Params) (*Preflight, error) {
 	}
 
 	preflight := &Preflight{
-		azureConfig:      cfg,
-		integrationTypes: integrationTypes,
-		permissions:      map[string]bool{},
-		tasks:            tasks,
-		details:          Details{},
-		errors:           map[IntegrationType][]string{},
-		verboseWriter:    verbosewriter.New(),
+		azureConfig:             cfg,
+		integrationTypes:        integrationTypes,
+		permissions:             map[string]bool{},
+		permissionsWithWildcard: []string{},
+		tasks:                   tasks,
+		details:                 Details{},
+		errors:                  map[IntegrationType][]string{},
+		verboseWriter:           verbosewriter.New(),
 	}
 
 	return preflight, nil
