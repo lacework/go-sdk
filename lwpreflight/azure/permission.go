@@ -2,6 +2,7 @@ package azure
 
 import (
 	"fmt"
+	"regexp"
 )
 
 func CheckPermissions(p *Preflight) error {
@@ -14,7 +15,19 @@ func CheckPermissions(p *Preflight) error {
 
 		requiredPermissions := RequiredPermissions[integrationType]
 		for _, permission := range requiredPermissions {
-			if !p.permissions[permission] {
+			// First check plain permission strings
+			matched := p.permissions[permission]
+			if !matched {
+				// Then check permission strings that contain wildcard(*)
+				for _, pattern := range p.permissionsWithWildcard {
+					matched, _ = regexp.MatchString(pattern, permission)
+					if matched {
+						break
+					}
+				}
+			}
+			// If permission is still not matched, log an error
+			if !matched {
 				p.errors[integrationType] = append(
 					p.errors[integrationType],
 					fmt.Sprintf("Required permission missing: %s", permission),

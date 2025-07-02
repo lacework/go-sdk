@@ -75,14 +75,24 @@ func checkAdminRole(cred azcore.TokenCredential, objectID, subscriptionID string
 		for _, assignment := range page.Value {
 			if assignment.Properties != nil && assignment.Properties.RoleDefinitionID != nil {
 				roleID := *assignment.Properties.RoleDefinitionID
-				if strings.Contains(strings.ToLower(roleID), "/providers/microsoft.authorization/roledefinitions/owner") ||
-					strings.Contains(strings.ToLower(roleID), "/providers/microsoft.authorization/roledefinitions/contributor") {
-					return true, nil
+				roleDefClient, err := armauthorization.NewRoleDefinitionsClient(cred, nil)
+				if err != nil {
+					return false, fmt.Errorf("failed to create role definitions client: %v", err)
+				}
+				roleDef, err := roleDefClient.GetByID(context.Background(), roleID, nil)
+				if err != nil {
+					continue // If we can't get the role definition, skip this assignment
+				}
+				// check if role name is Owner or Contributor
+				if roleDef.Properties != nil && roleDef.Properties.RoleName != nil {
+					roleName := *roleDef.Properties.RoleName
+					if roleName == "Owner" || roleName == "Contributor" {
+						return true, nil
+					}
 				}
 			}
 		}
 	}
-
 	return false, nil
 }
 

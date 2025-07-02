@@ -3,6 +3,7 @@ package azure
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/authorization/armauthorization"
@@ -47,7 +48,13 @@ func FetchPolicies(p *Preflight) error {
 				if roleDef.Properties != nil && roleDef.Properties.Permissions != nil {
 					for _, permission := range roleDef.Properties.Permissions {
 						for _, action := range permission.Actions {
-							if action != nil {
+							if action != nil && *action == "*" {
+								p.caller.IsAdmin = true
+								return nil
+							}
+							if strings.Contains(*action, "*") {
+								p.permissionsWithWildcard = append(p.permissionsWithWildcard, *action)
+							} else if action != nil {
 								p.permissions[*action] = true
 							}
 						}
