@@ -39,10 +39,11 @@ func TestMissingValidEntity(t *testing.T) {
 	data := azure.GenerateAzureTfConfigurationArgs{}
 	data.Config = false
 	data.ActivityLog = false
+	data.Agentless = false
 
 	err := promptAzureGenerate(&data, &AzureGenerateCommandExtraState{Output: "/tmp"})
 	assert.Error(t, err)
-	assert.Equal(t, "must enable at least one of: Configuration or Activity Log integration", err.Error())
+	assert.Equal(t, "must enable at least one of: Configuration, Agentless or Activity Log integrations", err.Error())
 }
 
 func TestValidStorageLocations(t *testing.T) {

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -16,11 +17,11 @@ import (
 
 // Question labels
 const (
-	IconAzureConfig 	= "[Configuration]"
-	IconActivityLog 	= "[Activity Log]"
-	IconEntraID     	= "[Entra ID Activity Log]"
-	IconAD          	= "[Active Directory Application]"
-	IconAzureAgentless 	= "[Agentless]"
+	IconAzureConfig    = "[Configuration]"
+	IconActivityLog    = "[Activity Log]"
+	IconEntraID        = "[Entra ID Activity Log]"
+	IconAD             = "[Active Directory Application]"
+	IconAzureAgentless = "[Agentless]"
 )
 
 var (
@@ -198,20 +199,19 @@ the new cloud account. In interactive mode, this command will:
 				azure.WithEventHubPartitionCount(GenerateAzureCommandState.EventHubPartitionCount),
 			}
 
-			if GenerateAzureCommandState.Global != nil {
-				mods = append(mods, azure.WithGlobal(*GenerateAzureCommandState.Global))
-			}
-			if GenerateAzureCommandState.CreateLogAnalyticsWorkspace != nil {
-				mods = append(mods, azure.WithCreateLogAnalyticsWorkspace(*GenerateAzureCommandState.CreateLogAnalyticsWorkspace))
-			}
-
-			// Always set the integration level to subscription
 			if GenerateAzureCommandState.Agentless {
-				mods = append(mods, azure.WithIntegrationLevel("SUBSCRIPTION"))
+				mods = append(mods, azure.WithIntegrationLevel(GenerateAzureCommandState.IntegrationLevel))
+				mods = append(mods, azure.WithAgentlessSubscriptionIds(GenerateAzureCommandState.AgentlessSubscriptionIds))
+				mods = append(mods, azure.WithRegions(GenerateAzureCommandState.Regions))
+				mods = append(mods, azure.WithCreateLogAnalyticsWorkspace(GenerateAzureCommandState.CreateLogAnalyticsWorkspace))
+				mods = append(mods, azure.WithGlobal(GenerateAzureCommandState.Global))
 			}
 
 			// Check if AD Creation is required, need to set values for current integration
-			if !GenerateAzureCommandState.CreateAdIntegration && (GenerateAzureCommandState.Config || GenerateAzureCommandState.ActivityLog || GenerateAzureCommandState.EntraIdActivityLog) {
+			if !GenerateAzureCommandState.CreateAdIntegration &&
+				(GenerateAzureCommandState.Config ||
+					GenerateAzureCommandState.ActivityLog ||
+					GenerateAzureCommandState.EntraIdActivityLog) {
 				mods = append(mods, azure.WithAdApplicationId(GenerateAzureCommandState.AdApplicationId))
 				mods = append(mods, azure.WithAdApplicationPassword(GenerateAzureCommandState.AdApplicationPassword))
 				mods = append(mods, azure.WithAdServicePrincipalId(GenerateAzureCommandState.AdServicePrincipalId))
@@ -411,6 +411,24 @@ func initGenerateAzureTfCommandFlags() {
 		"agentless",
 		false,
 		"enable agentless integration")
+
+	generateAzureTfCommand.PersistentFlags().StringVar(
+		&GenerateAzureCommandState.IntegrationLevel,
+		"integration_level",
+		"",
+		"specify the agentless integration level (e.g., 'SUBSCRIPTION', 'TENANT')")
+	
+	generateAzureTfCommand.PersistentFlags().BoolVar(
+		&GenerateAzureCommandState.Global,
+		"global",
+		true,
+		"enable global agentless scanning")
+	
+	generateAzureTfCommand.PersistentFlags().BoolVar(
+		&GenerateAzureCommandState.CreateLogAnalyticsWorkspace,
+		"create_log_analytics_workspace",
+		false,
+		"enable creation of Log Analytics Workspace for agentless scanning")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.EntraIdActivityLog,
@@ -821,22 +839,28 @@ func promptAzureGenerate(
 	}
 
 	// Ask AD integration
-	if err := SurveyMultipleQuestionWithValidation(
-		[]SurveyQuestionWithValidationArgs{
-			{
-				Icon:     IconAD,
-				Prompt:   &survey.Confirm{Message: QuestionEnableAdIntegration, Default: config.CreateAdIntegration},
-				Response: &config.CreateAdIntegration,
-			},
-		}); err != nil {
-		return err
-	}
-
-	// If AD integration is not being created, ask for existing AD details immediately
-	if !config.CreateAdIntegration && (config.Config || config.ActivityLog || config.EntraIdActivityLog) {
-		if err := promptAzureAdIntegrationQuestions(config); err != nil {
+	if config.Config || config.ActivityLog || config.EntraIdActivityLog {
+		if err := SurveyMultipleQuestionWithValidation(
+			[]SurveyQuestionWithValidationArgs{
+				{
+					Icon:     IconAD,
+					Prompt:   &survey.Confirm{Message: QuestionEnableAdIntegration, Default: config.CreateAdIntegration},
+					Response: &config.CreateAdIntegration,
+				},
+			}); err != nil {
 			return err
 		}
+
+		// If AD integration is not being created, ask for existing AD details immediately
+		if !config.CreateAdIntegration {
+			if err := promptAzureAdIntegrationQuestions(config); err != nil {
+				return err
+			}
+		}
+	}
+	// for agentless only scenario, we set CreateAdIntegration to false
+	if config.Agentless && !config.Config && !config.ActivityLog && !config.EntraIdActivityLog {
+		config.CreateAdIntegration = false
 	}
 
 	// Ask about output location
@@ -931,38 +955,99 @@ func promptAzureActivityLogQuestions(config *azure.GenerateAzureTfConfigurationA
 	return nil
 }
 
-
 func promptAzureAgentlessQuestions(config *azure.GenerateAzureTfConfigurationArgs) error {
+	// Prompt for integration level(SUBSCRIPTION or TENANT)
+	if config.IntegrationLevel == "" {
+		config.IntegrationLevel = "SUBSCRIPTION"
+	}
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon: IconAzureAgentless,
+			Prompt: &survey.Select{
+				Message: "Select integration level:",
+				Options: []string{"SUBSCRIPTION", "TENANT"},
+				Default: config.IntegrationLevel,
+			},
+			Response: &config.IntegrationLevel,
+		},
+	}); err != nil {
+		return err
+	}
+
 	// prompt for global setting
-	if config.Global == nil {
-		defaultGlobal := true
-		config.Global = &defaultGlobal
-	}
-
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Icon:     IconAzureAgentless,
-			Prompt:   &survey.Confirm{Message: "Enable global agentless scanning?", Default: *config.Global},
-			Response: config.Global,
+			Prompt:   &survey.Confirm{Message: "Enable global agentless scanning?", Default: config.Global},
+			Response: &config.Global,
 		},
 	}); err != nil {
 		return err
 	}
 
-	// prompt for log analytics workspace creation
-	if config.CreateLogAnalyticsWorkspace == nil {
-		defaultCreateLogAnalyticsWorkspace := true
-		config.CreateLogAnalyticsWorkspace = &defaultCreateLogAnalyticsWorkspace
-	}
+	// prompt for log analytics workspace creation (default: false)
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Icon:     IconAzureAgentless,
-			Prompt:   &survey.Confirm{Message: "Create Log Analytics Workspace?", Default: *config.CreateLogAnalyticsWorkspace},
-			Response: config.CreateLogAnalyticsWorkspace,
+			Prompt:   &survey.Confirm{Message: "Create Log Analytics Workspace?", Default: config.CreateLogAnalyticsWorkspace},
+			Response: &config.CreateLogAnalyticsWorkspace,
 		},
 	}); err != nil {
 		return err
 	}
 
+	// Ask for regions
+	var regionsInput string
+	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+		{
+			Icon: IconAzureAgentless,
+			Prompt: &survey.Input{
+				Message: "Comma-separated list of regions for Agentless scanning (e.g., 'East US, West US')",
+				Default: "West US",
+			},
+			Response: &regionsInput,
+		},
+	}); err != nil {
+		return err
+	}
+	// parse regions from comma-separated string
+	if regionsInput != "" {
+		regions := strings.Split(regionsInput, ",")
+		for i, region := range regions {
+			regions[i] = strings.TrimSpace(region)
+		}
+		config.Regions = regions
+	}
+
+	// Only ask for subscription IDs if SUBSCRIPTION integration level is selected
+	if config.IntegrationLevel == "SUBSCRIPTION" {
+		var subscriptionIdsInput string
+		for {
+			if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+				{
+					Icon: IconAzureAgentless,
+					Prompt: &survey.Input{
+						Message: "Comma-separated list of subscription IDs for Agentless scanning (e.g., 'sub1, sub2')",
+						Default: "",
+					},
+					Response: &subscriptionIdsInput,
+				},
+			}); err != nil {
+				return err
+			}
+			subscriptionIdsInput = strings.TrimSpace(subscriptionIdsInput)
+			if subscriptionIdsInput != "" {
+				subscriptionIds := strings.Split(subscriptionIdsInput, ",")
+				for i, subId := range subscriptionIds {
+					subscriptionIds[i] = strings.TrimSpace(subId)
+				}
+				config.AgentlessSubscriptionIds = subscriptionIds
+				break
+			} else {
+				fmt.Println("Subscription IDs cannot be empty. Please provide at least one subscription ID.")
+			}
+
+		}
+	}
 	return nil
 }
