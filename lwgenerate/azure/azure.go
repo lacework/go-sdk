@@ -3,6 +3,7 @@ package azure
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/lacework/go-sdk/v2/lwgenerate"
@@ -94,31 +95,37 @@ type GenerateAzureTfConfigurationArgs struct {
 	// Custom outputs
 	CustomOutputs []lwgenerate.HclOutput
 
+	// Integration level for agentless scanning (e.g., "SUBSCRIPTION", "TENANT")
+	IntegrationLevel string
+
 	// Should agentless scanning be global?
 	Global *bool
 
 	// Should we create a Log Analytics Workspace for agentless scanning?
 	CreateLogAnalyticsWorkspace *bool
 
-	// Integration level for agentless scanning (e.g., "SUBSCRIPTION", "TENANT")
-	IntegrationLevel string
+	// List of regions to deploy for agentless scanning
+	Regions []string
+
+	// List of subscription IDs for agentless scanning
+	AgentlessSubscriptionIds []string
 }
 
 // Ensure all combinations of inputs are valid for supported spec
 func (args *GenerateAzureTfConfigurationArgs) validate() error {
-	// Validate one of config or activity log was enabled; otherwise error out
+	// Validate one of config ,agentless or activity log was enabled; otherwise error out
 	if !args.ActivityLog && !args.Agentless && !args.Config && !args.EntraIdActivityLog {
 		return errors.New("audit log, agentless or config integration must be enabled")
 	}
 
-	if (args.ActivityLog || args.Config || args.EntraIdActivityLog) && args.SubscriptionID == "" {
+	if (args.ActivityLog || args.Agentless || args.Config || args.EntraIdActivityLog) && args.SubscriptionID == "" {
 		return errors.New("subscription_id must be provided")
 	}
 
 	// Validate that active directory settings are correct
 	if !args.CreateAdIntegration && (args.Config || args.ActivityLog || args.EntraIdActivityLog) {
-		if (args.AdApplicationId == "" ||
-			args.AdServicePrincipalId == "" || args.AdApplicationPassword == "") {
+		if args.AdApplicationId == "" ||
+			args.AdServicePrincipalId == "" || args.AdApplicationPassword == "" {
 			return errors.New("Active directory details must be set")
 		}
 	}
@@ -131,6 +138,16 @@ func (args *GenerateAzureTfConfigurationArgs) validate() error {
 	// Validate Storage Account
 	if args.ExistingStorageAccount && (args.StorageAccountName == "" || args.StorageAccountResourceGroup == "") {
 		return errors.New("When using existing storage account, storage account details must be configured")
+	}
+
+	// Validate Agentless Scanning
+	if args.Agentless {
+		if args.IntegrationLevel == "" {
+			return errors.New("integration_level must be set for Agentless Integration")
+		}
+		if args.IntegrationLevel == "SUBSCRIPTION" && len(args.AgentlessSubscriptionIds) == 0 {
+			return errors.New("subscription_ids must be provided for Agentless Integration with SUBSCRIPTION integration level")
+		}
 	}
 
 	return nil
@@ -149,10 +166,9 @@ func NewTerraform(
 	config := &GenerateAzureTfConfigurationArgs{
 		ActivityLog:         enableActivityLog,
 		Config:              enableConfig,
-		Agentless:enableAgentless,
+		Agentless:           enableAgentless,
 		EntraIdActivityLog:  enableEntraIdActivityLog,
 		CreateAdIntegration: createAdIntegration,
-		IntegrationLevel:    "SUBSCRIPTION", // Default integration level
 	}
 	for _, m := range mods {
 		m(config)
@@ -260,6 +276,19 @@ func WithManagementGroupId(managementGroupId string) AzureTerraformModifier {
 func WithSubscriptionIds(subscriptionIds []string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.SubscriptionIds = subscriptionIds
+	}
+}
+
+// WithAgentlessSubscriptionIds List of subscriptions for agentless scanning.
+func WithAgentlessSubscriptionIds(agentlessSubscriptionIds []string) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.AgentlessSubscriptionIds = agentlessSubscriptionIds
+	}
+}
+
+func WithRegions(regions []string) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.Regions = regions
 	}
 }
 
@@ -669,44 +698,80 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 
 func createAgentless(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	blocks := []*hclwrite.Block{}
-	if args.Agentless {
-		attributes := map[string]interface{}{}
-		moduleDetails := []lwgenerate.HclModuleModifier{}
 
-		// only include supported arguments if they are set
-		if args.CreateLogAnalyticsWorkspace != nil {
-			attributes["create_log_analytics_workspace"] = *args.CreateLogAnalyticsWorkspace
+	if !args.Agentless {
+		return blocks, nil
+	}
+
+	// Helper function to format region names for module naming
+	formatRegionForModuleName := func(region string) string {
+		return strings.ToLower(strings.ReplaceAll(region, " ", "_"))
+	}
+
+	// Determine regions to process
+	regions := args.Regions
+	if len(regions) == 0 {
+		regions = []string{"West US"} // Default to West US if no regions specified
+	}
+
+	isTenant := strings.EqualFold(args.IntegrationLevel, "TENANT")
+	isSubscription := strings.EqualFold(args.IntegrationLevel, "SUBSCRIPTION")
+
+	var firstModuleName string
+	for i, region := range regions {
+		isFirstRegion := (i == 0)
+
+		// Build module name
+		var moduleName string
+		if isTenant {
+			moduleName = fmt.Sprintf("lacework_azure_agentless_scanning_tenant_%s", formatRegionForModuleName(region))
+		} else {
+			moduleName = fmt.Sprintf("lacework_azure_agentless_scanning_subscription_%s", formatRegionForModuleName(region))
+		}
+
+		if isFirstRegion {
+			firstModuleName = moduleName
+		}
+
+		// Build attributes
+		attrs := map[string]interface{}{
+			"integration_level": args.IntegrationLevel,
+			"region":            region,
+			"global":            isFirstRegion,
 		}
 		if args.Global != nil {
-			attributes["global"] = *args.Global
+			attrs["global"] = *args.Global && isFirstRegion
 		}
-		if args.IntegrationLevel == "" {
-			// Default integration level is "SUBSCRIPTION"
-			attributes["integration_level"] = "SUBSCRIPTION"
-		} else {
-			// If IntegrationLevel is set, use it
-			attributes["integration_level"] = args.IntegrationLevel
+		if args.CreateLogAnalyticsWorkspace != nil {
+			attrs["create_log_analytics_workspace"] = *args.CreateLogAnalyticsWorkspace
+		}
+		if args.SubscriptionID != "" {
+			attrs["scanning_subscription_id"] = args.SubscriptionID
+		}
+		if isSubscription && isFirstRegion && len(args.AgentlessSubscriptionIds) > 0 {
+			subs := make([]string, len(args.AgentlessSubscriptionIds))
+			for j, id := range args.AgentlessSubscriptionIds {
+				subs[j] = fmt.Sprintf("/subscriptions/%s", id)
+			}
+			attrs["included_subscriptions"] = subs
+		}
+		if !isFirstRegion {
+			attrs["global_module_reference"] = lwgenerate.CreateSimpleTraversal([]string{"module", firstModuleName})
 		}
 
-		// for SUBSCRIPTION integration level, we need to set the subscription id
-		if args.IntegrationLevel == "SUBSCRIPTION" && args.SubscriptionID != "" {
-			attributes["included_subscriptions"] = []string{fmt.Sprintf("/subscriptions/%s", args.SubscriptionID)}
+		// Create module details
+		moduleDetails := []lwgenerate.HclModuleModifier{
+			lwgenerate.HclModuleWithAttributes(attrs),
 		}
-
-		moduleDetails = append(moduleDetails,
-			lwgenerate.HclModuleWithAttributes(attributes),
-		)
-
-		moduleBlock, err := lwgenerate.NewModule(
-			"az_agentless",
+		block, err := lwgenerate.NewModule(
+			moduleName,
 			lwgenerate.LWAzureAgentlessSource,
 			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.LWAzureAgentlessVersion))...,
 		).ToBlock()
-
 		if err != nil {
 			return nil, err
 		}
-		blocks = append(blocks, moduleBlock)
+		blocks = append(blocks, block)
 	}
 	return blocks, nil
 }
