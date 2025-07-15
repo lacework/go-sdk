@@ -739,10 +739,10 @@ func createAgentless(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block,
 			"region":            region,
 			"global":            isFirstRegion,
 		}
-		
+
 		attrs["global"] = args.Global && isFirstRegion
 		attrs["create_log_analytics_workspace"] = args.CreateLogAnalyticsWorkspace
-		
+
 		if args.SubscriptionID != "" {
 			attrs["scanning_subscription_id"] = args.SubscriptionID
 		}

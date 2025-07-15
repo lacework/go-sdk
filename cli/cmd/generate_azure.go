@@ -417,13 +417,13 @@ func initGenerateAzureTfCommandFlags() {
 		"integration_level",
 		"",
 		"specify the agentless integration level (e.g., 'SUBSCRIPTION', 'TENANT')")
-	
+
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.Global,
 		"global",
 		true,
 		"enable global agentless scanning")
-	
+
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.CreateLogAnalyticsWorkspace,
 		"create_log_analytics_workspace",

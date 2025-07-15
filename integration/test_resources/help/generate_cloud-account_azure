@@ -32,7 +32,7 @@ Flags:
       --apply                                           run terraform apply for the generated hcl
       --configuration                                   enable configuration integration
       --configuration_name string                       specify a custom configuration integration name
-      --create_log_analytics_workspace                  enable creation of Log Analytics Workspace for agentless scanning (default false)
+      --create_log_analytics_workspace                  enable creation of Log Analytics Workspace for agentless scanning
       --entra_id_activity_log                           enable Entra ID activity log integration
       --entra_id_activity_log_integration_name string   specify a custom Entra ID activity log integration name
       --event_hub_location string                       specify the location where the Event Hub for logging will reside
