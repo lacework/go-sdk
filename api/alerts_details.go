@@ -34,15 +34,17 @@ const (
 	AlertRelatedAlertsScope
 	AlertIntegrationsScope
 	AlertTimelineScope
+	AlertObservationTimelineScope
 )
 
 var AlertScopes = map[alertScope]string{
-	AlertDetailsScope:       "Details",
-	AlertInvestigationScope: "Investigation",
-	AlertEventsScope:        "Events",
-	AlertRelatedAlertsScope: "RelatedAlerts",
-	AlertIntegrationsScope:  "Integrations",
-	AlertTimelineScope:      "Timeline",
+	AlertDetailsScope:             "Details",
+	AlertInvestigationScope:       "Investigation",
+	AlertEventsScope:              "Events",
+	AlertRelatedAlertsScope:       "RelatedAlerts",
+	AlertIntegrationsScope:        "Integrations",
+	AlertTimelineScope:            "Timeline",
+	AlertObservationTimelineScope: "ObservationTimeline",
 }
 
 func (i alertScope) String() string {
@@ -72,6 +74,8 @@ func (svc *AlertsService) Get(id int, scope alertScope) (interface{}, error) {
 		return svc.GetIntegrations(id)
 	case AlertTimelineScope:
 		return svc.GetTimeline(id)
+	case AlertObservationTimelineScope:
+		return svc.GetObservationTimeline(id)
 	default:
 		return nil, errors.New(fmt.Sprintf("alert scope (%s) not recognized", scope))
 	}
