@@ -100,6 +100,7 @@ func (svc *v2ContainerVulnerabilityService) SearchAllPages(filters SearchFilter)
 		}
 		break
 	}
+	fmt.Println("finished all length: ", len(all))
 
 	response.ResetPaging()
 	response.Data = all
