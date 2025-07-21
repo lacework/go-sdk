@@ -66,6 +66,10 @@ func New(params Params) (*Preflight, error) {
 		return nil, errors.New("ProjectID must be provided")
 	}
 
+	if params.OrgID != "" {
+		tasks = append(tasks, CheckOrgPolicyConstraints)
+	}
+
 	preflight := &Preflight{
 		projectID:        params.ProjectID,
 		orgID:            params.OrgID,
