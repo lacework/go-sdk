@@ -45,6 +45,7 @@ The following alert detail scopes are available:
   * RelatedAlerts
   * Integrations
   * Timeline
+  * ObservationTimeline
 
 View an alert's timeline details:
 
@@ -88,6 +89,8 @@ func showAlert(_ *cobra.Command, args []string) error {
 		err = showAlertIntegrations(id)
 	case api.AlertTimelineScope.String():
 		err = showAlertTimeline(id)
+	case api.AlertObservationTimelineScope.String():
+		err = showAlertObservationTimeline(id)
 	default:
 		err = errors.New(fmt.Sprintf("scope (%s) is not recognized", alertCmdState.Scope))
 	}
