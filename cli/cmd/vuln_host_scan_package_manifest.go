@@ -61,10 +61,8 @@ To generate a package-manifest from the local host and scan it automatically:
 
     lacework vulnerability host scan-pkg-manifest --local
 
-**NOTE:**
- - Only packages managed by a package manager for supported OS's are reported.
- - Calls to this operation are rate limited to 10 calls per hour, per access key.
- - This operation is limited to 10k packages per command execution.`,
+**NOTE**: Only packages managed by a package manager for supported operating systems are reported.
+**NOTE**: This operation is limited to 10k packages per command execution.`,
 		RunE: func(c *cobra.Command, args []string) error {
 			if err := validateSeverityFlags(); err != nil {
 				return err
