@@ -1,3 +1,17 @@
+# v2.5.0
+
+## Features
+* feat(lwpreflight): support org level checks (#1744) (Pengyuan Zhao)([573f48c1](https://github.com/lacework/go-sdk/commit/573f48c160cb9b7f892e2cee94575188c8156a1f))
+## Other Changes
+* ci: version bump to v2.4.1-dev (Lacework)([3018ef02](https://github.com/lacework/go-sdk/commit/3018ef024291bdea12063bbe326d5fd8e4bf7773))
+---
+# v2.4.0
+
+## Features
+* feat(cli): alert show --scope ObservationTimeline (#1743) (lokeshv-fortinet)([185cd097](https://github.com/lacework/go-sdk/commit/185cd097f65c8478ab834df79620d46027c730b5))
+## Other Changes
+* ci: version bump to v2.3.3-dev (Lacework)([059f43e6](https://github.com/lacework/go-sdk/commit/059f43e6ca121a6d19dce43add3f1c4aa0714222))
+---
 # v2.3.2
 
 ## Other Changes

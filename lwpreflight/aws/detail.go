@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -86,29 +85,42 @@ func fetchOrg(p *Preflight) error {
 		AccountId: &p.caller.AccountID,
 	})
 	if err != nil {
-		isPermissionErr := strings.Contains(err.Error(), "You don't have permissions to access this resource.")
-		if isPermissionErr && !p.isOrg {
-			return nil
+		// Only respect errors if org level is enabled. Same for code below
+		if p.isOrg {
+			return err
 		}
-		return err
+		return nil
 	}
 	p.details.OrgAccess = true
 
 	// Get management account ID and org ID
 	orgOutput, err := orgSvc.DescribeOrganization(ctx, nil)
 	if err != nil {
-		return err
+		if p.isOrg {
+			return err
+		}
+		return nil
 	}
 	p.details.ManagementAccountID = *orgOutput.Organization.MasterAccountId
 	p.details.IsManagementAccount = *orgOutput.Organization.MasterAccountId == p.caller.AccountID
 	p.details.OrgID = *orgOutput.Organization.Id
+
+	if p.isOrg && !p.details.IsManagementAccount {
+		return fmt.Errorf("The account %s is not a management account."+
+			"Please use a management account to continue with organization level integration.",
+			p.caller.AccountID,
+		)
+	}
 
 	p.verboseWriter.Write("Discovering all accounts in the organization")
 
 	// Get account IDs in the org
 	accountsOutput, err := orgSvc.ListAccounts(ctx, nil)
 	if err != nil {
-		return err
+		if p.isOrg {
+			return err
+		}
+		return nil
 	}
 	for _, a := range accountsOutput.Accounts {
 		p.details.OrgAccountIDs = append(p.details.OrgAccountIDs, *a.Id)
@@ -119,7 +131,10 @@ func fetchOrg(p *Preflight) error {
 	// Get root org unit ID and all org unit IDs
 	rootsOutput, err := orgSvc.ListRoots(ctx, nil)
 	if err != nil {
-		return err
+		if p.isOrg {
+			return err
+		}
+		return nil
 	}
 	if len(rootsOutput.Roots) > 0 {
 		p.verboseWriter.Write("Discovering all organization units")
@@ -132,7 +147,10 @@ func fetchOrg(p *Preflight) error {
 			},
 		)
 		if err != nil {
-			return err
+			if p.isOrg {
+				return err
+			}
+			return nil
 		}
 		for _, ou := range orgUnitsOutput.OrganizationalUnits {
 			p.details.OrgUnitIDs = append(p.details.OrgUnitIDs, *ou.Id)
@@ -144,7 +162,10 @@ func fetchOrg(p *Preflight) error {
 	// Check enabled services
 	servicesOutput, err := orgSvc.ListAWSServiceAccessForOrganization(ctx, nil)
 	if err != nil {
-		return err
+		if p.isOrg {
+			return err
+		}
+		return nil
 	}
 	for _, service := range servicesOutput.EnabledServicePrincipals {
 		if *service.ServicePrincipal == "controltower.amazonaws.com" {

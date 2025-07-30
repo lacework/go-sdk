@@ -160,3 +160,20 @@ func TestAlertShowTimeline(t *testing.T) {
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
+
+func TestAlertShowObservationTimeline(t *testing.T) {
+	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "ObservationTimeline")
+
+	if strings.Contains(err.String(), "[404] Not found") {
+		return
+	}
+	assert.Contains(t, out.String(), `"entities"`)
+	assert.Contains(t, out.String(), "For further investigation")
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+
+	out, err, exitcode = LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "ObservationTimeline", "--json")
+	assert.Contains(t, out.String(), `"description"`)
+	assert.Empty(t, err.String(), "STDERR should be empty")
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+}

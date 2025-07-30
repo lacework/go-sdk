@@ -23,6 +23,7 @@ The following alert detail scopes are available:
   * RelatedAlerts
   * Integrations
   * Timeline
+  * ObservationTimeline
 
 View an alert's timeline details:
 

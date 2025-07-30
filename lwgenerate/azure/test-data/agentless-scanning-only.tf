@@ -18,7 +18,7 @@ provider "azurerm" {
 
 module "lacework_azure_agentless_scanning_subscription_west_us" {
   source                         = "lacework/agentless-scanning/azure"
-  version                        = "~> 1.5"
+  version                        = "~> 1.6"
   create_log_analytics_workspace = false
   global                         = true
   included_subscriptions         = ["/subscriptions/11111111-2222-3333-4444-111111111111"]
