@@ -20,6 +20,8 @@ const (
 
 	LWAzureConfigSource              = "lacework/config/azure"
 	LWAzureConfigVersion             = "~> 3.0"
+	LWAzureAgentlessSource           = "lacework/agentless-scanning/azure"
+	LWAzureAgentlessVersion          = "~> 1.6"
 	LWAzureActivityLogSource         = "lacework/activity-log/azure"
 	LWAzureActivityLogVersion        = "~> 3.0"
 	LWAzureEntraIdActivityLogSource  = "lacework/microsoft-entra-id-activity-log/azure"
