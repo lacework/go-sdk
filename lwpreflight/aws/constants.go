@@ -556,6 +556,7 @@ var RequiredPermissionsForOrg = map[IntegrationType][]string{
 		"iam:AttachRolePolicy",
 		"iam:CreatePolicy",
 		"iam:CreateRole",
+		"iam:DeletePolicy",
 		"iam:DeleteRole",
 		"iam:DeleteRolePolicy",
 		"iam:DetachRolePolicy",
