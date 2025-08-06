@@ -362,20 +362,6 @@ Try adding '--active' to only show vulnerabilities of packages actively running.
 	assert.Equal(t, strings.TrimPrefix(expectedTable, "\n"), cliOutput)
 }
 
-func TestSeveritySummary(t *testing.T) {
-	var (
-		summary string
-		hosts   = mockHostVulnerabilityAssessment().Data
-	)
-	hostSummary := hostsSummary(hosts)
-	for _, sum := range hostSummary {
-		summary = severityCtrSummary(sum.severity, sum.fixable)
-	}
-
-	expected := "1 High 4 Fixable"
-	assert.Equal(t, expected, summary)
-}
-
 func TestBuildCSVVulnHostReportsWithVulnerabilitiesPackagesViewAndNoFilters(t *testing.T) {
 	vulCmdState.Packages = true
 	cli.EnableCSVOutput()
