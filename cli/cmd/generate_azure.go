@@ -39,6 +39,13 @@ var (
 	// Advanced options
 	QuestionAzureCustomizeOutputLocation = "Provide the location for the output to be written: (optional)"
 
+	// Agentless Scanning
+	QuestionAzureIntegrationLevel            = "Select integration level:"
+	QuestionAzureAgentlessRegions            = "List of regions for scanning: (e.g., 'East US,West US')"
+	QuestionAzureAgentlessSubscriptionIds    = "List of subscription IDs for scanning: (e.g., 'sub1,sub2,sub3')"
+	QuestionAzureAgentlessGlobal             = "Enable global Agentless scanning?"
+	QuestionAzureCreateLogAnalyticsWorkspace = "Create Log Analytics Workspace?"
+
 	// EntraID Activity Log
 	QuestionEventHubLocation       = "Region where the event hub for logging will reside:"
 	QuestionEventHubPartitionCount = "Number of partitions in the event hub for logging:"
@@ -988,7 +995,7 @@ func promptAzureAgentlessQuestions(config *azure.GenerateAzureTfConfigurationArg
 			{
 				Icon: IconAzureAgentless,
 				Prompt: &survey.Select{
-					Message: "Select integration level:",
+					Message: QuestionAzureIntegrationLevel,
 					Options: []string{"SUBSCRIPTION", "TENANT"},
 					Default: "SUBSCRIPTION",
 				},
@@ -1004,7 +1011,7 @@ func promptAzureAgentlessQuestions(config *azure.GenerateAzureTfConfigurationArg
 		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 			{
 				Icon:     IconAzureAgentless,
-				Prompt:   &survey.Confirm{Message: "Enable global agentless scanning?", Default: true},
+				Prompt:   &survey.Confirm{Message: QuestionAzureAgentlessGlobal, Default: true},
 				Response: &config.Global,
 			},
 		}); err != nil {
@@ -1016,8 +1023,11 @@ func promptAzureAgentlessQuestions(config *azure.GenerateAzureTfConfigurationArg
 	if !config.CreateLogAnalyticsWorkspace {
 		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 			{
-				Icon:     IconAzureAgentless,
-				Prompt:   &survey.Confirm{Message: "Create Log Analytics Workspace?", Default: config.CreateLogAnalyticsWorkspace},
+				Icon: IconAzureAgentless,
+				Prompt: &survey.Confirm{
+					Message: QuestionAzureCreateLogAnalyticsWorkspace,
+					Default: config.CreateLogAnalyticsWorkspace,
+				},
 				Response: &config.CreateLogAnalyticsWorkspace,
 			},
 		}); err != nil {
@@ -1032,7 +1042,7 @@ func promptAzureAgentlessQuestions(config *azure.GenerateAzureTfConfigurationArg
 			{
 				Icon: IconAzureAgentless,
 				Prompt: &survey.Input{
-					Message: "Comma-separated list of regions for Agentless scanning (e.g., 'East US,West US')",
+					Message: QuestionAzureAgentlessRegions,
 					Default: "West US",
 				},
 				Response: &regionsInput,
@@ -1059,8 +1069,8 @@ func promptAzureAgentlessQuestions(config *azure.GenerateAzureTfConfigurationArg
 				{
 					Icon: IconAzureAgentless,
 					Prompt: &survey.Input{
-						Message: "Comma-separated list of subscription IDs for Agentless scanning (e.g., 'sub1, sub2')",
-						Default: "",
+						Message: QuestionAzureAgentlessSubscriptionIds,
+						Default: config.SubscriptionID,
 					},
 					Response: &subscriptionIdsInput,
 				},

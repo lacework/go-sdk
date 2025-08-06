@@ -741,6 +741,100 @@ func TestGenerationAzureActivityLogLocation(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+func TestGenerationAzureAgentlessSubscriptionSingleRegion(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+	var region string = "West US"
+
+	// Run CLI
+	tfResult := runGenerateAzureTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
+				MsgRsp{cmd.AzureSubscriptions, "n"},
+				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
+				MsgRsp{cmd.QuestionAzureEnableAgentless, "y"},
+				MsgRsp{cmd.QuestionAzureIntegrationLevel, "SUBSCRIPTION"},
+				MsgRsp{cmd.QuestionAzureAgentlessGlobal, "y"},
+				MsgRsp{cmd.QuestionAzureCreateLogAnalyticsWorkspace, "n"},
+				MsgRsp{cmd.QuestionAzureAgentlessRegions, region},
+				MsgRsp{cmd.QuestionAzureAgentlessSubscriptionIds, mockSubscriptionID},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionAzureCustomizeOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"az",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Nil(t, runError)
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := azure.NewTerraform(false, false, true, false, false,
+		azure.WithSubscriptionID(mockSubscriptionID),
+		azure.WithRegions([]string{region}),
+		azure.WithAgentlessSubscriptionIds([]string{mockSubscriptionID}),
+		azure.WithGlobal(true),
+		azure.WithIntegrationLevel("SUBSCRIPTION"),
+		azure.WithCreateLogAnalyticsWorkspace(false),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
+func TestGenerationAzureAgentlessTenantSingleRegion(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+	var region string = "West US"
+
+	// Run CLI
+	tfResult := runGenerateAzureTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
+				MsgRsp{cmd.AzureSubscriptions, "n"},
+				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "n"},
+				MsgRsp{cmd.QuestionAzureEnableAgentless, "y"},
+				MsgRsp{cmd.QuestionAzureIntegrationLevel, "TENANT"},
+				MsgRsp{cmd.QuestionAzureAgentlessGlobal, "y"},
+				MsgRsp{cmd.QuestionAzureCreateLogAnalyticsWorkspace, "n"},
+				MsgRsp{cmd.QuestionAzureAgentlessRegions, region},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionAzureCustomizeOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"az",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Nil(t, runError)
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := azure.NewTerraform(false, false, true, false, false,
+		azure.WithSubscriptionID(mockSubscriptionID),
+		azure.WithRegions([]string{region}),
+		azure.WithGlobal(true),
+		azure.WithIntegrationLevel("TENANT"),
+		azure.WithCreateLogAnalyticsWorkspace(false),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
 func TestGenerationAzureOverwrite(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
 	defer os.Setenv("LW_NOCACHE", "")

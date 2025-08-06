@@ -491,7 +491,7 @@ func TestMain(m *testing.M) {
 func terraformInstall() {
 	installer := &releases.ExactVersion{
 		Product: product.Terraform,
-		Version: version.Must(version.NewVersion("1.5.0")),
+		Version: version.Must(version.NewVersion("1.9.0")),
 	}
 
 	_execPath, err := installer.Install(context.Background())
