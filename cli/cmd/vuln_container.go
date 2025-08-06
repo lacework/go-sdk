@@ -19,10 +19,11 @@
 package cmd
 
 import (
+	"sort"
+
 	"github.com/lacework/go-sdk/v2/api"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
-	"sort"
 )
 
 func init() {
