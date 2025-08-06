@@ -88,7 +88,7 @@ func TestBuildCSVVulnCtrReportVulnerabilitiesListing(t *testing.T) {
 	cli.EnableCSVOutput()
 	defer func() { cli.csvOutput = false }()
 
-	headers := []string{"Registry", "Repository", "Tag", "Last Scan", "Status", "Containers", "Vulnerabilities", "Image Digest"}
+	headers := []string{"Registry", "Repository", "Last Scan", "Status", "Containers", "Vulnerabilities", "Image Digest"}
 	assessments := buildVulnCtrAssessmentSummary(mockVulnerabilityObservationsImageSummary())
 	filteredAssessments := applyVulnCtrFilters(assessments)
 	assessmentOutput := assessmentSummaryToOutputFormat(filteredAssessments)
@@ -99,8 +99,8 @@ func TestBuildCSVVulnCtrReportVulnerabilitiesListing(t *testing.T) {
 	}
 
 	expected := `
-Registry,Repository,Tag,Last Scan,Status,Containers,Vulnerabilities,Image Digest
-docker.io,lacework/jre,alpine-test,2025-08-06T13:05:11Z,Success,0,8 High 9 Fixable,sha256:a41ec54e6450ccc66d9f2ff975a0004d889349f3e8f5b086ebe8704e7ae962ac
+Registry,Repository,Last Scan,Status,Containers,Vulnerabilities,Image Digest
+docker.io,lacework/jre,2025-08-06T13:05:11Z,Success,0,8 High 9 Fixable,sha256:a41ec54e6450ccc66d9f2ff975a0004d889349f3e8f5b086ebe8704e7ae962ac
 `
 
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), csv)

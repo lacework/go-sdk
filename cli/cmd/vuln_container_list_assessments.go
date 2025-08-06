@@ -154,7 +154,7 @@ environment.`,
 			// Build table output
 			assessmentOutput := assessmentSummaryToOutputFormat(assessments)
 			rows := vulAssessmentsToTable(assessmentOutput)
-			headers := []string{"Registry", "Repository", "Tag", "Last Scan",
+			headers := []string{"Registry", "Repository", "Last Scan",
 				"Status", "Containers", "Vulnerabilities", "Image Digest"}
 			switch {
 			case len(rows) == 0:
@@ -258,7 +258,6 @@ type vulnerabilityAssessmentSummary struct {
 	ImageID          string         `json:"image_id"`
 	Repository       string         `json:"repository"`
 	Registry         string         `json:"registry"`
-	Tag              string         `json:"tag"`
 	Digest           string         `json:"digest"`
 	ScanTime         time.Time      `json:"scan_time"`
 	ScanStatus       string         `json:"scan_status"`
@@ -295,7 +294,6 @@ func buildVulnCtrAssessmentSummary(
 			ImageID:          a.ImageId,
 			Repository:       a.Repository,
 			Registry:         a.Registry,
-			Tag:              a.Tag,
 			Digest:           a.Digest,
 			ScanTime:         scanTime,
 			ScanStatus:       a.ScanStatus,
@@ -360,7 +358,6 @@ func assessmentSummaryToOutputFormat(assessments []vulnerabilityAssessmentSummar
 		out = append(out, assessmentOutput{
 			imageRegistry:     ctr.Registry,
 			imageRepo:         ctr.Repository,
-			imageTag:          ctr.Tag,
 			startTime:         ctr.ScanTime.UTC().Format(time.RFC3339),
 			imageScanStatus:   ctr.ScanStatus,
 			ndvContainers:     fmt.Sprintf("%d", ctr.ActiveContainers),
@@ -410,7 +407,6 @@ func vulAssessmentsToTable(assessments []assessmentOutput) [][]string {
 		out = append(out, []string{
 			assessment.imageRegistry,
 			assessment.imageRepo,
-			assessment.imageTag,
 			assessment.startTime,
 			assessment.imageScanStatus,
 			assessment.ndvContainers,
@@ -424,7 +420,6 @@ func vulAssessmentsToTable(assessments []assessmentOutput) [][]string {
 type assessmentOutput struct {
 	imageRegistry     string
 	imageRepo         string
-	imageTag          string
 	startTime         string
 	imageScanStatus   string
 	ndvContainers     string
