@@ -327,8 +327,8 @@ func TestGenerationEntraIDActivityLogEventHubLocationAndPartition(t *testing.T) 
 }
 
 // Agentless Scanning Tests
-func TestGenerationAgentlessScanning(t *testing.T) {
-	AgentlessScanning, fileErr := getFileContent("test-data/agentless-scanning-only.tf")
+func TestGenerationAgentlessScanningWithSubscriptionIntLevelSR(t *testing.T) {
+	AgentlessScanning, fileErr := getFileContent("test-data/agentless_subscription_singleregion.tf")
 	assert.Nil(t, fileErr)
 	hcl, err := azure.NewTerraform(false, false, true, false, false,
 		azure.WithSubscriptionID("11111111-2222-3333-4444-111111111111"),
@@ -336,6 +336,49 @@ func TestGenerationAgentlessScanning(t *testing.T) {
 		azure.WithRegions([]string{"West US"}),
 		azure.WithGlobal(true),
 		azure.WithAgentlessSubscriptionIds([]string{"11111111-2222-3333-4444-111111111111"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, AgentlessScanning, hcl)
+}
+
+func TestGenerationAgentlessScanningWithSubscriptionIntLevelMR(t *testing.T) {
+	AgentlessScanning, fileErr := getFileContent("test-data/agentless_subscription_multiregion.tf")
+	assert.Nil(t, fileErr)
+	hcl, err := azure.NewTerraform(false, false, true, false, false,
+		azure.WithSubscriptionID("11111111-2222-3333-4444-111111111111"),
+		azure.WithIntegrationLevel("SUBSCRIPTION"),
+		azure.WithRegions([]string{"West US", "East US"}),
+		azure.WithGlobal(true),
+		azure.WithAgentlessSubscriptionIds([]string{"11111111-2222-3333-4444-111111111111"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, AgentlessScanning, hcl)
+}
+
+func TestGenerationAgentlessScanningWithTenantIntLevelSR(t *testing.T) {
+	AgentlessScanning, fileErr := getFileContent("test-data/agentless_tenant_singleregion.tf")
+	assert.Nil(t, fileErr)
+	hcl, err := azure.NewTerraform(false, false, true, false, false,
+		azure.WithSubscriptionID("11111111-2222-3333-4444-111111111111"),
+		azure.WithIntegrationLevel("TENANT"),
+		azure.WithRegions([]string{"West US"}),
+		azure.WithGlobal(true),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, AgentlessScanning, hcl)
+}
+
+func TestGenerationAgentlessScanningWithTenantIntLevelMR(t *testing.T) {
+	AgentlessScanning, fileErr := getFileContent("test-data/agentless_tenant_multiregion.tf")
+	assert.Nil(t, fileErr)
+	hcl, err := azure.NewTerraform(false, false, true, false, false,
+		azure.WithSubscriptionID("11111111-2222-3333-4444-111111111111"),
+		azure.WithIntegrationLevel("TENANT"),
+		azure.WithRegions([]string{"West US", "East US"}),
+		azure.WithGlobal(true),
 	).Generate()
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)

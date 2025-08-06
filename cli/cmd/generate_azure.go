@@ -182,7 +182,6 @@ the new cloud account. In interactive mode, this command will:
 			if cli.Profile != "default" {
 				GenerateAzureCommandState.LaceworkProfile = cli.Profile
 			}
-
 			// Setup modifiers for NewTerraform constructor
 			mods := []azure.AzureTerraformModifier{
 				azure.WithLaceworkProfile(GenerateAzureCommandState.LaceworkProfile),
@@ -376,8 +375,13 @@ func validateAzureLocation(val interface{}) error {
 		if str == "" {
 			return nil
 		}
-		if !validAzureLocations[str] {
-			return errors.New("invalid Azure region. Please use a valid Azure region like 'East US', 'West Europe', etc.")
+		// handle comma-separated regions
+		regions := strings.Split(str, ",")
+		for _, region := range regions {
+			region = strings.TrimSpace(region)
+			if region != "" && !validAzureLocations[region] {
+				return errors.New("invalid Azure region. Please use a valid Azure region like 'East US', 'West Europe', etc.")
+			}
 		}
 	}
 	return nil
@@ -421,7 +425,7 @@ func initGenerateAzureTfCommandFlags() {
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.Global,
 		"global",
-		true,
+		false,
 		"enable global agentless scanning")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
@@ -429,6 +433,18 @@ func initGenerateAzureTfCommandFlags() {
 		"create_log_analytics_workspace",
 		false,
 		"enable creation of Log Analytics Workspace for agentless scanning")
+
+	generateAzureTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateAzureCommandState.Regions,
+		"regions",
+		[]string{},
+		"comma-separated list of Azure regions for agentless scanning (e.g., 'East US,West US')")
+
+	generateAzureTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateAzureCommandState.AgentlessSubscriptionIds,
+		"agentless_subscription_ids",
+		[]string{},
+		"Comma-separated list of subscription IDs for Agentless scanning (e.g., 'sub1,sub2,sub3')")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.EntraIdActivityLog,
@@ -723,7 +739,7 @@ func askAzureSubscriptionID(config *azure.GenerateAzureTfConfigurationArgs) erro
 }
 
 func azureConfigIsEmpty(config *azure.GenerateAzureTfConfigurationArgs) bool {
-	return !config.Config && !config.ActivityLog && config.LaceworkProfile == ""
+	return !config.Config && !config.ActivityLog && !config.Agentless && config.LaceworkProfile == ""
 }
 
 func allSubscriptionsDisabled(config *azure.GenerateAzureTfConfigurationArgs) *bool {
@@ -747,9 +763,11 @@ func promptAzureGenerate(
 		defer extraState.writeCache()
 	}
 
-	// Ask subscription ID first as it's common to all integrations
-	if err := askAzureSubscriptionID(config); err != nil {
-		return err
+	if config.SubscriptionID == "" {
+		// Ask subscription ID first as it's common to all integrations
+		if err := askAzureSubscriptionID(config); err != nil {
+			return err
+		}
 	}
 
 	// Ask about subscriptions configuration
@@ -758,15 +776,17 @@ func promptAzureGenerate(
 	}
 
 	// Ask Configuration integration
-	if err := SurveyMultipleQuestionWithValidation(
-		[]SurveyQuestionWithValidationArgs{
-			{
-				Icon:     IconAzureConfig,
-				Prompt:   &survey.Confirm{Message: QuestionAzureEnableConfig, Default: config.Config},
-				Response: &config.Config,
-			},
-		}); err != nil {
-		return err
+	if !config.Config {
+		if err := SurveyMultipleQuestionWithValidation(
+			[]SurveyQuestionWithValidationArgs{
+				{
+					Icon:     IconAzureConfig,
+					Prompt:   &survey.Confirm{Message: QuestionAzureEnableConfig, Default: config.Config},
+					Response: &config.Config,
+				},
+			}); err != nil {
+			return err
+		}
 	}
 
 	// Ask Configuration questions immediately if enabled
@@ -777,15 +797,17 @@ func promptAzureGenerate(
 	}
 
 	// Ask Activity Log integration
-	if err := SurveyMultipleQuestionWithValidation(
-		[]SurveyQuestionWithValidationArgs{
-			{
-				Icon:     IconActivityLog,
-				Prompt:   &survey.Confirm{Message: QuestionEnableActivityLog, Default: config.ActivityLog},
-				Response: &config.ActivityLog,
-			},
-		}); err != nil {
-		return err
+	if !config.ActivityLog {
+		if err := SurveyMultipleQuestionWithValidation(
+			[]SurveyQuestionWithValidationArgs{
+				{
+					Icon:     IconActivityLog,
+					Prompt:   &survey.Confirm{Message: QuestionEnableActivityLog, Default: config.ActivityLog},
+					Response: &config.ActivityLog,
+				},
+			}); err != nil {
+			return err
+		}
 	}
 
 	// Ask Activity Log questions immediately if enabled
@@ -796,18 +818,20 @@ func promptAzureGenerate(
 	}
 
 	// Ask Agentless integration
-	if err := SurveyMultipleQuestionWithValidation(
-		[]SurveyQuestionWithValidationArgs{
-			{
-				Icon:     IconAzureAgentless,
-				Prompt:   &survey.Confirm{Message: QuestionAzureEnableAgentless, Default: config.Agentless},
-				Response: &config.Agentless,
-			},
-		}); err != nil {
-		return err
+	if !config.Agentless {
+		if err := SurveyMultipleQuestionWithValidation(
+			[]SurveyQuestionWithValidationArgs{
+				{
+					Icon:     IconAzureAgentless,
+					Prompt:   &survey.Confirm{Message: QuestionAzureEnableAgentless, Default: config.Agentless},
+					Response: &config.Agentless,
+				},
+			}); err != nil {
+			return err
+		}
 	}
 
-	// Ask Activity Log questions immediately if enabled
+	// Ask Agentless questions immediately if enabled
 	if config.Agentless {
 		if err := promptAzureAgentlessQuestions(config); err != nil {
 			return err
@@ -815,15 +839,17 @@ func promptAzureGenerate(
 	}
 
 	// Ask Entra ID integration
-	if err := SurveyMultipleQuestionWithValidation(
-		[]SurveyQuestionWithValidationArgs{
-			{
-				Icon:     IconEntraID,
-				Prompt:   &survey.Confirm{Message: QuestionEnableEntraIdActivityLog, Default: config.EntraIdActivityLog},
-				Response: &config.EntraIdActivityLog,
-			},
-		}); err != nil {
-		return err
+	if !config.EntraIdActivityLog {
+		if err := SurveyMultipleQuestionWithValidation(
+			[]SurveyQuestionWithValidationArgs{
+				{
+					Icon:     IconEntraID,
+					Prompt:   &survey.Confirm{Message: QuestionEnableEntraIdActivityLog, Default: config.EntraIdActivityLog},
+					Response: &config.EntraIdActivityLog,
+				},
+			}); err != nil {
+			return err
+		}
 	}
 
 	// Ask Entra ID questions immediately if enabled
@@ -958,69 +984,75 @@ func promptAzureActivityLogQuestions(config *azure.GenerateAzureTfConfigurationA
 func promptAzureAgentlessQuestions(config *azure.GenerateAzureTfConfigurationArgs) error {
 	// Prompt for integration level(SUBSCRIPTION or TENANT)
 	if config.IntegrationLevel == "" {
-		config.IntegrationLevel = "SUBSCRIPTION"
-	}
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Icon: IconAzureAgentless,
-			Prompt: &survey.Select{
-				Message: "Select integration level:",
-				Options: []string{"SUBSCRIPTION", "TENANT"},
-				Default: config.IntegrationLevel,
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Icon: IconAzureAgentless,
+				Prompt: &survey.Select{
+					Message: "Select integration level:",
+					Options: []string{"SUBSCRIPTION", "TENANT"},
+					Default: "SUBSCRIPTION",
+				},
+				Response: &config.IntegrationLevel,
 			},
-			Response: &config.IntegrationLevel,
-		},
-	}); err != nil {
-		return err
+		}); err != nil {
+			return err
+		}
 	}
 
 	// prompt for global setting
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Icon:     IconAzureAgentless,
-			Prompt:   &survey.Confirm{Message: "Enable global agentless scanning?", Default: config.Global},
-			Response: &config.Global,
-		},
-	}); err != nil {
-		return err
+	if !config.Global {
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Icon:     IconAzureAgentless,
+				Prompt:   &survey.Confirm{Message: "Enable global agentless scanning?", Default: true},
+				Response: &config.Global,
+			},
+		}); err != nil {
+			return err
+		}
 	}
 
 	// prompt for log analytics workspace creation (default: false)
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Icon:     IconAzureAgentless,
-			Prompt:   &survey.Confirm{Message: "Create Log Analytics Workspace?", Default: config.CreateLogAnalyticsWorkspace},
-			Response: &config.CreateLogAnalyticsWorkspace,
-		},
-	}); err != nil {
-		return err
+	if !config.CreateLogAnalyticsWorkspace {
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Icon:     IconAzureAgentless,
+				Prompt:   &survey.Confirm{Message: "Create Log Analytics Workspace?", Default: config.CreateLogAnalyticsWorkspace},
+				Response: &config.CreateLogAnalyticsWorkspace,
+			},
+		}); err != nil {
+			return err
+		}
 	}
 
-	// Ask for regions
-	var regionsInput string
-	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
-		{
-			Icon: IconAzureAgentless,
-			Prompt: &survey.Input{
-				Message: "Comma-separated list of regions for Agentless scanning (e.g., 'East US, West US')",
-				Default: "West US",
+	// Only prompt if no regions are set
+	if len(config.Regions) == 0 {
+		var regionsInput string
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Icon: IconAzureAgentless,
+				Prompt: &survey.Input{
+					Message: "Comma-separated list of regions for Agentless scanning (e.g., 'East US,West US')",
+					Default: "West US",
+				},
+				Response: &regionsInput,
+				Opts:     []survey.AskOpt{survey.WithValidator(validateAzureLocation)},
 			},
-			Response: &regionsInput,
-		},
-	}); err != nil {
-		return err
-	}
-	// parse regions from comma-separated string
-	if regionsInput != "" {
-		regions := strings.Split(regionsInput, ",")
-		for i, region := range regions {
-			regions[i] = strings.TrimSpace(region)
+		}); err != nil {
+			return err
 		}
-		config.Regions = regions
+		// parse regions from comma-separated string
+		if regionsInput != "" {
+			regions := strings.Split(regionsInput, ",")
+			for i, region := range regions {
+				regions[i] = strings.TrimSpace(region)
+			}
+			config.Regions = regions
+		}
 	}
 
 	// Only ask for subscription IDs if SUBSCRIPTION integration level is selected
-	if config.IntegrationLevel == "SUBSCRIPTION" {
+	if config.IntegrationLevel == "SUBSCRIPTION" && len(config.AgentlessSubscriptionIds) == 0 {
 		var subscriptionIdsInput string
 		for {
 			if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
