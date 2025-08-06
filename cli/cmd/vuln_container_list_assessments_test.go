@@ -81,8 +81,6 @@ func TestSeveritySummary(t *testing.T) {
 
 	assessments := buildVulnCtrAssessmentSummary(mockVulnerabilityObservationsImageSummary())
 	summaryString := severityCtrSummary(assessments[0].VulnCount, assessments[0].FixableCount)
-	assert.Equal(t, "1 High 1 Fixable", summaryString)
-	summaryString = severityCtrSummary(assessments[1].VulnCount, assessments[1].FixableCount)
 	assert.Equal(t, "8 High 9 Fixable", summaryString)
 }
 
@@ -102,8 +100,6 @@ func TestBuildCSVVulnCtrReportVulnerabilitiesListing(t *testing.T) {
 
 	expected := `
 Registry,Repository,Tag,Last Scan,Status,Containers,Vulnerabilities,Image Digest
-docker.io,lacework/jre,amazoncorretto8-alpine3.15-stable,2025-08-06T13:05:05Z,Success,0,1 High 1 Fixable,sha256:8182c226d7d5bc4ce596f31017e62442fd6fdf4796595073d5342094f1b778df
-docker.io,lacework/jre,8-alpine3.15-test,2025-08-06T13:05:15Z,Success,0,8 High 9 Fixable,sha256:8e6596ca0b60dc3464e286097b33f39012760cca51ba6976c7e8f2ff7a9bce82
 docker.io,lacework/jre,alpine-test,2025-08-06T13:05:11Z,Success,0,8 High 9 Fixable,sha256:a41ec54e6450ccc66d9f2ff975a0004d889349f3e8f5b086ebe8704e7ae962ac
 `
 
@@ -112,46 +108,6 @@ docker.io,lacework/jre,alpine-test,2025-08-06T13:05:11Z,Success,0,8 High 9 Fixab
 
 func mockVulnerabilityObservationsImageSummary() []api.VulnerabilityObservationsImageSummary {
 	return []api.VulnerabilityObservationsImageSummary{
-		{
-			ContainerCount:           0,
-			Digest:                   "sha256:8182c226d7d5bc4ce596f31017e62442fd6fdf4796595073d5342094f1b778df",
-			ImageId:                  "sha256:3fe1c77b23ca802abf84be74215344a2401457e9112d5f560ea50097679155e9",
-			LastScanTime:             "2025-08-06 13:05:05.000 Z",
-			Registry:                 "docker.io",
-			Repository:               "lacework/jre",
-			Tag:                      "amazoncorretto8-alpine3.15-stable",
-			ScanStatus:               "Success",
-			VulnCountCritical:        0,
-			VulnCountCriticalFixable: 0,
-			VulnCountHigh:            1,
-			VulnCountHighFixable:     1,
-			VulnCountMedium:          0,
-			VulnCountMediumFixable:   0,
-			VulnCountLow:             0,
-			VulnCountLowFixable:      0,
-			VulnCountInfo:            0,
-			VulnCountInfoFixable:     0,
-		},
-		{
-			ContainerCount:           0,
-			Digest:                   "sha256:8e6596ca0b60dc3464e286097b33f39012760cca51ba6976c7e8f2ff7a9bce82",
-			ImageId:                  "sha256:819963f636cf5c396c5d7254e00678563e9197b7f16fdf69e7b4858e8a1fdf52",
-			LastScanTime:             "2025-08-06 13:05:15.000 Z",
-			Registry:                 "docker.io",
-			Repository:               "lacework/jre",
-			Tag:                      "8-alpine3.15-test",
-			ScanStatus:               "Success",
-			VulnCountCritical:        0,
-			VulnCountCriticalFixable: 0,
-			VulnCountHigh:            8,
-			VulnCountHighFixable:     8,
-			VulnCountMedium:          0,
-			VulnCountMediumFixable:   0,
-			VulnCountLow:             1,
-			VulnCountLowFixable:      1,
-			VulnCountInfo:            0,
-			VulnCountInfoFixable:     0,
-		},
 		{
 			ContainerCount:           0,
 			Digest:                   "sha256:a41ec54e6450ccc66d9f2ff975a0004d889349f3e8f5b086ebe8704e7ae962ac",

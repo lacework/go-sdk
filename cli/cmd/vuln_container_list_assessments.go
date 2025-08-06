@@ -273,9 +273,12 @@ func (v vulnerabilityAssessmentSummary) HasFixableVulns() bool {
 
 func buildVulnCtrAssessmentSummary(
 	assessments []api.VulnerabilityObservationsImageSummary,
-) (assessmentSummary []vulnerabilityAssessmentSummary) {
+) (uniqueAssessments []vulnerabilityAssessmentSummary) {
+
+	imageMap := map[string]vulnerabilityAssessmentSummary{}
 
 	for _, a := range assessments {
+		i := fmt.Sprintf("%s-%s-%s", a.Registry, a.Repository, a.ImageId)
 		scanTime, err := time.Parse(api.TimestampLayout, a.LastScanTime)
 		if err != nil {
 			fmt.Println("Error parsing last scan time: ", err)
@@ -288,7 +291,7 @@ func buildVulnCtrAssessmentSummary(
 		vulnCount["Low"] = a.VulnCountLow
 		vulnCount["Info"] = a.VulnCountInfo
 
-		assessmentSummary = append(assessmentSummary, vulnerabilityAssessmentSummary{
+		imageMap[i] = vulnerabilityAssessmentSummary{
 			ImageID:          a.ImageId,
 			Repository:       a.Repository,
 			Registry:         a.Registry,
@@ -300,10 +303,12 @@ func buildVulnCtrAssessmentSummary(
 			FixableCount: a.VulnCountCriticalFixable + a.VulnCountHighFixable + a.VulnCountMediumFixable +
 				a.VulnCountLowFixable + a.VulnCountInfoFixable,
 			VulnCount: vulnCount,
-		})
+		}
 	}
-
-	return assessmentSummary
+	for _, v := range imageMap {
+		uniqueAssessments = append(uniqueAssessments, v)
+	}
+	return
 }
 
 func buildContainerAssessmentsError() string {
