@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/lacework/go-sdk/v2/api"
-	"github.com/lacework/go-sdk/v2/internal/array"
 	"github.com/lacework/go-sdk/v2/lwtime"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -112,7 +111,22 @@ environment.`,
 				// get all container vulnerability assessments
 				cli.Log.Infow("requesting list of assessments", "start_time", start, "end_time", end)
 				cli.StartProgress(fmt.Sprintf("Fetching assessments%s...", timeRangeMsg))
-				assessments, err = listVulnCtrAssessments(activeContainers, &filter)
+
+				assessments, err = listVulnCtrAssessments(activeContainers,
+					&api.SearchFilter{
+						Filters: []api.Filter{
+							{
+								Expression: "gt",
+								Field:      "lastScanTime",
+								Value:      start.Format(api.TimestampLayout),
+							},
+							{
+								Expression: "lt",
+								Field:      "lastScanTime",
+								Value:      end.Format(api.TimestampLayout),
+							},
+						},
+					})
 				cli.StopProgress()
 				if err != nil {
 					return err
@@ -141,7 +155,7 @@ environment.`,
 			// Build table output
 			assessmentOutput := assessmentSummaryToOutputFormat(assessments)
 			rows := vulAssessmentsToTable(assessmentOutput)
-			headers := []string{"Registry", "Repository", "Last Scan",
+			headers := []string{"Registry", "Repository", "Tag", "Last Scan",
 				"Status", "Containers", "Vulnerabilities", "Image Digest"}
 			switch {
 			case len(rows) == 0:
@@ -169,24 +183,12 @@ environment.`,
 )
 
 func vulnCtrListAssessmentFiltersEnabled() bool {
-	return len(vulCmdState.Repositories) > 0 ||
-		len(vulCmdState.Registries) > 0 ||
-		vulCmdState.Fixable ||
+	return vulCmdState.Fixable ||
 		vulCmdState.Active
 }
 
 func applyVulnCtrFilters(assessments []vulnerabilityAssessmentSummary) (filtered []vulnerabilityAssessmentSummary) {
 	for _, a := range assessments {
-		if len(vulCmdState.Repositories) > 0 {
-			if !array.ContainsStr(vulCmdState.Repositories, a.Repository) {
-				continue
-			}
-		}
-		if len(vulCmdState.Registries) > 0 {
-			if !array.ContainsStr(vulCmdState.Registries, a.Registry) {
-				continue
-			}
-		}
 		if vulCmdState.Active {
 			if a.ActiveContainers == 0 {
 				continue
@@ -223,34 +225,26 @@ func listVulnCtrAssessments(
 	activeContainers api.ContainersEntityResponse, filter *api.SearchFilter,
 ) (assessments []vulnerabilityAssessmentSummary, err error) {
 
-	// Collect only the image ID and the start time to build a tree of
-	// images, the time they were evaluated, and the evaluation GUID.
-	// This will tell us all images and their latest evaluation
-	filter.Returns = []string{"imageId", "startTime", "evalGuid"}
-	filter.Filters = []api.Filter{}
-
 	// if the user wants to only list assessments from a subset of registries,
 	// use that filter instead of fetching data from all registries
 	if len(vulCmdState.Registries) != 0 {
 		filter.Filters = append(filter.Filters,
 			api.Filter{
 				Expression: "in",
-				Field:      "evalCtx.image_info.registry",
+				Field:      "registry",
 				Values:     vulCmdState.Registries,
 			})
 	}
-
 	// if the user wants to only list assessments from a subset of repositories,
 	// use that filter instead of fetching data from all repositories
 	if len(vulCmdState.Repositories) != 0 {
 		filter.Filters = append(filter.Filters,
 			api.Filter{
 				Expression: "in",
-				Field:      "evalCtx.image_info.repo",
+				Field:      "repository",
 				Values:     vulCmdState.Repositories,
 			})
 	}
-
 	response, err := cli.LwApi.V2.VulnerabilityObservations.ImageSummary.SearchAllPages(*filter)
 	if err != nil {
 		return assessments, errors.Wrap(err, "unable to search for container assessments")
@@ -262,31 +256,16 @@ func listVulnCtrAssessments(
 }
 
 type vulnerabilityAssessmentSummary struct {
-	ImageID          string                    `json:"image_id"`
-	Repository       string                    `json:"repository"`
-	Registry         string                    `json:"registry"`
-	Digest           string                    `json:"digest"`
-	ScanTime         time.Time                 `json:"scan_time"`
-	Cves             []vulnerabilityCtrSummary `json:"cves"`
-	ScanStatus       string                    `json:"scan_status"`
-	ActiveContainers int                       `json:"active_containers"`
-	FixableCount     int                       `json:"fixable_count"`
-	vulnerabilities  []string
-	StatusList       []string `json:"-"`
-}
-
-type vulnerabilityCtrSummary struct {
-	Id       string `json:"vuln_id"`
-	Pkg      string `json:"package_name"`
-	Fixable  int    `json:"fixable"`
-	Severity string `json:"severity"`
-}
-
-func (v vulnerabilityAssessmentSummary) Status() string {
-	if array.ContainsStr(v.StatusList, "VULNERABLE") {
-		return "VULNERABLE"
-	}
-	return "GOOD"
+	ImageID          string         `json:"image_id"`
+	Repository       string         `json:"repository"`
+	Registry         string         `json:"registry"`
+	Tag              string         `json:"tag"`
+	Digest           string         `json:"digest"`
+	ScanTime         time.Time      `json:"scan_time"`
+	ScanStatus       string         `json:"scan_status"`
+	ActiveContainers int            `json:"active_containers"`
+	FixableCount     int            `json:"fixable_count"`
+	VulnCount        map[string]int `json:"vuln_count"`
 }
 
 func (v vulnerabilityAssessmentSummary) HasFixableVulns() bool {
@@ -299,29 +278,32 @@ func buildVulnCtrAssessmentSummary(
 
 	imageMap := map[string]vulnerabilityAssessmentSummary{}
 
-	// build a map for our assessments per image
 	for _, a := range assessments {
 		i := fmt.Sprintf("%s-%s-%s", a.Registry, a.Repository, a.ImageId)
 
-		layout := "2006-01-02 15:04:05.000 Z"
-		scanTime, err := time.Parse(layout, a.LastScanTime)
+		scanTime, err := time.Parse(api.TimestampLayout, a.LastScanTime)
 		if err != nil {
-			fmt.Println("Error parsing last scan time: ", a.LastScanTime)
+			fmt.Println("Error parsing last scan time: ", err)
 		}
 
-		// search for active containers
+		vulnCount := make(map[string]int)
+		vulnCount["Critical"] = a.VulnCountCritical
+		vulnCount["High"] = a.VulnCountHigh
+		vulnCount["Medium"] = a.VulnCountMedium
+		vulnCount["Low"] = a.VulnCountLow
+		vulnCount["Info"] = a.VulnCountInfo
+
 		imageMap[i] = vulnerabilityAssessmentSummary{
 			ImageID:          a.ImageId,
 			Repository:       a.Repository,
 			Registry:         a.Registry,
+			Tag:              a.Tag,
 			Digest:           a.Digest,
 			ScanTime:         scanTime,
-			Cves:             []vulnerabilityCtrSummary{{a.VulnID, a.FeatureKey.Name, a.FixInfo.FixAvailable, a.Severity}},
 			ScanStatus:       a.ScanStatus,
 			ActiveContainers: a.ContainerCount,
-			vulnerabilities:  []string{fmt.Sprintf("%s-%s", a.VulnID, a.FeatureKey.Name)},
-			StatusList:       []string{a.Status},
 			FixableCount:     a.VulnCountCriticalFixable + a.VulnCountHighFixable + a.VulnCountMediumFixable + a.VulnCountLowFixable + a.VulnCountInfoFixable,
+			VulnCount:        vulnCount,
 		}
 	}
 
@@ -375,20 +357,13 @@ func assessmentSummaryToOutputFormat(assessments []vulnerabilityAssessmentSummar
 	})
 
 	for _, ctr := range assessments {
-		severities := []string{}
-		fixableCount := 0
-		for _, cve := range ctr.Cves {
-			severities = append(severities, cve.Severity)
-			if cve.Fixable != 0 {
-				fixableCount++
-			}
-		}
 
-		summaryString := severityCtrSummary(severities, ctr.FixableCount)
+		summaryString := severityCtrSummary(ctr.VulnCount, ctr.FixableCount)
 
 		out = append(out, assessmentOutput{
 			imageRegistry:     ctr.Registry,
 			imageRepo:         ctr.Repository,
+			imageTag:          ctr.Tag,
 			startTime:         ctr.ScanTime.UTC().Format(time.RFC3339),
 			imageScanStatus:   ctr.ScanStatus,
 			ndvContainers:     fmt.Sprintf("%d", ctr.ActiveContainers),
@@ -399,64 +374,33 @@ func assessmentSummaryToOutputFormat(assessments []vulnerabilityAssessmentSummar
 	return out
 }
 
-func severityCtrSummary(severities []string, fixable int) string {
+func severityCtrSummary(vulnCount map[string]int, fixable int) string {
 	summary := &strings.Builder{}
-	sevSummaries := make(map[string]int)
-	for _, s := range severities {
-		switch s {
-		case "Critical":
-			if v, ok := sevSummaries["Critical"]; ok {
-				sevSummaries["Critical"] = v + 1
-				continue
-			}
-			sevSummaries["Critical"] = 1
-		case "High":
-			if v, ok := sevSummaries["High"]; ok {
-				sevSummaries["High"] = v + 1
-				continue
-			}
-			sevSummaries["High"] = 1
-		case "Medium":
-			if v, ok := sevSummaries["Medium"]; ok {
-				sevSummaries["Medium"] = v + 1
-				continue
-			}
-			sevSummaries["Medium"] = 1
-		case "Low":
-			if v, ok := sevSummaries["Low"]; ok {
-				sevSummaries["Low"] = v + 1
-				continue
-			}
-			sevSummaries["Low"] = 1
-		case "Info":
-			if v, ok := sevSummaries["Info"]; ok {
-				sevSummaries["Info"] = v + 1
-				continue
-			}
-			sevSummaries["Info"] = 1
+
+	severityOrder := []string{"Critical", "High", "Medium", "Low", "Info"}
+
+	highestSeverity := ""
+	highestSeverityVulnCount := 0
+
+	//Find the highest-severity non-zero vuln count
+	for _, severity := range severityOrder {
+		if count, exists := vulnCount[severity]; exists && count > 0 {
+			highestSeverity = severity
+			highestSeverityVulnCount = count
+			break
 		}
 	}
 
-	var keys []string
-	for k := range sevSummaries {
-		keys = append(keys, k)
-	}
-
-	sort.Slice(keys, func(i, j int) bool {
-		return api.SeverityOrder(keys[i]) < api.SeverityOrder(keys[j])
-	})
-
 	// only output the highest severity
-	if len(keys) != 0 {
-		v := sevSummaries[keys[0]]
-		summary.WriteString(fmt.Sprintf("%d %s", v, keys[0]))
+	if highestSeverityVulnCount > 0 {
+		summary.WriteString(fmt.Sprintf("%d %s", highestSeverityVulnCount, highestSeverity))
 	}
 
 	if fixable != 0 {
 		summary.WriteString(fmt.Sprintf(" %d Fixable", fixable))
 	}
 
-	if len(keys) == 0 && fixable == 0 {
+	if highestSeverityVulnCount == 0 && fixable == 0 {
 		summary.WriteString(fmt.Sprintf("None! Time for %s", randomEmoji()))
 	}
 	return summary.String()
@@ -469,6 +413,7 @@ func vulAssessmentsToTable(assessments []assessmentOutput) [][]string {
 		out = append(out, []string{
 			assessment.imageRegistry,
 			assessment.imageRepo,
+			assessment.imageTag,
 			assessment.startTime,
 			assessment.imageScanStatus,
 			assessment.ndvContainers,
@@ -482,6 +427,7 @@ func vulAssessmentsToTable(assessments []assessmentOutput) [][]string {
 type assessmentOutput struct {
 	imageRegistry     string
 	imageRepo         string
+	imageTag          string
 	startTime         string
 	imageScanStatus   string
 	ndvContainers     string
