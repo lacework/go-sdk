@@ -975,6 +975,11 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 	blocks := []*hclwrite.Block{}
 
 	if args.AwsOrganization {
+		resourcePrefix := args.ConfigOrgCfResourcePrefix
+		if resourcePrefix == "" {
+			uid := uuid.New().String()[:8]
+			resourcePrefix = fmt.Sprintf("lacework-org-config-%s", uid)
+		}
 		block, err := lwgenerate.NewModule(
 			"aws_org_configuration",
 			lwgenerate.AwsConfigOrgSource,
@@ -988,7 +993,7 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 					"lacework_secret_key":    args.ConfigOrgLWSecretKey,
 					"organization_id":        args.ConfigOrgId,
 					"organization_unit":      args.ConfigOrgUnits,
-					"cf_resource_prefix":     args.ConfigOrgCfResourcePrefix,
+					"cf_resource_prefix":     resourcePrefix,
 				},
 			),
 		).ToBlock()
