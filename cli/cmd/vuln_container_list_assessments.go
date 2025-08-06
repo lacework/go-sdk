@@ -112,21 +112,20 @@ environment.`,
 				cli.Log.Infow("requesting list of assessments", "start_time", start, "end_time", end)
 				cli.StartProgress(fmt.Sprintf("Fetching assessments%s...", timeRangeMsg))
 
-				assessments, err = listVulnCtrAssessments(activeContainers,
-					&api.SearchFilter{
-						Filters: []api.Filter{
-							{
-								Expression: "gt",
-								Field:      "lastScanTime",
-								Value:      start.Format(api.TimestampLayout),
-							},
-							{
-								Expression: "lt",
-								Field:      "lastScanTime",
-								Value:      end.Format(api.TimestampLayout),
-							},
+				assessments, err = listVulnCtrAssessments(&api.SearchFilter{
+					Filters: []api.Filter{
+						{
+							Expression: "gt",
+							Field:      "lastScanTime",
+							Value:      start.Format(api.TimestampLayout),
 						},
-					})
+						{
+							Expression: "lt",
+							Field:      "lastScanTime",
+							Value:      end.Format(api.TimestampLayout),
+						},
+					},
+				})
 				cli.StopProgress()
 				if err != nil {
 					return err
@@ -222,7 +221,7 @@ func applyVulnCtrFilters(assessments []vulnerabilityAssessmentSummary) (filtered
 //  4. Finally, if we get information from the queried assessments, we build a
 //     summary that will ultimately get stored in the cache for subsequent commands
 func listVulnCtrAssessments(
-	activeContainers api.ContainersEntityResponse, filter *api.SearchFilter,
+	filter *api.SearchFilter,
 ) (assessments []vulnerabilityAssessmentSummary, err error) {
 
 	// if the user wants to only list assessments from a subset of registries,
@@ -250,7 +249,7 @@ func listVulnCtrAssessments(
 		return assessments, errors.Wrap(err, "unable to search for container assessments")
 	}
 
-	assessments = buildVulnCtrAssessmentSummary(response.Data, activeContainers)
+	assessments = buildVulnCtrAssessmentSummary(response.Data)
 
 	return
 }
@@ -273,14 +272,10 @@ func (v vulnerabilityAssessmentSummary) HasFixableVulns() bool {
 }
 
 func buildVulnCtrAssessmentSummary(
-	assessments []api.VulnerabilityObservationsImageSummary, activeContainers api.ContainersEntityResponse,
-) (uniqueAssessments []vulnerabilityAssessmentSummary) {
-
-	imageMap := map[string]vulnerabilityAssessmentSummary{}
+	assessments []api.VulnerabilityObservationsImageSummary,
+) (assessmentSummary []vulnerabilityAssessmentSummary) {
 
 	for _, a := range assessments {
-		i := fmt.Sprintf("%s-%s-%s", a.Registry, a.Repository, a.ImageId)
-
 		scanTime, err := time.Parse(api.TimestampLayout, a.LastScanTime)
 		if err != nil {
 			fmt.Println("Error parsing last scan time: ", err)
@@ -293,7 +288,7 @@ func buildVulnCtrAssessmentSummary(
 		vulnCount["Low"] = a.VulnCountLow
 		vulnCount["Info"] = a.VulnCountInfo
 
-		imageMap[i] = vulnerabilityAssessmentSummary{
+		assessmentSummary = append(assessmentSummary, vulnerabilityAssessmentSummary{
 			ImageID:          a.ImageId,
 			Repository:       a.Repository,
 			Registry:         a.Registry,
@@ -305,14 +300,10 @@ func buildVulnCtrAssessmentSummary(
 			FixableCount: a.VulnCountCriticalFixable + a.VulnCountHighFixable + a.VulnCountMediumFixable +
 				a.VulnCountLowFixable + a.VulnCountInfoFixable,
 			VulnCount: vulnCount,
-		}
+		})
 	}
 
-	// Loop over image map and build result
-	for _, v := range imageMap {
-		uniqueAssessments = append(uniqueAssessments, v)
-	}
-	return
+	return assessmentSummary
 }
 
 func buildContainerAssessmentsError() string {

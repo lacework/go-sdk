@@ -79,7 +79,7 @@ func TestGenerateContainerVulnListCacheKey(t *testing.T) {
 
 func TestSeveritySummary(t *testing.T) {
 
-	assessments := buildVulnCtrAssessmentSummary(mockVulnerabilityObservationsImageSummary(), mockContainersEntityResponse())
+	assessments := buildVulnCtrAssessmentSummary(mockVulnerabilityObservationsImageSummary())
 	summaryString := severityCtrSummary(assessments[0].VulnCount, assessments[0].FixableCount)
 	assert.Equal(t, "1 High 1 Fixable", summaryString)
 	summaryString = severityCtrSummary(assessments[1].VulnCount, assessments[1].FixableCount)
@@ -91,7 +91,7 @@ func TestBuildCSVVulnCtrReportVulnerabilitiesListing(t *testing.T) {
 	defer func() { cli.csvOutput = false }()
 
 	headers := []string{"Registry", "Repository", "Tag", "Last Scan", "Status", "Containers", "Vulnerabilities", "Image Digest"}
-	assessments := buildVulnCtrAssessmentSummary(mockVulnerabilityObservationsImageSummary(), mockContainersEntityResponse())
+	assessments := buildVulnCtrAssessmentSummary(mockVulnerabilityObservationsImageSummary())
 	filteredAssessments := applyVulnCtrFilters(assessments)
 	assessmentOutput := assessmentSummaryToOutputFormat(filteredAssessments)
 	rows := vulAssessmentsToTable(assessmentOutput)
@@ -171,25 +171,6 @@ func mockVulnerabilityObservationsImageSummary() []api.VulnerabilityObservations
 			VulnCountLowFixable:      1,
 			VulnCountInfo:            0,
 			VulnCountInfoFixable:     0,
-		},
-	}
-}
-
-func mockContainersEntityResponse() api.ContainersEntityResponse {
-	return api.ContainersEntityResponse{
-		Data: []api.ContainerEntity{
-			{
-				ImageID: "sha256:7652596622b05043763f962cff30edf01f6ea1ba29374f1703dda759dc9ff3a1",
-				Mid:     1,
-			},
-			{
-				ImageID: "sha256:7652596622b05043763f962cff30edf01f6ea1ba29374f1703dda759dc9ff3a1",
-				Mid:     2,
-			},
-			{
-				ImageID: "sha256:1252596622b05043763f962gff30adf01f6ea1ba29374f1703dda759dc9ab3a1",
-				Mid:     3,
-			},
 		},
 	}
 }
