@@ -302,8 +302,9 @@ func buildVulnCtrAssessmentSummary(
 			ScanTime:         scanTime,
 			ScanStatus:       a.ScanStatus,
 			ActiveContainers: a.ContainerCount,
-			FixableCount:     a.VulnCountCriticalFixable + a.VulnCountHighFixable + a.VulnCountMediumFixable + a.VulnCountLowFixable + a.VulnCountInfoFixable,
-			VulnCount:        vulnCount,
+			FixableCount: a.VulnCountCriticalFixable + a.VulnCountHighFixable + a.VulnCountMediumFixable +
+				a.VulnCountLowFixable + a.VulnCountInfoFixable,
+			VulnCount: vulnCount,
 		}
 	}
 
