@@ -451,7 +451,7 @@ func initGenerateAzureTfCommandFlags() {
 		&GenerateAzureCommandState.AgentlessSubscriptionIds,
 		"agentless_subscription_ids",
 		[]string{},
-		"Comma-separated list of subscription IDs for Agentless scanning (e.g., 'sub1,sub2,sub3')")
+		"comma-separated list of subscription IDs for Agentless scanning (e.g., 'sub1,sub2,sub3')")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.EntraIdActivityLog,

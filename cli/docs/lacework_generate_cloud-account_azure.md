@@ -41,7 +41,7 @@ lacework generate cloud-account azure [flags]
       --ad_pass string                                  existing active directory application password
       --ad_pid string                                   existing active directory application service principle id
       --agentless                                       enable agentless integration
-      --agentless_subscription_ids strings              Comma-separated list of subscription IDs for Agentless scanning (e.g., 'sub1,sub2,sub3')
+      --agentless_subscription_ids strings              comma-separated list of subscription IDs for Agentless scanning (e.g., 'sub1,sub2,sub3')
       --all_subscriptions subscription ids              grant read access to ALL subscriptions within Tenant (overrides subscription ids)
       --apply                                           run terraform apply for the generated hcl
       --configuration                                   enable configuration integration

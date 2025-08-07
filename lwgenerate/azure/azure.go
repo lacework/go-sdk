@@ -113,7 +113,7 @@ type GenerateAzureTfConfigurationArgs struct {
 
 // Ensure all combinations of inputs are valid for supported spec
 func (args *GenerateAzureTfConfigurationArgs) validate() error {
-	// Validate one of config ,agentless or activity log was enabled; otherwise error out
+	// Validate one of config, agentless or activity log was enabled; otherwise error out
 	if !args.ActivityLog && !args.Agentless && !args.Config && !args.EntraIdActivityLog {
 		return errors.New("audit log, agentless or config integration must be enabled")
 	}
@@ -729,19 +729,20 @@ func createAgentless(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block,
 			moduleName = fmt.Sprintf("lacework_azure_agentless_scanning_subscription_%s", formatRegionForModuleName(region))
 		}
 
-		if isFirstRegion {
-			firstModuleName = moduleName
-		}
-
 		// Build attributes
 		attrs := map[string]interface{}{
-			"integration_level": args.IntegrationLevel,
-			"region":            region,
-			"global":            isFirstRegion,
+			"integration_level":              args.IntegrationLevel,
+			"region":                         region,
+			"global":                         args.Global && isFirstRegion,
+			"create_log_analytics_workspace": args.CreateLogAnalyticsWorkspace,
 		}
 
-		attrs["global"] = args.Global && isFirstRegion
-		attrs["create_log_analytics_workspace"] = args.CreateLogAnalyticsWorkspace
+		// set the first module name for global reference
+		if isFirstRegion {
+			firstModuleName = moduleName
+		} else {
+			attrs["global_module_reference"] = lwgenerate.CreateSimpleTraversal([]string{"module", firstModuleName})
+		}
 
 		if args.SubscriptionID != "" {
 			attrs["scanning_subscription_id"] = args.SubscriptionID
@@ -752,9 +753,6 @@ func createAgentless(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block,
 				subs[j] = fmt.Sprintf("/subscriptions/%s", id)
 			}
 			attrs["included_subscriptions"] = subs
-		}
-		if !isFirstRegion {
-			attrs["global_module_reference"] = lwgenerate.CreateSimpleTraversal([]string{"module", firstModuleName})
 		}
 
 		// Create module details
