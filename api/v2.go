@@ -32,39 +32,40 @@ type V2Endpoints struct {
 	client *Client
 
 	// Every schema must have its own service
-	UserProfile             *UserProfileService
-	AlertChannels           *AlertChannelsService
-	Alert                   *v2alertProfilesService
-	AlertRules              *AlertRulesService
-	ReportRules             *ReportRulesService
-	CloudAccounts           *CloudAccountsService
-	Components              *ComponentsService
-	ComponentData           *ComponentDataService
-	ContainerRegistries     *ContainerRegistriesService
-	Configs                 *v2ConfigService
-	FeatureFlags            *FeatureFlagsService
-	ResourceGroups          *ResourceGroupsService
-	AgentAccessTokens       *AgentAccessTokensService
-	AgentInfo               *AgentInfoService
-	Inventory               *InventoryService
-	ComplianceEvaluations   *ComplianceEvaluationService
-	Query                   *QueryService
-	OrganizationInfo        *OrganizationInfoService
-	Policy                  *PolicyService
-	Reports                 *ReportsService
-	ReportDefinitions       *ReportDefinitionsService
-	Metrics                 *MetricsService
-	ReportDistributions     *ReportDistributionsService
-	Entities                *EntitiesService
-	Schemas                 *SchemasService
-	Datasources             *DatasourcesService
-	DataExportRules         *DataExportRulesService
-	TeamMembers             *TeamMembersService
-	VulnerabilityExceptions *VulnerabilityExceptionsService
-	Vulnerabilities         *v2VulnerabilitiesService
-	Alerts                  *AlertsService
-	Suppressions            *SuppressionsServiceV2
-	Recommendations         *RecommendationsServiceV2
+	UserProfile               *UserProfileService
+	AlertChannels             *AlertChannelsService
+	Alert                     *v2alertProfilesService
+	AlertRules                *AlertRulesService
+	ReportRules               *ReportRulesService
+	CloudAccounts             *CloudAccountsService
+	Components                *ComponentsService
+	ComponentData             *ComponentDataService
+	ContainerRegistries       *ContainerRegistriesService
+	Configs                   *v2ConfigService
+	FeatureFlags              *FeatureFlagsService
+	ResourceGroups            *ResourceGroupsService
+	AgentAccessTokens         *AgentAccessTokensService
+	AgentInfo                 *AgentInfoService
+	Inventory                 *InventoryService
+	ComplianceEvaluations     *ComplianceEvaluationService
+	Query                     *QueryService
+	OrganizationInfo          *OrganizationInfoService
+	Policy                    *PolicyService
+	Reports                   *ReportsService
+	ReportDefinitions         *ReportDefinitionsService
+	Metrics                   *MetricsService
+	ReportDistributions       *ReportDistributionsService
+	Entities                  *EntitiesService
+	Schemas                   *SchemasService
+	Datasources               *DatasourcesService
+	DataExportRules           *DataExportRulesService
+	TeamMembers               *TeamMembersService
+	VulnerabilityExceptions   *VulnerabilityExceptionsService
+	Vulnerabilities           *v2VulnerabilitiesService
+	VulnerabilityObservations *v2VulnerabilityObservationsService
+	Alerts                    *AlertsService
+	Suppressions              *SuppressionsServiceV2
+	Recommendations           *RecommendationsServiceV2
 }
 
 func NewV2Endpoints(c *Client) *V2Endpoints {
@@ -99,6 +100,7 @@ func NewV2Endpoints(c *Client) *V2Endpoints {
 		&TeamMembersService{c},
 		&VulnerabilityExceptionsService{c},
 		NewV2VulnerabilitiesService(c),
+		NewV2VulnerabilityObservationsService(c),
 		&AlertsService{c},
 		&SuppressionsServiceV2{c,
 			&AwsSuppressionsV2{c},
