@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -16,15 +17,17 @@ import (
 
 // Question labels
 const (
-	IconAzureConfig = "[Configuration]"
-	IconActivityLog = "[Activity Log]"
-	IconEntraID     = "[Entra ID Activity Log]"
-	IconAD          = "[Active Directory Application]"
+	IconAzureConfig    = "[Configuration]"
+	IconActivityLog    = "[Activity Log]"
+	IconEntraID        = "[Entra ID Activity Log]"
+	IconAD             = "[Active Directory Application]"
+	IconAzureAgentless = "[Agentless]"
 )
 
 var (
 	// Define question text here so they can be reused in testing
 	// Core questions
+	QuestionAzureEnableAgentless     = "Enable Agentless integration?"
 	QuestionAzureEnableConfig        = "Enable Configuration integration?"
 	QuestionAzureConfigName          = "Custom Configuration integration name: (optional)"
 	QuestionEnableActivityLog        = "Enable Activity Log Integration?"
@@ -35,6 +38,13 @@ var (
 
 	// Advanced options
 	QuestionAzureCustomizeOutputLocation = "Provide the location for the output to be written: (optional)"
+
+	// Agentless Scanning
+	QuestionAzureIntegrationLevel            = "Select integration level:"
+	QuestionAzureAgentlessRegions            = "List of regions for scanning: (e.g., 'East US,West US')"
+	QuestionAzureAgentlessSubscriptionIds    = "List of subscription IDs for scanning: (e.g., 'sub1,sub2,sub3')"
+	QuestionAzureAgentlessGlobal             = "Enable global Agentless scanning?"
+	QuestionAzureCreateLogAnalyticsWorkspace = "Create Log Analytics Workspace?"
 
 	// EntraID Activity Log
 	QuestionEventHubLocation       = "Region where the event hub for logging will reside:"
@@ -179,7 +189,6 @@ the new cloud account. In interactive mode, this command will:
 			if cli.Profile != "default" {
 				GenerateAzureCommandState.LaceworkProfile = cli.Profile
 			}
-
 			// Setup modifiers for NewTerraform constructor
 			mods := []azure.AzureTerraformModifier{
 				azure.WithLaceworkProfile(GenerateAzureCommandState.LaceworkProfile),
@@ -196,8 +205,19 @@ the new cloud account. In interactive mode, this command will:
 				azure.WithEventHubPartitionCount(GenerateAzureCommandState.EventHubPartitionCount),
 			}
 
+			if GenerateAzureCommandState.Agentless {
+				mods = append(mods, azure.WithIntegrationLevel(GenerateAzureCommandState.IntegrationLevel))
+				mods = append(mods, azure.WithAgentlessSubscriptionIds(GenerateAzureCommandState.AgentlessSubscriptionIds))
+				mods = append(mods, azure.WithRegions(GenerateAzureCommandState.Regions))
+				mods = append(mods, azure.WithCreateLogAnalyticsWorkspace(GenerateAzureCommandState.CreateLogAnalyticsWorkspace))
+				mods = append(mods, azure.WithGlobal(GenerateAzureCommandState.Global))
+			}
+
 			// Check if AD Creation is required, need to set values for current integration
-			if !GenerateAzureCommandState.CreateAdIntegration {
+			if !GenerateAzureCommandState.CreateAdIntegration &&
+				(GenerateAzureCommandState.Config ||
+					GenerateAzureCommandState.ActivityLog ||
+					GenerateAzureCommandState.EntraIdActivityLog) {
 				mods = append(mods, azure.WithAdApplicationId(GenerateAzureCommandState.AdApplicationId))
 				mods = append(mods, azure.WithAdApplicationPassword(GenerateAzureCommandState.AdApplicationPassword))
 				mods = append(mods, azure.WithAdServicePrincipalId(GenerateAzureCommandState.AdServicePrincipalId))
@@ -225,6 +245,7 @@ the new cloud account. In interactive mode, this command will:
 			data := azure.NewTerraform(
 				GenerateAzureCommandState.Config,
 				GenerateAzureCommandState.ActivityLog,
+				GenerateAzureCommandState.Agentless,
 				GenerateAzureCommandState.EntraIdActivityLog,
 				GenerateAzureCommandState.CreateAdIntegration,
 				mods...)
@@ -361,8 +382,13 @@ func validateAzureLocation(val interface{}) error {
 		if str == "" {
 			return nil
 		}
-		if !validAzureLocations[str] {
-			return errors.New("invalid Azure region. Please use a valid Azure region like 'East US', 'West Europe', etc.")
+		// handle comma-separated regions
+		regions := strings.Split(str, ",")
+		for _, region := range regions {
+			region = strings.TrimSpace(region)
+			if region != "" && !validAzureLocations[region] {
+				return errors.New("invalid Azure region. Please use a valid Azure region like 'East US', 'West Europe', etc.")
+			}
 		}
 	}
 	return nil
@@ -390,6 +416,42 @@ func initGenerateAzureTfCommandFlags() {
 		"activity_log_integration_name",
 		"",
 		"specify a custom activity log integration name")
+
+	generateAzureTfCommand.PersistentFlags().BoolVar(
+		&GenerateAzureCommandState.Agentless,
+		"agentless",
+		false,
+		"enable agentless integration")
+
+	generateAzureTfCommand.PersistentFlags().StringVar(
+		&GenerateAzureCommandState.IntegrationLevel,
+		"integration_level",
+		"",
+		"specify the agentless integration level (e.g., 'SUBSCRIPTION', 'TENANT')")
+
+	generateAzureTfCommand.PersistentFlags().BoolVar(
+		&GenerateAzureCommandState.Global,
+		"global",
+		false,
+		"enable global agentless scanning")
+
+	generateAzureTfCommand.PersistentFlags().BoolVar(
+		&GenerateAzureCommandState.CreateLogAnalyticsWorkspace,
+		"create_log_analytics_workspace",
+		false,
+		"enable creation of Log Analytics Workspace for agentless scanning")
+
+	generateAzureTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateAzureCommandState.Regions,
+		"regions",
+		[]string{},
+		"comma-separated list of Azure regions for agentless scanning (e.g., 'East US,West US')")
+
+	generateAzureTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateAzureCommandState.AgentlessSubscriptionIds,
+		"agentless_subscription_ids",
+		[]string{},
+		"comma-separated list of subscription IDs for Agentless scanning (e.g., 'sub1,sub2,sub3')")
 
 	generateAzureTfCommand.PersistentFlags().BoolVar(
 		&GenerateAzureCommandState.EntraIdActivityLog,
@@ -684,7 +746,7 @@ func askAzureSubscriptionID(config *azure.GenerateAzureTfConfigurationArgs) erro
 }
 
 func azureConfigIsEmpty(config *azure.GenerateAzureTfConfigurationArgs) bool {
-	return !config.Config && !config.ActivityLog && config.LaceworkProfile == ""
+	return !config.Config && !config.ActivityLog && !config.Agentless && config.LaceworkProfile == ""
 }
 
 func allSubscriptionsDisabled(config *azure.GenerateAzureTfConfigurationArgs) *bool {
@@ -708,9 +770,11 @@ func promptAzureGenerate(
 		defer extraState.writeCache()
 	}
 
-	// Ask subscription ID first as it's common to all integrations
-	if err := askAzureSubscriptionID(config); err != nil {
-		return err
+	if config.SubscriptionID == "" {
+		// Ask subscription ID first as it's common to all integrations
+		if err := askAzureSubscriptionID(config); err != nil {
+			return err
+		}
 	}
 
 	// Ask about subscriptions configuration
@@ -719,15 +783,17 @@ func promptAzureGenerate(
 	}
 
 	// Ask Configuration integration
-	if err := SurveyMultipleQuestionWithValidation(
-		[]SurveyQuestionWithValidationArgs{
-			{
-				Icon:     IconAzureConfig,
-				Prompt:   &survey.Confirm{Message: QuestionAzureEnableConfig, Default: config.Config},
-				Response: &config.Config,
-			},
-		}); err != nil {
-		return err
+	if !config.Config {
+		if err := SurveyMultipleQuestionWithValidation(
+			[]SurveyQuestionWithValidationArgs{
+				{
+					Icon:     IconAzureConfig,
+					Prompt:   &survey.Confirm{Message: QuestionAzureEnableConfig, Default: config.Config},
+					Response: &config.Config,
+				},
+			}); err != nil {
+			return err
+		}
 	}
 
 	// Ask Configuration questions immediately if enabled
@@ -738,15 +804,17 @@ func promptAzureGenerate(
 	}
 
 	// Ask Activity Log integration
-	if err := SurveyMultipleQuestionWithValidation(
-		[]SurveyQuestionWithValidationArgs{
-			{
-				Icon:     IconActivityLog,
-				Prompt:   &survey.Confirm{Message: QuestionEnableActivityLog, Default: config.ActivityLog},
-				Response: &config.ActivityLog,
-			},
-		}); err != nil {
-		return err
+	if !config.ActivityLog {
+		if err := SurveyMultipleQuestionWithValidation(
+			[]SurveyQuestionWithValidationArgs{
+				{
+					Icon:     IconActivityLog,
+					Prompt:   &survey.Confirm{Message: QuestionEnableActivityLog, Default: config.ActivityLog},
+					Response: &config.ActivityLog,
+				},
+			}); err != nil {
+			return err
+		}
 	}
 
 	// Ask Activity Log questions immediately if enabled
@@ -756,16 +824,39 @@ func promptAzureGenerate(
 		}
 	}
 
+	// Ask Agentless integration
+	if !config.Agentless {
+		if err := SurveyMultipleQuestionWithValidation(
+			[]SurveyQuestionWithValidationArgs{
+				{
+					Icon:     IconAzureAgentless,
+					Prompt:   &survey.Confirm{Message: QuestionAzureEnableAgentless, Default: config.Agentless},
+					Response: &config.Agentless,
+				},
+			}); err != nil {
+			return err
+		}
+	}
+
+	// Ask Agentless questions immediately if enabled
+	if config.Agentless {
+		if err := promptAzureAgentlessQuestions(config); err != nil {
+			return err
+		}
+	}
+
 	// Ask Entra ID integration
-	if err := SurveyMultipleQuestionWithValidation(
-		[]SurveyQuestionWithValidationArgs{
-			{
-				Icon:     IconEntraID,
-				Prompt:   &survey.Confirm{Message: QuestionEnableEntraIdActivityLog, Default: config.EntraIdActivityLog},
-				Response: &config.EntraIdActivityLog,
-			},
-		}); err != nil {
-		return err
+	if !config.EntraIdActivityLog {
+		if err := SurveyMultipleQuestionWithValidation(
+			[]SurveyQuestionWithValidationArgs{
+				{
+					Icon:     IconEntraID,
+					Prompt:   &survey.Confirm{Message: QuestionEnableEntraIdActivityLog, Default: config.EntraIdActivityLog},
+					Response: &config.EntraIdActivityLog,
+				},
+			}); err != nil {
+			return err
+		}
 	}
 
 	// Ask Entra ID questions immediately if enabled
@@ -776,27 +867,33 @@ func promptAzureGenerate(
 	}
 
 	// Validate one of config or activity log was enabled; otherwise error out
-	if !config.Config && !config.ActivityLog && !config.EntraIdActivityLog {
-		return errors.New("must enable at least one of: Configuration or Activity Log integration")
+	if !config.Config && !config.ActivityLog && !config.Agentless && !config.EntraIdActivityLog {
+		return errors.New("must enable at least one of: Configuration, Agentless or Activity Log integrations")
 	}
 
 	// Ask AD integration
-	if err := SurveyMultipleQuestionWithValidation(
-		[]SurveyQuestionWithValidationArgs{
-			{
-				Icon:     IconAD,
-				Prompt:   &survey.Confirm{Message: QuestionEnableAdIntegration, Default: config.CreateAdIntegration},
-				Response: &config.CreateAdIntegration,
-			},
-		}); err != nil {
-		return err
-	}
-
-	// If AD integration is not being created, ask for existing AD details immediately
-	if !config.CreateAdIntegration {
-		if err := promptAzureAdIntegrationQuestions(config); err != nil {
+	if config.Config || config.ActivityLog || config.EntraIdActivityLog {
+		if err := SurveyMultipleQuestionWithValidation(
+			[]SurveyQuestionWithValidationArgs{
+				{
+					Icon:     IconAD,
+					Prompt:   &survey.Confirm{Message: QuestionEnableAdIntegration, Default: config.CreateAdIntegration},
+					Response: &config.CreateAdIntegration,
+				},
+			}); err != nil {
 			return err
 		}
+
+		// If AD integration is not being created, ask for existing AD details immediately
+		if !config.CreateAdIntegration {
+			if err := promptAzureAdIntegrationQuestions(config); err != nil {
+				return err
+			}
+		}
+	}
+	// for agentless only scenario, we set CreateAdIntegration to false
+	if config.Agentless && !config.Config && !config.ActivityLog && !config.EntraIdActivityLog {
+		config.CreateAdIntegration = false
 	}
 
 	// Ask about output location
@@ -888,5 +985,111 @@ func promptAzureActivityLogQuestions(config *azure.GenerateAzureTfConfigurationA
 	}
 	config.StorageLocation = region
 
+	return nil
+}
+
+func promptAzureAgentlessQuestions(config *azure.GenerateAzureTfConfigurationArgs) error {
+	// Prompt for integration level(SUBSCRIPTION or TENANT)
+	if config.IntegrationLevel == "" {
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Icon: IconAzureAgentless,
+				Prompt: &survey.Select{
+					Message: QuestionAzureIntegrationLevel,
+					Options: []string{"SUBSCRIPTION", "TENANT"},
+					Default: "SUBSCRIPTION",
+				},
+				Response: &config.IntegrationLevel,
+			},
+		}); err != nil {
+			return err
+		}
+	}
+
+	// prompt for global setting
+	if !config.Global {
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Icon:     IconAzureAgentless,
+				Prompt:   &survey.Confirm{Message: QuestionAzureAgentlessGlobal, Default: true},
+				Response: &config.Global,
+			},
+		}); err != nil {
+			return err
+		}
+	}
+
+	// prompt for log analytics workspace creation (default: false)
+	if !config.CreateLogAnalyticsWorkspace {
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Icon: IconAzureAgentless,
+				Prompt: &survey.Confirm{
+					Message: QuestionAzureCreateLogAnalyticsWorkspace,
+					Default: config.CreateLogAnalyticsWorkspace,
+				},
+				Response: &config.CreateLogAnalyticsWorkspace,
+			},
+		}); err != nil {
+			return err
+		}
+	}
+
+	// Only prompt if no regions are set
+	if len(config.Regions) == 0 {
+		var regionsInput string
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Icon: IconAzureAgentless,
+				Prompt: &survey.Input{
+					Message: QuestionAzureAgentlessRegions,
+					Default: "West US",
+				},
+				Response: &regionsInput,
+				Opts:     []survey.AskOpt{survey.WithValidator(validateAzureLocation)},
+			},
+		}); err != nil {
+			return err
+		}
+		// parse regions from comma-separated string
+		if regionsInput != "" {
+			regions := strings.Split(regionsInput, ",")
+			for i, region := range regions {
+				regions[i] = strings.TrimSpace(region)
+			}
+			config.Regions = regions
+		}
+	}
+
+	// Only ask for subscription IDs if SUBSCRIPTION integration level is selected
+	if config.IntegrationLevel == "SUBSCRIPTION" && len(config.AgentlessSubscriptionIds) == 0 {
+		var subscriptionIdsInput string
+		for {
+			if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+				{
+					Icon: IconAzureAgentless,
+					Prompt: &survey.Input{
+						Message: QuestionAzureAgentlessSubscriptionIds,
+						Default: config.SubscriptionID,
+					},
+					Response: &subscriptionIdsInput,
+				},
+			}); err != nil {
+				return err
+			}
+			subscriptionIdsInput = strings.TrimSpace(subscriptionIdsInput)
+			if subscriptionIdsInput != "" {
+				subscriptionIds := strings.Split(subscriptionIdsInput, ",")
+				for i, subId := range subscriptionIds {
+					subscriptionIds[i] = strings.TrimSpace(subId)
+				}
+				config.AgentlessSubscriptionIds = subscriptionIds
+				break
+			} else {
+				fmt.Println("Subscription IDs cannot be empty. Please provide at least one subscription ID.")
+			}
+
+		}
+	}
 	return nil
 }

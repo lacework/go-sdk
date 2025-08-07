@@ -40,20 +40,26 @@ lacework generate cloud-account azure [flags]
       --ad_id string                                    existing active directory application id
       --ad_pass string                                  existing active directory application password
       --ad_pid string                                   existing active directory application service principle id
+      --agentless                                       enable agentless integration
+      --agentless_subscription_ids strings              comma-separated list of subscription IDs for Agentless scanning (e.g., 'sub1,sub2,sub3')
       --all_subscriptions subscription ids              grant read access to ALL subscriptions within Tenant (overrides subscription ids)
       --apply                                           run terraform apply for the generated hcl
       --configuration                                   enable configuration integration
       --configuration_name string                       specify a custom configuration integration name
+      --create_log_analytics_workspace                  enable creation of Log Analytics Workspace for agentless scanning
       --entra_id_activity_log                           enable Entra ID activity log integration
       --entra_id_activity_log_integration_name string   specify a custom Entra ID activity log integration name
       --event_hub_location string                       specify the location where the Event Hub for logging will reside
       --event_hub_partition_count int                   specify the number of partitions for the Event Hub (default 1)
       --existing_storage                                use existing storage account
+      --global                                          enable global agentless scanning
   -h, --help                                            help for azure
+      --integration_level string                        specify the agentless integration level (e.g., 'SUBSCRIPTION', 'TENANT')
       --location string                                 specify azure region where storage account logging resides
       --management_group                                management group level integration
       --management_group_id string                      specify management group id. Required if mgmt_group provided
       --output string                                   location to write generated content (default is ~/lacework/azure)
+      --regions strings                                 comma-separated list of Azure regions for agentless scanning (e.g., 'East US,West US')
       --storage_account_name string                     specify storage account name
       --storage_resource_group string                   specify storage resource group
       --subscription_id string                          specify the Azure Subscription ID to be used to provision Lacework resources
