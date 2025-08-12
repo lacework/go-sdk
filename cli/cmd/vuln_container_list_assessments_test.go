@@ -20,8 +20,8 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 	"testing"
-	"time"
 
 	"github.com/lacework/go-sdk/v2/api"
 	"github.com/stretchr/testify/assert"
@@ -77,52 +77,56 @@ func TestGenerateContainerVulnListCacheKey(t *testing.T) {
 	}
 }
 
-func TestTreeCtrVulnParseData(t *testing.T) {
-	oldTime := time.Now().Add(-time.Hour * 24)
-	newTime := time.Now().Add(-time.Hour * 1)
-	mockData := mockVulnCtrData(oldTime, newTime)
+func TestSeveritySummary(t *testing.T) {
 
-	v := treeCtrVuln{}
-	v.ParseData(mockData)
-
-	assert.Equal(t, len(v.ListEvalGuid()), 3)
-	// ensure Parse Data returns latest
-	res, exists := v.Get("1")
-	assert.True(t, exists)
-	assert.Equal(t, res.StartTime, newTime)
+	assessments := buildVulnCtrAssessmentSummary(mockVulnerabilityObservationsImageSummary())
+	summaryString := severityCtrSummary(assessments[0].VulnCount, assessments[0].FixableCount)
+	assert.Equal(t, "8 High 9 Fixable", summaryString)
 }
 
-func mockVulnCtrData(old time.Time, latest time.Time) []api.VulnerabilityContainer {
-	return []api.VulnerabilityContainer{
+func TestBuildCSVVulnCtrReportVulnerabilitiesListing(t *testing.T) {
+	cli.EnableCSVOutput()
+	defer func() { cli.csvOutput = false }()
+
+	headers := []string{"Registry", "Repository", "Last Scan", "Status", "Containers", "Vulnerabilities", "Image Digest"}
+	assessments := buildVulnCtrAssessmentSummary(mockVulnerabilityObservationsImageSummary())
+	filteredAssessments := applyVulnCtrFilters(assessments)
+	assessmentOutput := assessmentSummaryToOutputFormat(filteredAssessments)
+	rows := vulAssessmentsToTable(assessmentOutput)
+	csv, err := renderAsCSV(headers, rows)
+	if err != nil {
+		panic(err)
+	}
+
+	expected := `
+Registry,Repository,Last Scan,Status,Containers,Vulnerabilities,Image Digest
+docker.io,lacework/jre,2025-08-11T00:30:47Z,Success,0,8 High 9 Fixable,sha256:a41ec54e6450ccc66d9f2ff975a0004d889349f3e8f5b086ebe8704e7ae962ac
+`
+
+	assert.Equal(t, strings.TrimPrefix(expected, "\n"), csv)
+}
+
+func mockVulnerabilityObservationsImageSummary() []api.VulnerabilityObservationsImageSummary {
+	return []api.VulnerabilityObservationsImageSummary{
 		{
-			EvalGUID:  "1",
-			ImageID:   "1",
-			StartTime: old,
-		},
-		{
-			EvalGUID:  "2",
-			ImageID:   "1",
-			StartTime: latest,
-		},
-		{
-			EvalGUID:  "3",
-			ImageID:   "2",
-			StartTime: latest,
-		},
-		{
-			EvalGUID:  "4",
-			ImageID:   "2",
-			StartTime: old,
-		},
-		{
-			EvalGUID:  "5",
-			ImageID:   "2",
-			StartTime: old,
-		},
-		{
-			EvalGUID:  "6",
-			ImageID:   "3",
-			StartTime: latest,
+			ContainerCount:           0,
+			Digest:                   "sha256:a41ec54e6450ccc66d9f2ff975a0004d889349f3e8f5b086ebe8704e7ae962ac",
+			ImageId:                  "sha256:b167326fa5f713a3cf7d742852967303b1b9301a147f84a0132ae58c47086fb4",
+			LastScanTime:             "2025-08-11T00:30:47Z",
+			Registry:                 "docker.io",
+			Repository:               "lacework/jre",
+			Tag:                      "alpine-test",
+			ScanStatus:               "Success",
+			VulnCountCritical:        0,
+			VulnCountCriticalFixable: 0,
+			VulnCountHigh:            8,
+			VulnCountHighFixable:     8,
+			VulnCountMedium:          0,
+			VulnCountMediumFixable:   0,
+			VulnCountLow:             1,
+			VulnCountLowFixable:      1,
+			VulnCountInfo:            0,
+			VulnCountInfoFixable:     0,
 		},
 	}
 }

@@ -19,7 +19,9 @@
 package cmd
 
 import (
-	"github.com/lacework/go-sdk/v2/internal/array"
+	"sort"
+
+	"github.com/lacework/go-sdk/v2/api"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 )
@@ -122,21 +124,23 @@ func setPollFlag(cmds ...*flag.FlagSet) {
 
 func getContainerRegistries() ([]string, error) {
 	var (
-		registries            = make([]string, 0)
-		regsIntegrations, err = cli.LwApi.V2.ContainerRegistries.List()
+		imageSummary, err = cli.LwApi.V2.VulnerabilityObservations.ImageSummary.SearchAllPages(api.SearchFilter{})
 	)
 	if err != nil {
-		return registries, errors.Wrap(err, "unable to get container registry integrations")
+		return nil, errors.Wrap(err, "unable to get container registry integrations")
 	}
 
-	for _, i := range regsIntegrations.Data {
-		// avoid adding empty registries coming from the new local_scanner and avoid adding duplicate registries
-		if i.ContainerRegistryDomain() == "" || array.ContainsStr(registries, i.ContainerRegistryDomain()) {
-			continue
-		}
-
-		registries = append(registries, i.ContainerRegistryDomain())
+	registrySet := make(map[string]struct{})
+	for _, i := range imageSummary.Data {
+		registrySet[i.Registry] = struct{}{}
 	}
+
+	registries := make([]string, 0, len(registrySet))
+	for r := range registrySet {
+		registries = append(registries, r)
+	}
+
+	sort.Strings(registries)
 
 	return registries, nil
 }
