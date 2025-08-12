@@ -117,12 +117,12 @@ environment.`,
 						{
 							Expression: "gt",
 							Field:      "lastScanTime",
-							Value:      start.Format(api.TimestampLayout),
+							Value:      start.Format(time.RFC3339),
 						},
 						{
 							Expression: "lt",
 							Field:      "lastScanTime",
-							Value:      end.Format(api.TimestampLayout),
+							Value:      end.Format(time.RFC3339),
 						},
 					},
 				})
@@ -278,7 +278,7 @@ func buildVulnCtrAssessmentSummary(
 
 	for _, a := range assessments {
 		i := fmt.Sprintf("%s-%s-%s", a.Registry, a.Repository, a.ImageId)
-		scanTime, err := time.Parse(api.TimestampLayout, a.LastScanTime)
+		scanTime, err := time.Parse(time.RFC3339, a.LastScanTime)
 		if err != nil {
 			fmt.Println("Error parsing last scan time: ", err)
 		}

@@ -100,7 +100,7 @@ func TestBuildCSVVulnCtrReportVulnerabilitiesListing(t *testing.T) {
 
 	expected := `
 Registry,Repository,Last Scan,Status,Containers,Vulnerabilities,Image Digest
-docker.io,lacework/jre,2025-08-06T13:05:11Z,Success,0,8 High 9 Fixable,sha256:a41ec54e6450ccc66d9f2ff975a0004d889349f3e8f5b086ebe8704e7ae962ac
+docker.io,lacework/jre,2025-08-11T00:30:47Z,Success,0,8 High 9 Fixable,sha256:a41ec54e6450ccc66d9f2ff975a0004d889349f3e8f5b086ebe8704e7ae962ac
 `
 
 	assert.Equal(t, strings.TrimPrefix(expected, "\n"), csv)
@@ -112,7 +112,7 @@ func mockVulnerabilityObservationsImageSummary() []api.VulnerabilityObservations
 			ContainerCount:           0,
 			Digest:                   "sha256:a41ec54e6450ccc66d9f2ff975a0004d889349f3e8f5b086ebe8704e7ae962ac",
 			ImageId:                  "sha256:b167326fa5f713a3cf7d742852967303b1b9301a147f84a0132ae58c47086fb4",
-			LastScanTime:             "2025-08-06 13:05:11.000 Z",
+			LastScanTime:             "2025-08-11T00:30:47Z",
 			Registry:                 "docker.io",
 			Repository:               "lacework/jre",
 			Tag:                      "alpine-test",
