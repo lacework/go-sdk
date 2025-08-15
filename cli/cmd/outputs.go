@@ -36,7 +36,10 @@ func (c *cliState) OutputJSON(v interface{}) error {
 		c.Log.Debugw("unable to pretty print JSON object", "raw", v)
 		return err
 	}
-	fmt.Fprintln(color.Output, string(pretty))
+
+	formatted := strings.ReplaceAll(string(pretty), "\t", "\\t")
+
+	fmt.Fprintln(color.Output, formatted)
 	return nil
 }
 
