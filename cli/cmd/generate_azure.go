@@ -57,11 +57,13 @@ var (
 	QuestionADServicePrincpleId = "Service Principle ID of an existing Active Directory application:"
 
 	// Storage Account
-	QuestionUseExistingStorageAccount   = "Use an existing Storage Account?"
-	QuestionAzureRegion                 = "Region to be used by Storage Account logging:"
-	QuestionStorageAccountName          = "Existing Storage Account name:"
-	QuestionStorageAccountResourceGroup = "Existing Storage Account Resource Group:"
-	QuestionStorageLocation             = "Region where Storage Account for logging resides: (optional)"
+	QuestionUseExistingStorageAccount      = "Use an existing Storage Account?"
+	QuestionAzureRegion                    = "Region to be used by Storage Account logging:"
+	QuestionStorageAccountName             = "Existing Storage Account name:"
+	QuestionStorageAccountResourceGroup    = "Existing Storage Account Resource Group:"
+	QuestionStorageLocation                = "Region where Storage Account for logging resides: (optional)"
+	QuestionStorageAccountNetworkRules     = "Enable Storage Account Network Rules?"
+	QuestionStorageAccountRuleNetworkRules = "Network rules for the Storage Account: (optional) (e.g., 'ip1,ip2,ip3')"
 
 	// Subscriptions
 	QuestionEnableAllSubscriptions = "Enable all subscriptions?"
@@ -203,6 +205,8 @@ the new cloud account. In interactive mode, this command will:
 				azure.WithEntraIdActivityLogIntegrationName(GenerateAzureCommandState.EntraIdIntegrationName),
 				azure.WithEventHubLocation(GenerateAzureCommandState.EventHubLocation),
 				azure.WithEventHubPartitionCount(GenerateAzureCommandState.EventHubPartitionCount),
+				azure.WithUseStorageAccountNetworkRules(GenerateAzureCommandState.UseStorageAccountNetworkRules),
+				azure.WithUseStorageAccountNetworkRuleIpRules(GenerateAzureCommandState.StorageAccountNetworkRuleIpRules),
 			}
 
 			if GenerateAzureCommandState.Agentless {
@@ -548,6 +552,18 @@ func initGenerateAzureTfCommandFlags() {
 		"subscription_ids",
 		[]string{},
 		`list of subscriptions to grant read access; format is id1,id2,id3`)
+
+	generateAzureTfCommand.PersistentFlags().BoolVar(
+		&GenerateAzureCommandState.UseStorageAccountNetworkRules,
+		"use_storage_account_network_rules",
+		true,
+		"enable storage account network rules")
+
+	generateAzureTfCommand.PersistentFlags().StringSliceVar(
+		&GenerateAzureCommandState.StorageAccountNetworkRuleIpRules,
+		"storage_account_network_rule_ip_rules",
+		[]string{},
+		`list of IP rules to apply to the storage account network rules; format is ip1,ip2,ip3`)
 
 	generateAzureTfCommand.PersistentFlags().StringVar(
 		&GenerateAzureCommandState.AdApplicationPassword,
@@ -964,6 +980,42 @@ func promptAzureActivityLogQuestions(config *azure.GenerateAzureTfConfigurationA
 			},
 		}); err != nil {
 			return err
+		}
+	} else {
+		// If not using existing storage account, ask for storage network rules
+		if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+			{
+				Icon: IconActivityLog,
+				Prompt: &survey.Confirm{
+					Message: QuestionStorageAccountNetworkRules,
+					Default: config.UseStorageAccountNetworkRules,
+				},
+				Required: true,
+				Response: &config.UseStorageAccountNetworkRules,
+			},
+		}); err != nil {
+			return err
+		}
+		if config.UseStorageAccountNetworkRules {
+			var ipRulesInput string
+			if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
+				{
+					Icon:     IconActivityLog,
+					Prompt:   &survey.Input{Message: QuestionStorageAccountRuleNetworkRules, Default: ""},
+					Response: &ipRulesInput,
+				},
+			}); err != nil {
+				return err
+			}
+			// After splitting
+			raw := strings.Split(strings.ReplaceAll(ipRulesInput, " ", ""), ",")
+			var ipRules []string
+			for _, ip := range raw {
+				if ip != "" {
+					ipRules = append(ipRules, ip)
+				}
+			}
+			config.StorageAccountNetworkRuleIpRules = ipRules
 		}
 	}
 

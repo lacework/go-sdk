@@ -437,7 +437,6 @@ func WithUseStorageAccountNetworkRuleIpRules(ipRules []string) AzureTerraformMod
 	}
 }
 
-
 // Generate new Terraform code based on the supplied args.
 func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 	// Validate inputs
@@ -741,7 +740,7 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 		}
 
 		// Add storage account network rules if enabled
-		if args.UseStorageAccountNetworkRules {
+		if args.UseStorageAccountNetworkRules && !args.ExistingStorageAccount {
 			attributes["use_storage_account_network_rules"] = args.UseStorageAccountNetworkRules
 
 			// if no IP rules are provided, automatically detect the current public IP
