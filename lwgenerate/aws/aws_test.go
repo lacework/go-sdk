@@ -422,6 +422,10 @@ func TestGenerationCloudTrailS3BucketNotification(t *testing.T) {
 
 var requiredProvidersWithCustomBlock = `terraform {
   required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
     lacework = {
       source  = "lacework/lacework"
       version = "~> 2.0"
@@ -434,6 +438,10 @@ var requiredProvidersWithCustomBlock = `terraform {
 
 var requiredProviders = `terraform {
   required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
     lacework = {
       source  = "lacework/lacework"
       version = "~> 2.0"
@@ -567,6 +575,10 @@ var moduleImportCtWithAllEncryptionSet = `module "main_cloudtrail" {
 
 var moduleImportAgentless = `terraform {
   required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
     lacework = {
       source  = "lacework/lacework"
       version = "~> 2.0"
@@ -613,6 +625,10 @@ module "lacework_aws_agentless_scanning_region_scanning-1-us-east-1" {
 
 var moduleImportAgentlessOrganization = `terraform {
   required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
     lacework = {
       source  = "lacework/lacework"
       version = "~> 2.0"
@@ -740,6 +756,10 @@ var moduleImportCloudtrail = `module "main_cloudtrail" {
 
 var moduleImportConfigWithProviderTags = `terraform {
   required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
     lacework = {
       source  = "lacework/lacework"
       version = "~> 2.0"
@@ -787,6 +807,10 @@ var customOutput = `output "test" {
 
 var moduleImportConfigWithMultipleAccounts = `terraform {
   required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
     lacework = {
       source  = "lacework/lacework"
       version = "~> 2.0"

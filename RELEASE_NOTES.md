@@ -1,11 +1,10 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v2.6.0`.
+Another day, another release. These are the release notes for the version `v2.6.2`.
 
-## Features
-* feat(VULN-1588): Update CLI vuln container list-assessments and list-registries to use new ImageSummary API (#1754) (kendall-choy-lw)([76f35894](https://github.com/lacework/go-sdk/commit/76f358945d9818a737c392797a8592ed20209e0f))
-* feat: add Azure Agentless support in generate command (#1741) (lokeshv-fortinet)([7375d7b1](https://github.com/lacework/go-sdk/commit/7375d7b1b7dad0caea12295cae8858aa4e617a49))
+## Bug Fixes
+* fix:(PLTI-599) Tab escape issue in resourceTags (#1760) (Charanbir)([e42932e9](https://github.com/lacework/go-sdk/commit/e42932e9eccc21005155750836e56943bbfd8732))
 ## Other Changes
-* ci: version bump to v2.5.2-dev (Lacework)([6ed2d455](https://github.com/lacework/go-sdk/commit/6ed2d45511c2edac4bb5aa2653693d4711fe7157))
+* ci: version bump to v2.6.2-dev (Lacework)([19c18abd](https://github.com/lacework/go-sdk/commit/19c18abde0719195392ec6fcd39c069325ae167b))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```

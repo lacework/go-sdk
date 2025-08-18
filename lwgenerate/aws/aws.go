@@ -839,11 +839,18 @@ func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 }
 
 func createRequiredProviders(extraBlocks []*hclwrite.Block) (*hclwrite.Block, error) {
-	return lwgenerate.CreateRequiredProvidersWithCustomBlocks(
-		extraBlocks,
-		lwgenerate.NewRequiredProvider("lacework",
-			lwgenerate.HclRequiredProviderWithSource(lwgenerate.LaceworkProviderSource),
-			lwgenerate.HclRequiredProviderWithVersion(lwgenerate.LaceworkProviderVersion)))
+	providers := []*lwgenerate.HclRequiredProvider{
+		lwgenerate.NewRequiredProvider("aws",
+			lwgenerate.HclRequiredProviderWithSource(lwgenerate.AwsProviderSource),
+			lwgenerate.HclRequiredProviderWithVersion(lwgenerate.AwsProviderVersion)),
+	}
+
+	providers = append(providers, lwgenerate.NewRequiredProvider("lacework",
+		lwgenerate.HclRequiredProviderWithSource(lwgenerate.LaceworkProviderSource),
+		lwgenerate.HclRequiredProviderWithVersion(lwgenerate.LaceworkProviderVersion),
+	))
+
+	return lwgenerate.CreateRequiredProvidersWithCustomBlocks(extraBlocks, providers...)
 }
 
 func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error) {

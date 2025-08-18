@@ -1,3 +1,16 @@
+# v2.6.2
+
+## Bug Fixes
+* fix:(PLTI-599) Tab escape issue in resourceTags (#1760) (Charanbir)([e42932e9](https://github.com/lacework/go-sdk/commit/e42932e9eccc21005155750836e56943bbfd8732))
+## Other Changes
+* ci: version bump to v2.6.2-dev (Lacework)([19c18abd](https://github.com/lacework/go-sdk/commit/19c18abde0719195392ec6fcd39c069325ae167b))
+---
+# v2.6.1
+
+## Other Changes
+* chore: specify aws tf provider version (#1758) (lokeshv-fortinet)([4174d587](https://github.com/lacework/go-sdk/commit/4174d5878646d6a9ed8a8a434276872c34edc5c7))
+* ci: version bump to v2.6.1-dev (Lacework)([caaf8082](https://github.com/lacework/go-sdk/commit/caaf808254843435195f647b8608653db281ff9c))
+---
 # v2.6.0
 
 ## Features
