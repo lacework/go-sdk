@@ -996,7 +996,8 @@ func promptAzureActivityLogQuestions(config *azure.GenerateAzureTfConfigurationA
 		}); err != nil {
 			return err
 		}
-		if config.UseStorageAccountNetworkRules {
+		// if using storage account network rules, ask for IP rules
+		if config.UseStorageAccountNetworkRules && len(config.StorageAccountNetworkRuleIpRules) == 0 {
 			var ipRulesInput string
 			if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 				{
