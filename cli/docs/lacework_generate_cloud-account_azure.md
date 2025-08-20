@@ -61,9 +61,11 @@ lacework generate cloud-account azure [flags]
       --output string                                   location to write generated content (default is ~/lacework/azure)
       --regions strings                                 comma-separated list of Azure regions for agentless scanning (e.g., 'East US,West US')
       --storage_account_name string                     specify storage account name
+      --storage_account_network_rule_ip_rules strings   list of IP rules to apply to the storage account network rules; format is ip1,ip2,ip3
       --storage_resource_group string                   specify storage resource group
       --subscription_id string                          specify the Azure Subscription ID to be used to provision Lacework resources
       --subscription_ids strings                        list of subscriptions to grant read access; format is id1,id2,id3
+      --use_storage_account_network_rules               enable storage account network rules (default true)
 ```
 
 ### Options inherited from parent commands

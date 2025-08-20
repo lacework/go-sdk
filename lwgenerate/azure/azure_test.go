@@ -326,6 +326,19 @@ func TestGenerationEntraIDActivityLogEventHubLocationAndPartition(t *testing.T) 
 	assert.Equal(t, ActivityLogEntraID, hcl)
 }
 
+func TestGenerationActivityLogWithStorageAccountNetworkRules(t *testing.T) {
+	ActivityLogNetworkRules, fileErr := getFileContent("test-data/activity-log-with-storage-account-network-rules.tf")
+	assert.Nil(t, fileErr)
+	hcl, err := azure.NewTerraform(false, true, false, false, true,
+		azure.WithSubscriptionID("11111111-2222-3333-4444-111111111111"),
+		azure.WithUseStorageAccountNetworkRules(true),
+		azure.WithUseStorageAccountNetworkRuleIpRules([]string{"34.208.85.38"}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, ActivityLogNetworkRules, hcl)
+}
+
 // Agentless Scanning Tests
 func TestGenerationAgentlessScanningWithSubscriptionIntLevelSR(t *testing.T) {
 	AgentlessScanning, fileErr := getFileContent("test-data/agentless_subscription_singleregion.tf")

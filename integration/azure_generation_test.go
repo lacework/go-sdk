@@ -76,6 +76,7 @@ func TestGenerationAzureSimple(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
@@ -125,6 +126,7 @@ func TestGenerationAzureCustomizedOutputLocation(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
@@ -207,6 +209,7 @@ func TestGenerationAzureActivityLogOnly(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
@@ -252,6 +255,7 @@ func TestGenerationAzureNoADEnabled(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
@@ -399,6 +403,7 @@ func TestGenerationAzureWithExistingTerraform(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
@@ -578,6 +583,7 @@ func TestGenerationAzureActivityLogSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
@@ -653,6 +659,56 @@ func TestGenerationAzureActivityLogStorageAccount(t *testing.T) {
 	assert.Equal(t, buildTf, tfResult)
 }
 
+// Test generate ActivityLog with storage account network rules
+func TestGenerationAzureActivityLogUseStorageAccountNetworkRules(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	var final string
+	var runError error
+	testIds := []string{"test-id-1", "test-id-2", "test-id-3"}
+
+	// Run CLI
+	tfResult := runGenerateAzureTest(t,
+		func(c *expect.Console) {
+			expectsCliOutput(t, c, []MsgRspHandler{
+				MsgRsp{cmd.QuestionAzureSubscriptionID, mockSubscriptionID},
+				MsgRsp{cmd.AzureSubscriptions, "y"},
+				MsgRsp{cmd.QuestionEnableAllSubscriptions, "n"},
+				MsgRsp{cmd.QuestionSubscriptionIds, strings.Join(testIds[:], ",")},
+				MsgRsp{cmd.QuestionAzureEnableConfig, "n"},
+				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
+				MsgRsp{cmd.QuestionActivityLogName, ""},
+				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "y"},
+				MsgRsp{cmd.QuestionStorageAccountRuleNetworkRules, "42.13.14.15,32.17.18.19"},
+				MsgRsp{cmd.QuestionStorageLocation, ""},
+				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
+				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
+				MsgRsp{cmd.QuestionEnableAdIntegration, "y"},
+				MsgRsp{cmd.QuestionAzureCustomizeOutputLocation, ""},
+				MsgRsp{cmd.QuestionRunTfPlan, "n"},
+			})
+			final, _ = c.ExpectEOF()
+		},
+		"generate",
+		"cloud-account",
+		"az",
+	)
+
+	// Ensure CLI ran correctly
+	assert.Nil(t, runError)
+	assert.Contains(t, final, "Terraform code saved in")
+
+	// Create the TF directly with lwgenerate and validate same result via CLI
+	buildTf, _ := azure.NewTerraform(false, true, false, false, true,
+		azure.WithSubscriptionID(mockSubscriptionID),
+		azure.WithSubscriptionIds(testIds),
+		azure.WithUseStorageAccountNetworkRules(true),
+		azure.WithUseStorageAccountNetworkRuleIpRules([]string{"42.13.14.15", "32.17.18.19"}),
+	).Generate()
+	assert.Equal(t, buildTf, tfResult)
+}
+
 // Test generate ActivityLog with all subscriptions
 func TestGenerationAzureActivityLogAllSubs(t *testing.T) {
 	os.Setenv("LW_NOCACHE", "true")
@@ -671,6 +727,7 @@ func TestGenerationAzureActivityLogAllSubs(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
@@ -715,6 +772,7 @@ func TestGenerationAzureActivityLogLocation(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, region},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
@@ -858,6 +916,7 @@ func TestGenerationAzureOverwrite(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
@@ -885,6 +944,7 @@ func TestGenerationAzureOverwrite(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
@@ -930,6 +990,7 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
@@ -958,6 +1019,7 @@ func TestGenerationAzureOverwriteOutput(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
@@ -994,6 +1056,7 @@ func TestGenerationAzureLaceworkProfile(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},
@@ -1038,6 +1101,7 @@ func TestGenerationAzureWithSubscriptionID(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableActivityLog, "y"},
 				MsgRsp{cmd.QuestionActivityLogName, ""},
 				MsgRsp{cmd.QuestionUseExistingStorageAccount, "n"},
+				MsgRsp{cmd.QuestionStorageAccountNetworkRules, "n"},
 				MsgRsp{cmd.QuestionStorageLocation, ""},
 				MsgRsp{cmd.QuestionAzureEnableAgentless, "n"},
 				MsgRsp{cmd.QuestionEnableEntraIdActivityLog, "n"},

@@ -3,6 +3,9 @@ package azure
 
 import (
 	"fmt"
+	"io"
+	"net"
+	"net/http"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -109,6 +112,51 @@ type GenerateAzureTfConfigurationArgs struct {
 
 	// List of subscription IDs for agentless scanning
 	AgentlessSubscriptionIds []string
+
+	// Should we use storage account network rules for activity log?
+	UseStorageAccountNetworkRules bool
+
+	// List of IP addresses to access storage account
+	StorageAccountNetworkRuleIpRules []string
+}
+
+// check if given IP address is an IPv4 address
+func IsIpv4(ip string) bool {
+	parsedIP := net.ParseIP(ip)
+	return parsedIP != nil && parsedIP.To4() != nil
+}
+
+// getCurrentPublicIP retrieves the current public IP address of the machine
+func getCurrentPublicIP() (string, error) {
+	// use reliable IP detection services
+	urls := []string{
+		"https://api.ipify.org",
+		"https://ifconfig.me",
+		"https://ipinfo.io/ip",
+	}
+
+	for _, url := range urls {
+		resp, err := http.Get(url)
+		if err != nil {
+			continue
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode == http.StatusOK {
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				continue
+			}
+			ip := strings.TrimSpace(string(body))
+			// Validate if the IP is a valid IPv4 address
+			if !IsIpv4(ip) {
+				continue
+			}
+			return ip, nil
+		}
+	}
+
+	return "", fmt.Errorf("failed to get public IP")
 }
 
 // Ensure all combinations of inputs are valid for supported spec
@@ -372,6 +420,20 @@ func WithCreateLogAnalyticsWorkspace(create bool) AzureTerraformModifier {
 func WithIntegrationLevel(level string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.IntegrationLevel = level
+	}
+}
+
+// WithUseStorageAccountNetworkRules sets the UseStorageAccountNetworkRules field for activity log
+func WithUseStorageAccountNetworkRules(useNetworkRules bool) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.UseStorageAccountNetworkRules = useNetworkRules
+	}
+}
+
+// WithUseStorageAccountNetworkRuleIpRules sets the StorageAccountNetworkRuleIpRules field for activity log
+func WithUseStorageAccountNetworkRuleIpRules(ipRules []string) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.StorageAccountNetworkRuleIpRules = ipRules
 	}
 }
 
@@ -675,6 +737,22 @@ func createActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Bloc
 		// Set the location if needed
 		if args.StorageLocation != "" {
 			attributes["location"] = args.StorageLocation
+		}
+
+		// Add storage account network rules if enabled
+		if args.UseStorageAccountNetworkRules && !args.ExistingStorageAccount {
+			attributes["use_storage_account_network_rules"] = args.UseStorageAccountNetworkRules
+
+			// if no IP rules are provided, automatically detect the current public IP
+			if len(args.StorageAccountNetworkRuleIpRules) == 0 {
+				currentIP, err := getCurrentPublicIP()
+				if err != nil {
+					return nil, err
+				}
+				attributes["storage_account_network_rule_ip_rules"] = []string{currentIP}
+			} else {
+				attributes["storage_account_network_rule_ip_rules"] = args.StorageAccountNetworkRuleIpRules
+			}
 		}
 
 		moduleDetails = append(moduleDetails,
