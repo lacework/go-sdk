@@ -470,7 +470,7 @@ func TestConfigureCommandErrors(t *testing.T) {
 			expectString(t, c, "Passing full 'lacework.net' domain not required. Using 'my-account'")
 			expectString(t, c, "Access Key ID:")
 			c.SendLine("")
-			expectString(t, c, "The API access key id must have more than 55 characters")
+			expectString(t, c, "The API access key id must have more than 34 characters")
 			c.SendLine("INTTEST_ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890AAABBBCCC00")
 			expectString(t, c, "Secret Access Key:")
 			c.SendLine("")
@@ -497,6 +497,50 @@ func TestConfigureCommandWithJSONFileFlagError(t *testing.T) {
 	assert.Contains(t,
 		err.String(),
 		"ERROR unable to load keys from the provided json file: open foo: no such file or directory",
+		"STDERR error message changed, please check")
+	assert.Equal(t, 1, exitcode,
+		"EXITCODE is not the expected one")
+}
+
+func TestConfigureCommandWithTxtFileFlag(t *testing.T) {
+	os.Setenv("LW_NOCACHE", "true")
+	defer os.Setenv("LW_NOCACHE", "")
+	// create a TXT file similar to what the FortiCloud portal would provide
+	s := createTxtFile(`
+apiId:12345678-1234-1234-1234-123456789012
+password:123456a81234d23412c412345b789012
+`)
+	defer os.Remove(s)
+
+	_, laceworkTOML := runConfigureTest(t,
+		func(c *expect.Console) {
+			expectString(t, c, "Account:")
+			c.SendLine("default") // using the default
+			expectString(t, c, "Access Key ID:")
+			c.SendLine("") // using the default, which should be loaded from the TXT file
+			expectString(t, c, "Secret Access Key:")
+			c.SendLine("") // using the default, which should be loaded from the TXT file
+			expectString(t, c, "You are all set!")
+		},
+		"configure", "--txt_file", s,
+	)
+
+	assert.Equal(t, `[default]
+  account = "default"
+  api_key = "12345678-1234-1234-1234-123456789012"
+  api_secret = "123456a81234d23412c412345b789012"
+  version = 2
+`, laceworkTOML, "there is a problem with the generated config")
+}
+
+func TestConfigureCommandWithTxtFileFlagError(t *testing.T) {
+	out, err, exitcode := LaceworkCLI("configure", "--txt_file", "foo")
+	assert.Empty(t,
+		out.String(),
+		"STDOUT should be empty")
+	assert.Contains(t,
+		err.String(),
+		"ERROR unable to load keys from the provided text file: open foo: no such file or directory",
 		"STDERR error message changed, please check")
 	assert.Equal(t, 1, exitcode,
 		"EXITCODE is not the expected one")

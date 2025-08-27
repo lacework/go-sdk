@@ -62,7 +62,7 @@ type Profile struct {
 }
 
 const (
-	ApiKeyMinLength    = 55
+	ApiKeyMinLength    = 34
 	ApiSecretMinLength = 30
 )
 
