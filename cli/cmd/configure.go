@@ -189,6 +189,8 @@ func runConfigureSetup() error {
 		if err != nil {
 			return errors.Wrap(err, "unable to load keys from the provided text file")
 		}
+		// Force interactive mode if -t/--txt_file is used, even if --noninteractive is set
+		cli.Interactive()
 	} else {
 		if match, _ := regexp.MatchString(".lacework.net", cli.Account); match {
 			d, err := lwdomain.New(cli.Account)
