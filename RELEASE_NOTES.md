@@ -1,10 +1,9 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v2.7.0`.
+Another day, another release. These are the release notes for the version `v2.7.1`.
 
-## Features
-* feat(LINK-4045): Add new flag -use_storage_account_network_rules in Azure CLI. (#1762) (lokeshv-fortinet)([fe5be857](https://github.com/lacework/go-sdk/commit/fe5be8576c1cb53ba810cbe8c3cd66596ba81966))
 ## Other Changes
-* ci: version bump to v2.6.3-dev (Lacework)([39d1ebe3](https://github.com/lacework/go-sdk/commit/39d1ebe358176b7882c14b6cbe03bbd62976e7c5))
+* chore(lwpreflight): fix permissions (#1772) (Pengyuan Zhao)([957385b8](https://github.com/lacework/go-sdk/commit/957385b87cfaeaa90e946206702b82274bd7d50d))
+* ci: version bump to v2.7.1-dev (Lacework)([df83eb13](https://github.com/lacework/go-sdk/commit/df83eb13bdde7bfb4cec0513c9ade845e00c6624))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
