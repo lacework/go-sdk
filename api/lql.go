@@ -28,9 +28,42 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type providerType int
+type providerTypes map[providerType]string
+
+const (
+	Agent providerType = iota
+	APA
+	AWS
+	Azure
+	CIEM
+	GCP
+	K8s
+	OCI
+)
+
+var ValidProviderTypes = providerTypes{
+	Agent: "Agent",
+	APA:   "APA",
+	AWS:   "AWS",
+	Azure: "Azure",
+	CIEM:  "CIEM",
+	GCP:   "GCP",
+	K8s:   "K8s",
+	OCI:   "OCI",
+}
+
+type UsageContext struct {
+	Providers []string `json:"providers,omitempty" yaml:"providers,omitempty"`
+	Policies  []string `json:"policies,omitempty" yaml:"policies,omitempty"`
+}
+
 type NewQuery struct {
-	QueryID   string `json:"queryId" yaml:"queryId"`
-	QueryText string `json:"queryText" yaml:"queryText"`
+	QueryID      string       `json:"queryId" yaml:"queryId"`
+	QueryText    string       `json:"queryText" yaml:"queryText"`
+	QueryName    string       `json:"queryName,omitempty" yaml:"queryName,omitempty"`
+	Description  string       `json:"description,omitempty" yaml:"description,omitempty"`
+	UsageContext UsageContext `json:"usageContext,omitempty" yaml:"usageContext,omitempty"`
 }
 
 func ParseNewQuery(s string) (NewQuery, error) {
@@ -54,7 +87,10 @@ func ParseNewQuery(s string) (NewQuery, error) {
 }
 
 type UpdateQuery struct {
-	QueryText string `json:"queryText"`
+	QueryText    string       `json:"queryText"`
+	QueryName    string       `json:"queryName,omitempty" yaml:"queryName,omitempty"`
+	Description  string       `json:"description,omitempty" yaml:"description,omitempty"`
+	UsageContext UsageContext `json:"usageContext,omitempty" yaml:"usageContext,omitempty"`
 }
 
 type Query struct {
@@ -64,6 +100,11 @@ type Query struct {
 	LastUpdateTime string                   `json:"lastUpdateTime"`
 	LastUpdateUser string                   `json:"lastUpdateUser"`
 	ResultSchema   []map[string]interface{} `json:"resultSchema"`
+	QueryName      string                   `json:"queryName,omitempty" yaml:"queryName,omitempty"`
+	Description    string                   `json:"description,omitempty" yaml:"description,omitempty"`
+	UsageContext   UsageContext             `json:"usageContext,omitempty" yaml:"usageContext,omitempty"`
+	Providers      []string                 `json:"providers,omitempty" yaml:"providers,omitempty"`
+	UsedByPolicies []string                 `json:"usedByPolicies,omitempty" yaml:"usedByPolicies,omitempty"`
 }
 
 type QueryResponse struct {
