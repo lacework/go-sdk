@@ -34,6 +34,8 @@ import (
 var (
 	queryID      = "my_lql"
 	newQueryText = `my_lql { source { CloudTrailRawEvents } return { INSERT_ID } }`
+	queryName    = "Lql Query Name"
+	description  = "Lql Query Description"
 	newQuery     = api.NewQuery{
 		QueryID:   queryID,
 		QueryText: newQueryText,
@@ -45,6 +47,18 @@ var (
 	newQueryYAML = fmt.Sprintf(`---
 queryId: %s
 queryText: %s`, newQuery.QueryID, newQuery.QueryText)
+	newQueryWithNameDescriptionJSON = fmt.Sprintf(`{
+	"queryId": "%s",
+	"queryText": "%s",
+	"queryName": "%s",
+	"description": "%s"
+}`, queryID, newQueryText, queryName, description)
+	newQueryWithNameDescription = api.NewQuery{
+		QueryID:     queryID,
+		QueryText:   newQueryText,
+		QueryName:   queryName,
+		Description: description,
+	}
 	lqlErrorReponse = `{ "message": "This is an error message" }`
 )
 
@@ -90,6 +104,12 @@ var parseNewQueryTests = []parseNewQueryTest{
 		Name:     "yaml-blob",
 		Input:    newQueryYAML,
 		Expected: newQuery,
+		Error:    nil,
+	},
+	parseNewQueryTest{
+		Name:     "name-description-blobl",
+		Input:    newQueryWithNameDescriptionJSON,
+		Expected: newQueryWithNameDescription,
 		Error:    nil,
 	},
 }
