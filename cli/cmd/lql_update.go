@@ -89,8 +89,10 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 		}
 
 		queryYaml, err := yaml.Marshal(&api.NewQuery{
-			QueryID:   queryRes.Data.QueryID,
-			QueryText: queryRes.Data.QueryText,
+			QueryID:     queryRes.Data.QueryID,
+			QueryText:   queryRes.Data.QueryText,
+			QueryName:   queryRes.Data.QueryName,
+			Description: queryRes.Data.Description,
 		})
 		if err != nil {
 			return errors.Wrap(err, msg)
@@ -133,7 +135,9 @@ func updateQuery(cmd *cobra.Command, args []string) error {
 	cli.Log.Debugw("updating query", "query", queryString)
 	cli.StartProgress(" Updating query...")
 	update, err := cli.LwApi.V2.Query.Update(newQuery.QueryID, api.UpdateQuery{
-		QueryText: newQuery.QueryText,
+		QueryText:   newQuery.QueryText,
+		QueryName:   newQuery.QueryName,
+		Description: newQuery.Description,
 	})
 	cli.StopProgress()
 
