@@ -21,8 +21,6 @@ The following attributes are minimally required:
     enabled: false
     policyType: Violation
     alertEnabled: false
-    alertProfile: Alert_Profile_ID.Alert_Template_Name
-    evalFrequency: Daily
     queryId: MyQuery
     severity: high
     description: My Policy Description
