@@ -19,6 +19,7 @@ the key and an optional description, then click Save. To get the secret key,
 download the generated API key file.
 
 Use the flag --json_file to preload the downloaded API key file.
+Use the flag --txt_file to preload the downloaded API key file from the FortiCloud portal.
 
 If this command is run with no flags, the Lacework CLI will store all
 settings under the default profile. The information in the default profile
@@ -38,6 +39,7 @@ lacework configure [flags]
 ```
   -h, --help               help for configure
   -j, --json_file string   loads the API key JSON file downloaded from the WebUI
+  -t, --txt_file string    loads the API key TXT file downloaded from the FortiCloud portal
 ```
 
 ### Options inherited from parent commands
