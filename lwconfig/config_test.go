@@ -56,10 +56,10 @@ func TestProfile_Verify(t *testing.T) {
 		{
 			Profile{
 				Account:   "test.test.corp.lacework.net",
-				ApiKey:    "000000000000000000000000000000000000000000000000000000",
+				ApiKey:    "000000000000000000000000000000",
 				ApiSecret: "000000000000000000000000000000",
 			},
-			"apikey length less than 55 characters",
+			"apikey length less than 34 characters",
 			true,
 		},
 		{

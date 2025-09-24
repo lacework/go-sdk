@@ -38,6 +38,19 @@ func TestConfigureCommandWithJSONFileFlagError(t *testing.T) {
 		"EXITCODE is not the expected one")
 }
 
+func TestConfigureCommandWithTXTFileFlagError(t *testing.T) {
+	out, err, exitcode := LaceworkCLI("configure", "--txt_file", "foo")
+	assert.Empty(t,
+		out.String(),
+		"STDOUT should be empty")
+	assert.Contains(t,
+		err.String(),
+		"ERROR unable to load keys from the provided text file: open foo: The system cannot find the file specified.",
+		"STDERR should be empty")
+	assert.Equal(t, 1, exitcode,
+		"EXITCODE is not the expected one")
+}
+
 func TestConfigureSwitchProfileHelp(t *testing.T) {
 	out, err, exitcode := LaceworkCLI("configure", "switch-profile", "--help")
 	assert.Empty(t,

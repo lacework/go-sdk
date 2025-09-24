@@ -97,13 +97,13 @@ func TestConfigureCommandNonInteractiveFailures(t *testing.T) {
 	}{
 		{
 			"my-account.lacework.net",
-			"my-key-00000000000000000000000000000000000000000000000",
+			"my-key-00000000000000000000000",
 			"my-secret-00000000000000000000",
-			"api_key length less than 55 characters",
+			"api_key length less than 34 characters",
 		},
 		{
 			"my-account.lacework.net",
-			"my-key-000000000000000000000000000000000000000000000000",
+			"my-key-00000000000000000000000000000",
 			"my-secret-0000000000000000000",
 			"api_secret length less than 30",
 		},
@@ -126,6 +126,19 @@ func TestConfigureCommandNonInteractiveFailures(t *testing.T) {
 func createJSONFileLikeWebUI(content string) string {
 	contentBytes := []byte(content)
 	tmpfile, err := os.CreateTemp("", "json_file")
+	if err != nil {
+		panic(err)
+	}
+
+	if _, err := tmpfile.Write(contentBytes); err != nil {
+		panic(err)
+	}
+	return tmpfile.Name()
+}
+
+func createTxtFile(content string) string {
+	contentBytes := []byte(content)
+	tmpfile, err := os.CreateTemp("", "txt_file")
 	if err != nil {
 		panic(err)
 	}

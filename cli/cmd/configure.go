@@ -39,7 +39,8 @@ import (
 var (
 	// configureJsonFile is the API key file downloaded form the Lacework WebUI
 	configureJsonFile string
-
+	// configureTxtFile is the API key file downloaded from forticloud portal
+	configureTxtFile string
 	// configureCmd represents the configure command
 	configureCmd = &cobra.Command{
 		Use:   "configure",
@@ -54,6 +55,7 @@ the key and an optional description, then click Save. To get the secret key,
 download the generated API key file.
 
 Use the flag --json_file to preload the downloaded API key file.
+Use the flag --txt_file to preload the downloaded API key file from the FortiCloud portal.
 
 If this command is run with no flags, the Lacework CLI will store all
 settings under the default profile. The information in the default profile
@@ -160,6 +162,9 @@ func init() {
 	configureCmd.Flags().StringVarP(&configureJsonFile,
 		"json_file", "j", "", "loads the API key JSON file downloaded from the WebUI",
 	)
+	configureCmd.Flags().StringVarP(&configureTxtFile,
+		"txt_file", "t", "", "loads the API key TXT file downloaded from the FortiCloud portal",
+	)
 }
 
 func runConfigureSetup() error {
@@ -179,6 +184,13 @@ func runConfigureSetup() error {
 		if err != nil {
 			return errors.Wrap(err, "unable to load keys from the provided json file")
 		}
+	} else if len(configureTxtFile) != 0 {
+		err := loadUITxtFile(configureTxtFile)
+		if err != nil {
+			return errors.Wrap(err, "unable to load keys from the provided text file")
+		}
+		// Force interactive mode if -t/--txt_file is used, even if --noninteractive is set
+		cli.Interactive()
 	} else {
 		if match, _ := regexp.MatchString(".lacework.net", cli.Account); match {
 			d, err := lwdomain.New(cli.Account)
@@ -393,6 +405,41 @@ func loadUIJsonFile(file string) error {
 		cli.Account = d.String()
 	}
 
+	return nil
+}
+
+func loadUITxtFile(file string) error {
+	cli.Log.Debugw("loading API key TXT file", "path", file)
+	txtData, err := os.ReadFile(file)
+	if err != nil {
+		return err
+	}
+
+	cli.Log.Debugw("TXT file", "raw", string(txtData))
+
+	lines := strings.Split(string(txtData), "\n")
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+
+		parts := strings.SplitN(line, ":", 2)
+		if len(parts) != 2 {
+			continue
+		}
+
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+
+		switch key {
+		case "apiId":
+			cli.KeyID = value
+		case "password":
+			cli.Secret = value
+		}
+	}
 	return nil
 }
 
