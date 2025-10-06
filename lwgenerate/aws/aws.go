@@ -355,6 +355,12 @@ func (args *GenerateAwsTfConfigurationArgs) Validate() error {
 			}
 		}
 
+		if args.Config {
+			if len(args.ConfigOrgUnits) == 0 {
+				return errors.New("must specify organization units for Config organization integration")
+			}
+		}
+
 		if args.ControlTower && args.Cloudtrail {
 			if args.ControlTowerAuditAccount == nil {
 				return errors.New("must specify audit account for CloudTrail Control Tower integration")
