@@ -599,7 +599,7 @@ func cdkInitGitRepo(rootPath string) error {
 	_, err = w.Commit("example go-git commit", &git.CommitOptions{
 		Author: &object.Signature{
 			Name:  "Component Scaffolding",
-			Email: "support@lacework.net",
+			Email: "cs@fortinet.com",
 			When:  time.Now(),
 		},
 	})
