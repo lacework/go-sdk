@@ -250,7 +250,7 @@ func selectAgentAccessToken() (string, error) {
 	}
 
 	// @afiune this should never happen
-	return "", errors.New("something went pretty wrong here, contact support@lacework.net")
+	return "", errors.New("something went pretty wrong here, contact cs@fortinet.com")
 }
 
 // ask for the ssh username

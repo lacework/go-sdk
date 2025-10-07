@@ -131,7 +131,7 @@ func (e *vulnerabilityPolicyError) validate() bool {
 
 func yikes(msg string) error {
 	return errors.Wrap(
-		errors.New("something went pretty wrong here, contact support@lacework.net"),
+		errors.New("something went pretty wrong here, contact cs@fortinet.com"),
 		msg,
 	)
 }
