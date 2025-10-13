@@ -34,7 +34,7 @@ func TestPreflightGCP(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, email, result.Caller.Email)
 	assert.Equal(t, userID, result.Caller.UserID)
-	assert.Equal(t, 23, len(result.Details.SchedulerRegions))
+	assert.Equal(t, 24, len(result.Details.SchedulerRegions))
 	assert.Contains(t, result.Errors["gcp_agentless"], "Required permission missing: cloudscheduler.jobs.create")
 	assert.Contains(t, result.Errors["gcp_audit_log"], "Required permission missing: compute.projects.get")
 	assert.Contains(t, result.Errors["gcp_config"], "Required permission missing: iam.serviceAccountKeys.create")
