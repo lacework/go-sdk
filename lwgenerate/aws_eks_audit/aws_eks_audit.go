@@ -84,6 +84,9 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 	// Should we enable bucket versioning?
 	BucketVersioning bool
 
+	// Custom outputs
+	CustomOutputs []lwgenerate.HclOutput
+
 	// The name of the AWS EKS Audit Log integration in Lacework. Defaults to "TF AWS EKS Audit Log"
 	EksAuditIntegrationName string
 
@@ -146,6 +149,15 @@ type GenerateAwsEksAuditTfConfigurationArgs struct {
 
 	// Existing S3 Bucket ARN (Required when using existing bucket)
 	ExistinglBucketArn string
+
+	// Default AWS Provider Tags
+	ProviderDefaultTags map[string]interface{}
+
+	// ExtraProviderArguments allows adding more arguments to the provider block as needed (custom use cases)
+	ExtraProviderArguments map[string]interface{}
+
+	// ExtraBlocks allows adding more hclwrite.Block to the root terraform document (advanced use cases)
+	ExtraBlocks []*hclwrite.Block
 }
 
 // Ensure all combinations of inputs our valid for supported spec
@@ -206,6 +218,35 @@ func NewTerraform(mods ...AwsEksAuditTerraformModifier) *GenerateAwsEksAuditTfCo
 func WithLaceworkAccountID(accountID string) AwsEksAuditTerraformModifier {
 	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
 		c.LaceworkAccountID = accountID
+	}
+}
+
+// WithProviderDefaultTags adds default_tags to the provider configuration for AWS (if tags are present)
+func WithProviderDefaultTags(tags map[string]interface{}) AwsEksAuditTerraformModifier {
+	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
+		c.ProviderDefaultTags = tags
+	}
+}
+
+// WithConfigOutputs Set Custom Terraform Outputs
+func WithCustomOutputs(outputs []lwgenerate.HclOutput) AwsEksAuditTerraformModifier {
+	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
+		c.CustomOutputs = outputs
+	}
+}
+
+// WithExtraProviderArguments enables adding additional arguments into the `aws` provider block
+// this enables custom use cases
+func WithExtraProviderArguments(arguments map[string]interface{}) AwsEksAuditTerraformModifier {
+	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
+		c.ExtraProviderArguments = arguments
+	}
+}
+
+// WithExtraBlocks enables adding additional arbitrary blocks to the root hcl document
+func WithExtraBlocks(blocks []*hclwrite.Block) AwsEksAuditTerraformModifier {
+	return func(c *GenerateAwsEksAuditTfConfigurationArgs) {
+		c.ExtraBlocks = blocks
 	}
 }
 
@@ -426,13 +467,25 @@ func (args *GenerateAwsEksAuditTfConfigurationArgs) Generate() (string, error) {
 		return "", errors.Wrap(err, "failed to generate aws eks audit module & resources")
 	}
 
+	outputBlocks := []*hclwrite.Block{}
+	for _, output := range args.CustomOutputs {
+		outputBlock, err := output.ToBlock()
+		if err != nil {
+			return "", errors.Wrap(err, "failed to add custom output")
+		}
+		outputBlocks = append(outputBlocks, outputBlock)
+	}
+
 	// Render
 	hclBlocks := lwgenerate.CreateHclStringOutput(
 		lwgenerate.CombineHclBlocks(
 			requiredProviders,
 			awsProvider,
 			laceworkProvider,
-			eksAuditModule),
+			eksAuditModule,
+			outputBlocks,
+			args.ExtraBlocks,
+		),
 	)
 	return hclBlocks, nil
 }
@@ -476,13 +529,33 @@ func createAwsProvider(args *GenerateAwsEksAuditTfConfigurationArgs) ([]*hclwrit
 			"region": region,
 		}
 
+		// set custom args before the required ones below to ensure expected behavior (i.e., no overrides)
+		for k, v := range args.ExtraProviderArguments {
+			attrs[k] = v
+		}
+
 		if args.AwsProfile != "" {
 			attrs["profile"] = args.AwsProfile
+		}
+		modifiers := []lwgenerate.HclProviderModifier{
+			lwgenerate.HclProviderWithAttributes(attrs),
+		}
+
+		if len(args.ProviderDefaultTags) != 0 {
+			defaultTagsBlock, err := lwgenerate.HclCreateGenericBlock(
+				"default_tags",
+				nil,
+				map[string]interface{}{"tags": args.ProviderDefaultTags},
+			)
+			if err != nil {
+				return nil, err
+			}
+			modifiers = append(modifiers, lwgenerate.HclProviderWithGenericBlocks(defaultTagsBlock))
 		}
 
 		providerBlock, err := lwgenerate.NewProvider(
 			"aws",
-			lwgenerate.HclProviderWithAttributes(attrs),
+			modifiers...,
 		).ToBlock()
 
 		if err != nil {

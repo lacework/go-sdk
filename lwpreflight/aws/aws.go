@@ -35,6 +35,7 @@ type Params struct {
 	Agentless       bool
 	Config          bool
 	CloudTrail      bool
+	EksAuditLog     bool
 	IsOrg           bool // If it's org-level integration
 	Region          string
 	Profile         string
@@ -84,6 +85,9 @@ func New(params Params) (*Preflight, error) {
 	}
 	if params.CloudTrail {
 		integrationTypes = append(integrationTypes, CloudTrail)
+	}
+	if params.EksAuditLog {
+		integrationTypes = append(integrationTypes, EksAuditLog)
 	}
 
 	preflight := &Preflight{
