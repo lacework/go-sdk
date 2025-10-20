@@ -30,6 +30,10 @@ type GenerateGkeTfConfigurationArgs struct {
 	ExtraBlocksRootTerraform []*hclwrite.Block
 	// ExtraProviderArguments allows adding more arguments to the provider block as needed (custom use cases)
 	ExtraProviderArguments map[string]interface{}
+	// ExtraBlocks allows adding more hclwrite.Block to the root terraform document (advanced use cases)
+	ExtraBlocks []*hclwrite.Block
+	// Custom outputs
+	CustomOutputs []lwgenerate.HclOutput
 }
 
 type Modifier func(c *GenerateGkeTfConfigurationArgs)
@@ -65,13 +69,23 @@ func (args *GenerateGkeTfConfigurationArgs) Generate() (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate GKE Audit Log module")
 	}
+	outputBlocks := []*hclwrite.Block{}
+	for _, output := range args.CustomOutputs {
+		outputBlock, err := output.ToBlock()
+		if err != nil {
+			return "", errors.Wrap(err, "failed to add custom output")
+		}
+		outputBlocks = append(outputBlocks, outputBlock)
+	}
 
 	hclBlocks := lwgenerate.CreateHclStringOutput(
 		lwgenerate.CombineHclBlocks(
 			requiredProviders,
 			gcpProvider,
 			laceworkProvider,
-			gkeAuditLogModule),
+			gkeAuditLogModule,
+			outputBlocks,
+			args.ExtraBlocks),
 	)
 	return hclBlocks, nil
 }
@@ -171,6 +185,33 @@ func WithGkePrefix(prefix string) Modifier {
 func WithGkeProjectId(id string) Modifier {
 	return func(c *GenerateGkeTfConfigurationArgs) {
 		c.ProjectId = id
+	}
+}
+
+func WithGkeExtraProviderArguments(args map[string]interface{}) Modifier {
+	return func(c *GenerateGkeTfConfigurationArgs) {
+		c.ExtraProviderArguments = args
+	}
+}
+
+// WithGkeExtraBlocks enables adding additional arbitrary blocks to the root hcl document
+func WithGkeExtraBlocks(blocks []*hclwrite.Block) Modifier {
+	return func(c *GenerateGkeTfConfigurationArgs) {
+		c.ExtraBlocks = blocks
+	}
+}
+
+// WithGkeProviderDefaultLabels adds default_labels to the provider configuration for GCP (if labels are present)
+func WithGkeProviderDefaultLabels(labels map[string]interface{}) Modifier {
+	return func(c *GenerateGkeTfConfigurationArgs) {
+		c.ProviderDefaultLabels = labels
+	}
+}
+
+// WithGkeCustomOutputs Set Custom Terraform Outputs
+func WithGkeCustomOutputs(outputs []lwgenerate.HclOutput) Modifier {
+	return func(c *GenerateGkeTfConfigurationArgs) {
+		c.CustomOutputs = outputs
 	}
 }
 

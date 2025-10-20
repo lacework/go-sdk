@@ -27,7 +27,7 @@ func TestGenerateGKETfConfigurationArgs_Generate(t *testing.T) {
 			),
 			ReqProvider(gkeProjName, `module "gcp_organization_level_gke_audit_log" {
   source           = "lacework/gke-audit-log/gcp"
-  version          = "~> 0.3"
+  version          = "~> 0.6"
   integration_type = "ORGANIZATION"
   organization_id  = "123456789"
 }
@@ -41,7 +41,7 @@ func TestGenerateGKETfConfigurationArgs_Generate(t *testing.T) {
 			),
 			ReqProvider(gkeProjName, `module "gcp_project_level_gke_audit_log" {
   source             = "lacework/gke-audit-log/gcp"
-  version            = "~> 0.3"
+  version            = "~> 0.6"
   existing_sink_name = "sink"
   integration_type   = "PROJECT"
 }
@@ -56,7 +56,7 @@ func TestGenerateGKETfConfigurationArgs_Generate(t *testing.T) {
 			),
 			ReqProvider(gkeProjName, `module "gcp_project_level_gke_audit_log" {
   source                    = "lacework/gke-audit-log/gcp"
-  version                   = "~> 0.3"
+  version                   = "~> 0.6"
   integration_type          = "PROJECT"
   lacework_integration_name = "custom-integration"
 }
@@ -71,7 +71,7 @@ func TestGenerateGKETfConfigurationArgs_Generate(t *testing.T) {
 			),
 			ReqProvider(gkeProjName, `module "gcp_project_level_gke_audit_log" {
   source           = "lacework/gke-audit-log/gcp"
-  version          = "~> 0.3"
+  version          = "~> 0.6"
   integration_type = "PROJECT"
   prefix           = "custom-prefix"
 }
@@ -86,7 +86,7 @@ func TestGenerateGKETfConfigurationArgs_Generate(t *testing.T) {
 			),
 			ReqProvider(gkeProjName, `module "gcp_project_level_gke_audit_log" {
   source                       = "lacework/gke-audit-log/gcp"
-  version                      = "~> 0.3"
+  version                      = "~> 0.6"
   integration_type             = "PROJECT"
   service_account_name         = "foo"
   service_account_private_key  = "123456789"
@@ -103,7 +103,7 @@ func TestGenerateGKETfConfigurationArgs_Generate(t *testing.T) {
 			),
 			ReqProvider(gkeProjName, `module "gcp_project_level_gke_audit_log" {
   source           = "lacework/gke-audit-log/gcp"
-  version          = "~> 0.3"
+  version          = "~> 0.6"
   integration_type = "PROJECT"
   wait_time        = "30s"
 }
@@ -123,7 +123,7 @@ func TestGenerateGKETfConfigurationArgs_Generate(t *testing.T) {
 
 module "gcp_project_level_gke_audit_log" {
   source           = "lacework/gke-audit-log/gcp"
-  version          = "~> 0.3"
+  version          = "~> 0.6"
   integration_type = "PROJECT"
 
   providers = {

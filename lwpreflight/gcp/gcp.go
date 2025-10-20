@@ -35,6 +35,7 @@ type Params struct {
 	Agentless       bool
 	AuditLog        bool
 	Config          bool
+	GkeAuditLog     bool
 	Region          string
 	OrgID           string // Org-level integration if non-empty
 	ProjectID       string
@@ -60,6 +61,9 @@ func New(params Params) (*Preflight, error) {
 	}
 	if params.Config {
 		integrationTypes = append(integrationTypes, Config)
+	}
+	if params.GkeAuditLog {
+		integrationTypes = append(integrationTypes, GkeAuditLog)
 	}
 
 	if params.ProjectID == "" {

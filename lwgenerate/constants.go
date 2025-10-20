@@ -38,7 +38,7 @@ const (
 	GcpAuditLogSource        = "lacework/audit-log/gcp"
 	GcpAuditLogVersion       = "~> 3.4"
 	GcpGKEAuditLogSource     = "lacework/gke-audit-log/gcp"
-	GcpGKEAuditLogVersion    = "~> 0.3"
+	GcpGKEAuditLogVersion    = "~> 0.6"
 	GcpPubSubAuditLog        = "lacework/pub-sub-audit-log/gcp"
 	GcpPubSubAuditLogVersion = "~> 0.2"
 

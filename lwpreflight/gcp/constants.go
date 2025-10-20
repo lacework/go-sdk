@@ -3,9 +3,10 @@ package gcp
 type IntegrationType string
 
 const (
-	Agentless IntegrationType = "gcp_agentless"
-	AuditLog  IntegrationType = "gcp_audit_log"
-	Config    IntegrationType = "gcp_config"
+	Agentless   IntegrationType = "gcp_agentless"
+	AuditLog    IntegrationType = "gcp_audit_log"
+	Config      IntegrationType = "gcp_config"
+	GkeAuditLog IntegrationType = "gcp_gke_audit_log"
 )
 
 var RequiredPermissions = map[IntegrationType][]string{
@@ -144,6 +145,38 @@ var RequiredPermissions = map[IntegrationType][]string{
 		"serviceusage.services.get",
 		"serviceusage.services.list",
 		"serviceusage.services.use",
+	},
+	GkeAuditLog: {
+		"iam.serviceAccountKeys.create",
+		"iam.serviceAccountKeys.delete",
+		"iam.serviceAccountKeys.get",
+		"iam.serviceAccounts.create",
+		"iam.serviceAccounts.delete",
+		"iam.serviceAccounts.get",
+		"logging.sinks.create",
+		"logging.sinks.delete",
+		"logging.sinks.get",
+		"pubsub.subscriptions.consume",
+		"pubsub.subscriptions.create",
+		"pubsub.subscriptions.delete",
+		"pubsub.subscriptions.get",
+		"pubsub.subscriptions.getIamPolicy",
+		"pubsub.subscriptions.list",
+		"pubsub.subscriptions.setIamPolicy",
+		"pubsub.subscriptions.update",
+		"pubsub.topics.attachSubscription",
+		"pubsub.topics.create",
+		"pubsub.topics.delete",
+		"pubsub.topics.get",
+		"pubsub.topics.getIamPolicy",
+		"pubsub.topics.list",
+		"pubsub.topics.publish",
+		"pubsub.topics.setIamPolicy",
+		"pubsub.topics.update",
+		"resourcemanager.projects.get",
+		"resourcemanager.projects.getIamPolicy",
+		"resourcemanager.projects.setIamPolicy",
+		"serviceusage.services.list",
 	},
 }
 
@@ -323,5 +356,37 @@ var RequiredPermissionsForOrg = map[IntegrationType][]string{
 		"resourcemanager.projects.getIamPolicy",
 		"resourcemanager.projects.list",
 		"resourcemanager.projects.setIamPolicy",
+	},
+	GkeAuditLog: {
+		"iam.serviceAccountKeys.create",
+		"iam.serviceAccountKeys.delete",
+		"iam.serviceAccountKeys.get",
+		"iam.serviceAccounts.create",
+		"iam.serviceAccounts.delete",
+		"iam.serviceAccounts.get",
+		"logging.sinks.create",
+		"logging.sinks.delete",
+		"logging.sinks.get",
+		"pubsub.subscriptions.consume",
+		"pubsub.subscriptions.create",
+		"pubsub.subscriptions.delete",
+		"pubsub.subscriptions.get",
+		"pubsub.subscriptions.getIamPolicy",
+		"pubsub.subscriptions.list",
+		"pubsub.subscriptions.setIamPolicy",
+		"pubsub.subscriptions.update",
+		"pubsub.topics.attachSubscription",
+		"pubsub.topics.create",
+		"pubsub.topics.delete",
+		"pubsub.topics.get",
+		"pubsub.topics.getIamPolicy",
+		"pubsub.topics.list",
+		"pubsub.topics.publish",
+		"pubsub.topics.setIamPolicy",
+		"pubsub.topics.update",
+		"resourcemanager.projects.get",
+		"resourcemanager.projects.getIamPolicy",
+		"resourcemanager.projects.setIamPolicy",
+		"serviceusage.services.list",
 	},
 }
