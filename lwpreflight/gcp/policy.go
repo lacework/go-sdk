@@ -46,9 +46,10 @@ func FetchPolicies(p *Preflight) error {
 			for _, m := range b.Members {
 				if strings.Contains(strings.ToLower(m), strings.ToLower(p.caller.Email)) {
 					role, err := iamSvc.Roles.Get(b.Role).Do()
-					if err == nil {
-						permissions = append(permissions, role.IncludedPermissions...)
+					if err != nil {
+						return err
 					}
+					permissions = append(permissions, role.IncludedPermissions...)
 					roles[b.Role] = true
 					break
 				}
