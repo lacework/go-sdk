@@ -911,6 +911,12 @@ var RequiredPermissionsForOrg = map[IntegrationType][]string{
 	},
 	EksAuditLog: {
 		"ec2:DescribeRegions",
+		"organizations:DescribeAccount",
+		"organizations:DescribeOrganization",
+		"organizations:ListAccounts",
+		"organizations:ListAWSServiceAccessForOrganization",
+		"organizations:ListOrganizationalUnitsForParent",
+		"organizations:ListRoots",
 		"s3:CreateBucket",
 		"s3:DeleteBucket",
 		"s3:ListBucket",
