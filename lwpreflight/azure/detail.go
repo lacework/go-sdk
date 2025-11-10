@@ -3,7 +3,6 @@ package azure
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armsubscriptions"
 )
@@ -28,7 +27,7 @@ func FetchDetails(p *Preflight) error {
 		if err != nil {
 			return fmt.Errorf("failed to list locations: %v", err)
 		}
-	locationLoop:
+
 		for _, location := range page.Value {
 			if location.Name == nil {
 				continue
@@ -46,13 +45,10 @@ func FetchDetails(p *Preflight) error {
 				}
 			}
 
-			//Filter out stage/test regions by checking for common staging indicators
-			regionName := *location.Name
-			regionNameLower := strings.ToLower(regionName)
-			// eg: "eastusstg", "centraluseuap"
-			for _, suffix := range []string{"stg", "euap", "stage", "test", "preview"} {
-				if strings.HasSuffix(regionNameLower, suffix) {
-					continue locationLoop
+			//Filter for Recommmended (GA) regions
+			if location.Metadata != nil && location.Metadata.RegionCategory != nil {
+				if *location.Metadata.RegionCategory != armsubscriptions.RegionCategoryRecommended {
+					continue
 				}
 			}
 
