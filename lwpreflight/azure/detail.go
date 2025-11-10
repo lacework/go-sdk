@@ -27,10 +27,33 @@ func FetchDetails(p *Preflight) error {
 		if err != nil {
 			return fmt.Errorf("failed to list locations: %v", err)
 		}
+
 		for _, location := range page.Value {
-			if location.Name != nil {
-				regions = append(regions, *location.Name)
+			if location.Name == nil {
+				continue
 			}
+
+			// filter out edge zones
+			if location.Type != nil && *location.Type != armsubscriptions.LocationTypeRegion {
+				continue
+			}
+
+			// filter out non-physical regions
+			if location.Metadata != nil && location.Metadata.RegionType != nil {
+				if *location.Metadata.RegionType != armsubscriptions.RegionTypePhysical {
+					continue
+				}
+			}
+
+			//Filter for Recommmended (GA) regions
+			if location.Metadata != nil && location.Metadata.RegionCategory != nil {
+				if *location.Metadata.RegionCategory != armsubscriptions.RegionCategoryRecommended {
+					continue
+				}
+			}
+
+			// add to available regions
+			regions = append(regions, *location.Name)
 		}
 	}
 
