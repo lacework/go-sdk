@@ -1,12 +1,12 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v2.8.2`.
+Another day, another release. These are the release notes for the version `v2.8.3`.
 
 ## Other Changes
-* chore: replace Equal with GreaterOrEqual in preflight GCP (#1792) (Lokesh Vadlamudi)([184f87ae](https://github.com/lacework/go-sdk/commit/184f87aec9e48c7d7e76c38a25fc33be98bcec66))
-* chore: add eks audit log permission check (#1787) (Lokesh Vadlamudi)([8bf07652](https://github.com/lacework/go-sdk/commit/8bf07652e2019192eae63ee52acc4ff17f24f2d3))
-* chore: update support email (#1785) (Lokesh Vadlamudi)([7b3af961](https://github.com/lacework/go-sdk/commit/7b3af96153895df7d4faf42d847ff4347700141b))
-* chore: add gke audit log checks (#1788) (Lokesh Vadlamudi)([c1656ce5](https://github.com/lacework/go-sdk/commit/c1656ce55dd3d9843df3a80be5a90739e8f09061))
-* ci: version bump to v2.8.2-dev (Lacework)([e31f32b4](https://github.com/lacework/go-sdk/commit/e31f32b4608ea97e36982c0571907f458873227c))
+* chore: add missing permissions for aws agentless preflight check (#1801) (Lokesh Vadlamudi)([5a4c0297](https://github.com/lacework/go-sdk/commit/5a4c0297120b7dd1273738a1258cc82d1623f943))
+* chore(Azure Preflight): filter out non production azure regions (#1800) (Lokesh Vadlamudi)([fb3d81e1](https://github.com/lacework/go-sdk/commit/fb3d81e1f6a8c17f5f484b6178d245ec801b5dbb))
+* chore: add missing permissions for gke and eks auditlogs preflight check (#1795) (Lokesh Vadlamudi)([4eb05e42](https://github.com/lacework/go-sdk/commit/4eb05e427b1663fdb0889ed15c16469e489e8d07))
+* chore: add AWS/GCP missing permissions (#1790) (Pengyuan Zhao)([2956474a](https://github.com/lacework/go-sdk/commit/2956474a81cb7845864cba562a01ac3c58aefe55))
+* ci: version bump to v2.8.3-dev (Lacework)([9a7d8a8b](https://github.com/lacework/go-sdk/commit/9a7d8a8b68d220e3f08a113cb4cb2cdf99dee9e0))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
