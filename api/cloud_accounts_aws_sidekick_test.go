@@ -151,7 +151,6 @@ func singleAwsSidekickCloudAccount(id string) string {
 	  "scanFrequency": 24,
 	  "scanContainers": true,
 	  "scanHostVulnerabilities": true,
-	  "scanShortLivedInstances": false,
 	  "scanStoppedInstances": true,
 	  "scanMultiVolume": false
     },
