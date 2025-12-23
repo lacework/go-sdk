@@ -101,6 +101,8 @@ const (
 	AzureSidekickCloudAccount
 	GcpAlPubSubCloudAccount
 	OciCfgCloudAccount
+	AwsDspmCloudAccount
+	AzureDspmCloudAccount
 )
 
 // CloudAccountTypes is the list of available Cloud Account integration types
@@ -123,6 +125,8 @@ var CloudAccountTypes = map[cloudAccountType]string{
 	AzureSidekickCloudAccount:  "AzureSidekick",
 	GcpAlPubSubCloudAccount:    "GcpAlPubSub",
 	OciCfgCloudAccount:         "OciCfg",
+	AwsDspmCloudAccount:        "AwsDspm",
+	AzureDspmCloudAccount:      "AzureDspm",
 }
 
 // String returns the string representation of a Cloud Account integration type
