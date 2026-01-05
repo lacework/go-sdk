@@ -51,7 +51,13 @@ type AwsDspmResponse struct {
 
 type AwsDspm struct {
 	v2CommonIntegrationData
+	awsDspmToken `json:"serverToken"`
 	Data AwsDspmData `json:"data"`
+}
+
+type awsDspmToken struct {
+	ServerToken string `json:"serverToken"`
+	Uri         string `json:"uri"`
 }
 
 // AwsDspmData contains the data needed by Lacework platform services.

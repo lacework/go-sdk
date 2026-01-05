@@ -51,7 +51,13 @@ type AzureDspmResponse struct {
 
 type AzureDspm struct {
 	v2CommonIntegrationData
+	azureDspmToken `json:"serverToken"`
 	Data AzureDspmData `json:"data"`
+}
+
+type azureDspmToken struct {
+	ServerToken string `json:"serverToken"`
+	Uri         string `json:"uri"`
 }
 
 // AzureDspmData contains the data needed by Lacework platform services.
