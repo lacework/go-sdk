@@ -1,5 +1,5 @@
 
-<img src="https://techally-content.s3-us-west-1.amazonaws.com/public-content/lacework_logo_full.png" width="600">
+<img src="https://api.lacework.net/ui/images/branding/FortiCNAPP_logo.png" width="600">
 
 # Lacework Go SDK
 
