@@ -55,6 +55,7 @@ var RequiredPermissions = map[IntegrationType][]string{
 		"ecs:ListTasks",
 		"ecs:PutClusterCapacityProviders",
 		"ecs:RegisterTaskDefinition",
+		"ecs:StopTask",
 		"ecs:TagResource",
 		"events:DeleteRule",
 		"events:DescribeRule",
