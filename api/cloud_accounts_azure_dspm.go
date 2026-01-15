@@ -52,7 +52,7 @@ type AzureDspmResponse struct {
 type AzureDspm struct {
 	v2CommonIntegrationData
 	azureDspmToken `json:"serverToken"`
-	Data AzureDspmData `json:"data"`
+	Data           AzureDspmData `json:"data"`
 }
 
 type azureDspmToken struct {

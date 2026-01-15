@@ -52,7 +52,7 @@ type AwsDspmResponse struct {
 type AwsDspm struct {
 	v2CommonIntegrationData
 	awsDspmToken `json:"serverToken"`
-	Data AwsDspmData `json:"data"`
+	Data         AwsDspmData `json:"data"`
 }
 
 type awsDspmToken struct {
