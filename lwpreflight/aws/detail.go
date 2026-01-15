@@ -209,10 +209,10 @@ func fetchExistingTrail(p *Preflight) error {
 	}
 
 	p.details.ExistingTrail = Trail{
-		Name:        *trail.Name,
-		S3BucketARN: fmt.Sprintf("arn:aws:s3:::%s", *trail.S3BucketName),
-		SNSTopicARN: *trail.SnsTopicARN,
-		KMSKeyARN:   *trail.KmsKeyId,
+		Name:        aws.ToString(trail.Name),
+		S3BucketARN: fmt.Sprintf("arn:aws:s3:::%s", aws.ToString(trail.S3BucketName)),
+		SNSTopicARN: aws.ToString(trail.SnsTopicARN),
+		KMSKeyARN:   aws.ToString(trail.KmsKeyId),
 	}
 
 	return nil
