@@ -1021,7 +1021,6 @@ func promptAzureActivityLogQuestions(config *azure.GenerateAzureTfConfigurationA
 	}
 
 	// Ask for storage location with validation
-	var region string
 	if err := SurveyMultipleQuestionWithValidation([]SurveyQuestionWithValidationArgs{
 		{
 			Icon: IconActivityLog,
@@ -1030,13 +1029,12 @@ func promptAzureActivityLogQuestions(config *azure.GenerateAzureTfConfigurationA
 				Default: config.StorageLocation,
 				Help:    "Enter a valid Azure region (e.g., 'East US', 'West Europe')",
 			},
-			Response: &region,
+			Response: &config.StorageLocation,
 			Opts:     []survey.AskOpt{survey.WithValidator(validateAzureLocation)},
 		},
 	}); err != nil {
 		return err
 	}
-	config.StorageLocation = region
 
 	return nil
 }
