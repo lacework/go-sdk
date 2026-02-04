@@ -66,6 +66,7 @@ type AzureDspmData struct {
 	StorageAccountUrl string               `json:"storageAccountUrl,omitempty"`
 	BlobContainerName string               `json:"blobContainerName,omitempty"`
 	Credentials       AzureDspmCredentials `json:"credentials"`
+	Regions           []string             `json:"regions,omitempty"`
 }
 
 type AzureDspmCredentials struct {
