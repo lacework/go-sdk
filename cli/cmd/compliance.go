@@ -547,17 +547,15 @@ func prettyPrintReportTypes(reportTypes []string) string {
 	return sb.String()
 }
 
-func validReportName(cloud string, name string) error {
+func validateReportName(name string) error {
 	var validReportNames []string
-	definitions, err := cli.LwApi.V2.ReportDefinitions.List()
+	frameworks, err := cli.LwApi.V2.Frameworks.List()
 	if err != nil {
-		return errors.Wrap(err, "unable to list report definitions")
+		return errors.Wrap(err, "unable to list report frameworks")
 	}
 
-	for _, d := range definitions.Data {
-		if d.SubReportType == cloud {
-			validReportNames = append(validReportNames, d.ReportName)
-		}
+	for _, d := range frameworks.Data {
+		validReportNames = append(validReportNames, d.Name)
 	}
 
 	if array.ContainsStr(validReportNames, name) {
@@ -565,8 +563,7 @@ func validReportName(cloud string, name string) error {
 	}
 
 	return errors.Errorf(
-		"'%s' is not a valid report name.\n"+
-			"Run 'lacework report-definition list --subtype %s' for a list of valid report names",
-		name, cloud,
+		"'%s' is not a valid report name",
+		name,
 	)
 }
