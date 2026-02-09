@@ -65,6 +65,7 @@ type AwsDspmData struct {
 	AccountID         string                         `json:"awsAccountId,omitempty"`
 	BucketArn         string                         `json:"bucketArn,omitempty"`
 	CrossAccountCreds AwsDspmCrossAccountCredentials `json:"crossAccountCredentials"`
+	Regions           []string                       `json:"regions,omitempty"`
 }
 
 type AwsDspmCrossAccountCredentials struct {
