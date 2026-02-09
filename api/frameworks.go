@@ -28,7 +28,7 @@ type FrameworksService struct {
 	client *Client
 }
 
-// List returns a ReportDefinitionResponse
+// List returns a FrameworksResponse
 func (svc *FrameworksService) List() (response FrameworksResponse, err error) {
 	err = svc.client.RequestDecoder("GET", apiV2Frameworks, nil, &response)
 	return
@@ -43,7 +43,6 @@ type FrameworkResponse struct {
 }
 
 type Framework struct {
-	Guid           string     `json:"guid" yaml:"guid"`
 	Name           string     `json:"name" yaml:"name"`
 	Domains        []string   `json:"domains" yaml:"domains"`
 	Sections       []Section  `json:"sections" yaml:"sections"`
@@ -53,6 +52,7 @@ type Framework struct {
 	LastUpdateUser string     `json:"lastUpdateUser" yaml:"lastUpdateUser"`
 	CreatedTime    *time.Time `json:"createdTime" yaml:"createdTime"`
 	CreatedBy      string     `json:"createdBy" yaml:"createdBy"`
+	Guid           string     `json:"guid" yaml:"guid"`
 }
 
 type Section struct {
