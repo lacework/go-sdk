@@ -77,6 +77,7 @@ const (
 	apiV2ConfigsGcpProjects        = "v2/Configs/GcpProjects?orgId=%s"
 
 	apiV2FeatureFlags = "v2/FeatureFlags"
+	apiV2Frameworks   = "v2/Frameworks"
 
 	apiV2Policies        = "v2/Policies"
 	apiV2Queries         = "v2/Queries"
