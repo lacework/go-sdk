@@ -94,7 +94,7 @@ func runApiCommand(_ *cobra.Command, args []string) error {
 		response,
 	)
 	if err != nil {
-		return errors.Wrap(err, "unable to send the request")
+		return errors.Wrap(err, "an error occurred with the request")
 	}
 
 	if err := cli.OutputJSON(*response); err != nil {
