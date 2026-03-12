@@ -91,3 +91,18 @@ func (u *dspmPropsConfigUpper) toConfig() *DspmPropsConfig {
 	}
 	return cfg
 }
+
+const apiV2DspmStatus = "v2/dspm/status"
+
+// DspmStatusRequest is the request body for the DSPM status endpoint
+type DspmStatusRequest struct {
+	Ok      bool   `json:"ok"`
+	Message string `json:"message"`
+}
+
+// UpdateDspmStatus updates the status of a DSPM integration using server token auth.
+func (svc *CloudAccountsService) UpdateDspmStatus(serverToken string, status DspmStatusRequest) error {
+	return svc.client.RequestEncoderDecoderWithToken(
+		"POST", apiV2DspmStatus, serverToken, status, nil,
+	)
+}
