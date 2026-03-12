@@ -52,6 +52,7 @@ type AwsDspmResponse struct {
 type AwsDspm struct {
 	v2CommonIntegrationData
 	awsDspmToken `json:"serverToken"`
+	Props        *DspmProps  `json:"props,omitempty"`
 	Data         AwsDspmData `json:"data"`
 }
 
