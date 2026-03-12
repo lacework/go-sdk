@@ -52,6 +52,7 @@ type AzureDspmResponse struct {
 type AzureDspm struct {
 	v2CommonIntegrationData
 	azureDspmToken `json:"serverToken"`
+	Props          *DspmProps    `json:"props,omitempty"`
 	Data           AzureDspmData `json:"data"`
 }
 
