@@ -188,6 +188,7 @@ func (c *cliState) LoadComponents() {
 		version := component.InstalledVersion()
 
 		if version != nil {
+			c.installedCmd = true
 			componentCmd := &cobra.Command{
 				Use:                   component.Name,
 				Short:                 component.Description,
