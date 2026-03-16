@@ -172,6 +172,42 @@ func (c *Client) RequestEncoderDecoder(method, path string, data, v interface{})
 	return c.RequestDecoder(method, path, body, v)
 }
 
+// RequestEncoderDecoderWithToken performs an HTTP request using a server token
+// for authentication instead of the client's API key token. Used for endpoints
+// authenticated via ServerTokenProps (e.g., POST /api/v2/dspm/status).
+func (c *Client) RequestEncoderDecoderWithToken(method, path, token string, data, v interface{}) error {
+	body, err := jsonReader(data)
+	if err != nil {
+		return err
+	}
+
+	apiPath, err := url.Parse(c.apiPath(path))
+	if err != nil {
+		return err
+	}
+
+	u := c.baseURL.ResolveReference(apiPath)
+	request, err := http.NewRequest(method, u.String(), body)
+	if err != nil {
+		return err
+	}
+
+	request.Header.Set("Authorization", token)
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Accept", "application/json")
+
+	for k, v := range c.headers {
+		request.Header.Set(k, v)
+	}
+
+	res, err := c.DoDecoder(request, v)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	return nil
+}
+
 // Do calls request.Do() directly
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	response, err := c.c.Do(req)
