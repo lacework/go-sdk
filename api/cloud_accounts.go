@@ -222,7 +222,8 @@ func (svc *CloudAccountsService) Get(guid string, response interface{}) error {
 
 type CloudAccountRaw struct {
 	v2CommonIntegrationData
-	Data interface{} `json:"data,omitempty"`
+	Data  interface{} `json:"data,omitempty"`
+	Props interface{} `json:"props,omitempty"`
 }
 
 func (cloud CloudAccountRaw) GetData() any {
