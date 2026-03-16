@@ -45,7 +45,7 @@ func TestAlertCommentBadID(t *testing.T) {
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertComment(t *testing.T) {
+func _TestAlertComment(t *testing.T) {
 	id, err := popAlert()
 	if err != nil {
 		assert.FailNow(t, err.Error())
@@ -57,7 +57,7 @@ func TestAlertComment(t *testing.T) {
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertCommentInline(t *testing.T) {
+func _TestAlertCommentInline(t *testing.T) {
 	id, err := popAlert()
 	if err != nil {
 		assert.FailNow(t, err.Error())

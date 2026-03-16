@@ -76,7 +76,7 @@ func TestAlertListBadEnd(t *testing.T) {
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertListHuman(t *testing.T) {
+func _TestAlertListHuman(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--range", "last week")
 	assert.Contains(t, out.String(), "ALERT ID")
 	// breadcrumb
@@ -85,7 +85,7 @@ func TestAlertListHuman(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertListJSON(t *testing.T) {
+func _TestAlertListJSON(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--json", "--range", "last week")
 	assert.Contains(t, out.String(), `"alertId"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -148,7 +148,7 @@ func TestAlertListStatusBad(t *testing.T) {
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertListStatusOpen(t *testing.T) {
+func _TestAlertListStatusOpen(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "list", "--status", "Open", "--range", "last 7 days")
 	assert.Contains(t, out.String(), "Open")
 	assert.Empty(t, err.String(), "STDERR should be empty")

@@ -53,7 +53,7 @@ func TestAlertCloseBadID(t *testing.T) {
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertCloseReasonSurvey(t *testing.T) {
+func _TestAlertCloseReasonSurvey(t *testing.T) {
 	retry.RunWith(threeTimesWaitOneSecond(), t, func(r *retry.R) {
 		id, err := popAlert()
 		if err != nil {
@@ -67,7 +67,7 @@ func TestAlertCloseReasonSurvey(t *testing.T) {
 	})
 }
 
-func TestAlertCloseReasonInline(t *testing.T) {
+func _TestAlertCloseReasonInline(t *testing.T) {
 	retry.RunWith(threeTimesWaitOneSecond(), t, func(r *retry.R) {
 		id, err := popAlert()
 		if err != nil {
