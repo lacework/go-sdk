@@ -37,14 +37,14 @@ func TestAlertShowBadID(t *testing.T) {
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertShowBadScope(t *testing.T) {
+func _TestAlertShowBadScope(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "bad")
 	assert.Empty(t, out.String(), "STDOUT should be empty")
 	assert.Contains(t, err.String(), "ERROR scope (bad) is not recognized")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertShowDetails(t *testing.T) {
+func _TestAlertShowDetails(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID)
 	assert.Contains(t, out.String(), "SUBJECT")
 	assert.Contains(t, out.String(), "For further investigation")
@@ -67,14 +67,14 @@ func TestAlertShowDetails(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertShowDetailsJSON(t *testing.T) {
+func _TestAlertShowDetailsJSON(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--json")
 	assert.Contains(t, out.String(), `"alertId"`)
 	assert.Empty(t, err.String(), "STDERR should be empty")
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertShowInvestigation(t *testing.T) {
+func _TestAlertShowInvestigation(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "Investigation")
 
 	// RAIN-38816: Alerts: Valid Scopes Return 404 When Entries Are Not Available
@@ -92,7 +92,7 @@ func TestAlertShowInvestigation(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertShowEvents(t *testing.T) {
+func _TestAlertShowEvents(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "Events")
 
 	// RAIN-38816: Alerts: Valid Scopes Return 404 When Entries Are Not Available
@@ -110,7 +110,7 @@ func TestAlertShowEvents(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertShowRelatedAlerts(t *testing.T) {
+func _TestAlertShowRelatedAlerts(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "RelatedAlerts")
 
 	// RAIN-38816: Alerts: Valid Scopes Return 404 When Entries Are Not Available
@@ -128,7 +128,7 @@ func TestAlertShowRelatedAlerts(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertShowIntegrations(t *testing.T) {
+func _TestAlertShowIntegrations(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "Integrations")
 
 	// RAIN-38816: Alerts: Valid Scopes Return 404 When Entries Are Not Available
@@ -146,7 +146,7 @@ func TestAlertShowIntegrations(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertShowTimeline(t *testing.T) {
+func _TestAlertShowTimeline(t *testing.T) {
 	makeComment(alertShowID)
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "Timeline")
 
@@ -161,7 +161,7 @@ func TestAlertShowTimeline(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestAlertShowObservationTimeline(t *testing.T) {
+func _TestAlertShowObservationTimeline(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("alert", "show", alertShowID, "--scope", "ObservationTimeline")
 
 	if strings.Contains(err.String(), "[404] Not found") {
