@@ -21,14 +21,15 @@ type Details struct {
 	EKSClusters   []EKSCluster
 
 	// Fields for org-level
-	OrgAccess           bool
-	OrgID               string
-	IsManagementAccount bool
-	ManagementAccountID string
-	OrgAccountIDs       []string
-	OrgUnitIDs          []string
-	RootOrgUnitID       string
-	ControlTowerAccess  bool
+	OrgAccess                   bool
+	OrgID                       string
+	IsManagementAccount         bool
+	ManagementAccountID         string
+	OrgAccountIDs               []string
+	OrgUnitIDs                  []string
+	RootOrgUnitID               string
+	ControlTowerAccess          bool
+	CloudTrailOrgServiceEnabled bool
 }
 
 type Trail struct {
@@ -168,10 +169,29 @@ func fetchOrg(p *Preflight) error {
 		return nil
 	}
 	for _, service := range servicesOutput.EnabledServicePrincipals {
-		if *service.ServicePrincipal == "controltower.amazonaws.com" {
+		switch *service.ServicePrincipal {
+		case "controltower.amazonaws.com":
 			p.details.ControlTowerAccess = true
+		case "cloudtrail.amazonaws.com":
+			p.details.CloudTrailOrgServiceEnabled = true
 		}
 	}
+
+	return nil
+}
+
+func CheckCloudTrailOrgServiceEnabled(p *Preflight) error {
+	if p.details.ControlTowerAccess || p.details.CloudTrailOrgServiceEnabled {
+		return nil
+	}
+
+	p.verboseWriter.Write("Verifying CloudTrail is enabled as a trusted service in the organization")
+	p.errors[CloudTrail] = append(
+		p.errors[CloudTrail],
+		"CloudTrail is not enabled as a trusted service in the AWS Organization. "+
+			"Enable it from the management account: "+
+			"aws organizations enable-aws-service-access --service-principal cloudtrail.amazonaws.com",
+	)
 
 	return nil
 }

@@ -85,6 +85,9 @@ func New(params Params) (*Preflight, error) {
 	}
 	if params.CloudTrail {
 		integrationTypes = append(integrationTypes, CloudTrail)
+		if params.IsOrg {
+			tasks = append(tasks, CheckCloudTrailOrgServiceEnabled)
+		}
 	}
 	if params.EksAuditLog {
 		integrationTypes = append(integrationTypes, EksAuditLog)
