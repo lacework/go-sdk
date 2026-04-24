@@ -18,6 +18,12 @@
   Learn more about contributing: https://github.com/lacework/go-sdk/blob/main/CONTRIBUTING.md
 -->
 
+## Jira Ticket
+
+<!--
+  Link to the Jira ticket (e.g., https://lacework.atlassian.net/browse/XXX-1234)
+-->
+
 ## Summary
 
 <!--
