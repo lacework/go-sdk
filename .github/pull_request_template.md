@@ -18,6 +18,12 @@
   Learn more about contributing: https://github.com/lacework/go-sdk/blob/main/CONTRIBUTING.md
 -->
 
+## Jira/Github ticket
+
+<!--
+  Link to the Jira ticket (e.g., https://lacework.atlassian.net/browse/XXX-1234) or GitHub issue
+-->
+
 ## Summary
 
 <!--
@@ -29,10 +35,4 @@
 <!--
   How exactly did you verify that your PR solves the issue you wanted to solve?
   Include any other relevant information such as how to use the new functionality, screenshots, etc.
--->
-
-## Issue
-
-<!--
-  Include the link to a Jira/Github issue
 -->
