@@ -35,8 +35,9 @@ Credentials are resolved using DefaultAzureCredential unless --client-id and
 
 At least one integration flag must be set: --agentless, --config, or
 --activity-log.`,
-		Args: cobra.NoArgs,
-		RunE: runPreflightAzure,
+		Args:         cobra.NoArgs,
+		SilenceUsage: true,
+		RunE:         runPreflightAzure,
 	}
 )
 
@@ -86,7 +87,7 @@ func runPreflightAzure(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to initialize Azure preflight")
 	}
-	if !cli.HumanOutput() {
+	if !cli.HumanOutput() || !cli.InteractiveMode() {
 		pf.SetVerboseWriter(silentVerboseWriter())
 	}
 

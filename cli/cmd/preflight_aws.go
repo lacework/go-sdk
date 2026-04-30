@@ -38,8 +38,9 @@ config files, EC2 instance profile) unless explicit --profile or
 
 At least one integration flag must be set: --agentless, --config,
 --cloudtrail, or --eks-audit-log.`,
-		Args: cobra.NoArgs,
-		RunE: runPreflightAws,
+		Args:         cobra.NoArgs,
+		SilenceUsage: true,
+		RunE:         runPreflightAws,
 	}
 )
 
@@ -92,7 +93,7 @@ func runPreflightAws(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to initialize AWS preflight")
 	}
-	if !cli.HumanOutput() {
+	if !cli.HumanOutput() || !cli.InteractiveMode() {
 		pf.SetVerboseWriter(silentVerboseWriter())
 	}
 

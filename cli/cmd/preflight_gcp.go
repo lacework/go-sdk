@@ -36,8 +36,9 @@ GOOGLE_APPLICATION_CREDENTIALS environment variable.
 
 At least one integration flag must be set: --agentless, --audit-log,
 --config, or --gke-audit-log.`,
-		Args: cobra.NoArgs,
-		RunE: runPreflightGcp,
+		Args:         cobra.NoArgs,
+		SilenceUsage: true,
+		RunE:         runPreflightGcp,
 	}
 )
 
@@ -90,7 +91,7 @@ func runPreflightGcp(_ *cobra.Command, _ []string) error {
 	if err != nil {
 		return errors.Wrap(err, "unable to initialize GCP preflight")
 	}
-	if !cli.HumanOutput() {
+	if !cli.HumanOutput() || !cli.InteractiveMode() {
 		pf.SetVerboseWriter(silentVerboseWriter())
 	}
 
