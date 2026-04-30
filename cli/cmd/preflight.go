@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/lacework/go-sdk/v2/lwpreflight/verbosewriter"
@@ -86,5 +85,5 @@ func preflightExitError(errs map[string][]string) error {
 	if total == 0 {
 		return nil
 	}
-	return errors.New(fmt.Sprintf("preflight reported %d issue(s)", total))
+	return fmt.Errorf("preflight reported %d issue(s)", total)
 }

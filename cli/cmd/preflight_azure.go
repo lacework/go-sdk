@@ -7,6 +7,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -118,7 +120,7 @@ func renderAzureHumanResult(result *azure.Result, integrations []string) {
 	cli.OutputHuman("  Admin:        %t\n", result.Caller.IsAdmin)
 
 	if len(integrations) > 0 {
-		cli.OutputHuman("\nIntegrations checked: %s\n", joinIntegrations(integrations))
+		cli.OutputHuman("\nIntegrations checked: %s\n", strings.Join(integrations, ", "))
 	}
 
 	renderIntegrationErrors(integrations, toStringErrorMap(result.Errors))

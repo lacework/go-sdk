@@ -7,6 +7,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -125,14 +127,14 @@ func renderAwsHumanResult(result *aws.Result, integrations []string) {
 	cli.OutputHuman("  Admin:   %t\n", result.Caller.IsAdmin)
 
 	if len(integrations) > 0 {
-		cli.OutputHuman("\nIntegrations checked: %s\n", joinIntegrations(integrations))
+		cli.OutputHuman("\nIntegrations checked: %s\n", strings.Join(integrations, ", "))
 	}
 
 	renderIntegrationErrors(integrations, toStringErrorMap(result.Errors))
 
 	cli.OutputHuman("\nDetails\n")
 	if len(result.Details.Regions) > 0 {
-		cli.OutputHuman("  Enabled regions: %s\n", joinIntegrations(result.Details.Regions))
+		cli.OutputHuman("  Enabled regions: %s\n", strings.Join(result.Details.Regions, ", "))
 	}
 	if result.Details.OrgID != "" {
 		cli.OutputHuman("  Organization ID:        %s\n", result.Details.OrgID)
@@ -182,17 +184,6 @@ func toStringErrorMap[K ~string](in map[K][]string) map[string][]string {
 	out := make(map[string][]string, len(in))
 	for k, v := range in {
 		out[string(k)] = v
-	}
-	return out
-}
-
-func joinIntegrations(items []string) string {
-	out := ""
-	for i, s := range items {
-		if i > 0 {
-			out += ", "
-		}
-		out += s
 	}
 	return out
 }

@@ -52,12 +52,6 @@ func TestToStringErrorMapPerProvider(t *testing.T) {
 	assert.Equal(t, []string{"missing iam"}, toStringErrorMap(gcpErrs)["gcp_gke_audit_log"])
 }
 
-func TestJoinIntegrations(t *testing.T) {
-	assert.Equal(t, "", joinIntegrations(nil))
-	assert.Equal(t, "a", joinIntegrations([]string{"a"}))
-	assert.Equal(t, "a, b, c", joinIntegrations([]string{"a", "b", "c"}))
-}
-
 func TestIntegrationsRequestedAws(t *testing.T) {
 	got := integrationsRequestedAws(struct {
 		agentless       bool

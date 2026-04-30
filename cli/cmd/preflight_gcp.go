@@ -7,6 +7,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -120,7 +122,7 @@ func renderGcpHumanResult(result *gcp.Result, integrations []string) {
 	cli.OutputHuman("  User ID: %s\n", result.Caller.UserID)
 
 	if len(integrations) > 0 {
-		cli.OutputHuman("\nIntegrations checked: %s\n", joinIntegrations(integrations))
+		cli.OutputHuman("\nIntegrations checked: %s\n", strings.Join(integrations, ", "))
 	}
 
 	renderIntegrationErrors(integrations, toStringErrorMap(result.Errors))
