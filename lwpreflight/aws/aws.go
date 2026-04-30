@@ -42,6 +42,13 @@ type Params struct {
 	AccessKeyID     string
 	SecretAccessKey string
 	SessionToken    string // Optional for temporary credentials
+
+	// UseSimulator switches the permission check from local IAM policy
+	// parsing to iam:SimulatePrincipalPolicy. The simulator factors in
+	// Service Control Policies and permissions boundaries that local
+	// parsing cannot see, at the cost of one extra required permission
+	// (iam:SimulatePrincipalPolicy) on the caller.
+	UseSimulator bool
 }
 
 func New(params Params) (*Preflight, error) {
@@ -69,12 +76,13 @@ func New(params Params) (*Preflight, error) {
 	}
 
 	integrationTypes := []IntegrationType{}
-	tasks := []func(p *Preflight) error{
-		FetchCaller,
-		FetchPolicies,
-		CheckPermissions,
-		FetchDetails,
+	tasks := []func(p *Preflight) error{FetchCaller}
+	if params.UseSimulator {
+		tasks = append(tasks, CheckPermissionsViaSimulator)
+	} else {
+		tasks = append(tasks, FetchPolicies, CheckPermissions)
 	}
+	tasks = append(tasks, FetchDetails)
 
 	if params.Agentless {
 		integrationTypes = append(integrationTypes, Agentless)
