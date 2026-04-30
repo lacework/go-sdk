@@ -1,6 +1,6 @@
 //
-// Author:: Lacework Inc.
-// Copyright:: Copyright 2026, Lacework Inc.
+// Author:: Fortinet
+// Copyright:: Copyright 2026, Fortinet
 // License:: Apache License, Version 2.0
 //
 
