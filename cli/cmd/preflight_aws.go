@@ -22,6 +22,7 @@ var (
 		cloudtrail      bool
 		eksAuditLog     bool
 		isOrg           bool
+		simulate        bool
 		region          string
 		profile         string
 		accessKeyID     string
@@ -39,7 +40,12 @@ config files, EC2 instance profile) unless explicit --profile or
 --access-key-id/--secret-access-key flags are provided.
 
 At least one integration flag must be set: --agentless, --config,
---cloudtrail, or --eks-audit-log.`,
+--cloudtrail, or --eks-audit-log.
+
+By default, the caller's identity-based policies are inspected locally. Pass
+--simulate to evaluate each required action through the IAM policy simulator
+instead — this also accounts for Organizations service control policies and
+permissions boundaries, which a local policy walk cannot see.`,
 		Args:         cobra.NoArgs,
 		SilenceUsage: true,
 		RunE:         runPreflightAws,
@@ -58,6 +64,8 @@ func init() {
 		"check permissions for the EKS Audit Log integration")
 	flags.BoolVar(&preflightAwsState.isOrg, "is-org", false,
 		"treat the account as an AWS Organizations management account")
+	flags.BoolVar(&preflightAwsState.simulate, "simulate", false,
+		"use IAM SimulatePrincipalPolicy (covers SCPs and permissions boundaries)")
 	flags.StringVar(&preflightAwsState.region, "region", "",
 		"AWS region to use for API calls")
 	flags.StringVar(&preflightAwsState.profile, "profile", "",
@@ -84,6 +92,7 @@ func runPreflightAws(_ *cobra.Command, _ []string) error {
 		CloudTrail:      s.cloudtrail,
 		EksAuditLog:     s.eksAuditLog,
 		IsOrg:           s.isOrg,
+		Simulate:        s.simulate,
 		Region:          s.region,
 		Profile:         s.profile,
 		AccessKeyID:     s.accessKeyID,
@@ -155,6 +164,7 @@ func integrationsRequestedAws(s struct {
 	cloudtrail      bool
 	eksAuditLog     bool
 	isOrg           bool
+	simulate        bool
 	region          string
 	profile         string
 	accessKeyID     string

@@ -59,6 +59,7 @@ func TestIntegrationsRequestedAws(t *testing.T) {
 		cloudtrail      bool
 		eksAuditLog     bool
 		isOrg           bool
+		simulate        bool
 		region          string
 		profile         string
 		accessKeyID     string

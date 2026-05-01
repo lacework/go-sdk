@@ -37,6 +37,7 @@ type Params struct {
 	CloudTrail      bool
 	EksAuditLog     bool
 	IsOrg           bool // If it's org-level integration
+	Simulate        bool // Use IAM SimulatePrincipalPolicy (covers SCPs and permission boundaries)
 	Region          string
 	Profile         string
 	AccessKeyID     string
@@ -69,12 +70,13 @@ func New(params Params) (*Preflight, error) {
 	}
 
 	integrationTypes := []IntegrationType{}
-	tasks := []func(p *Preflight) error{
-		FetchCaller,
-		FetchPolicies,
-		CheckPermissions,
-		FetchDetails,
+	permissionTasks := []func(p *Preflight) error{FetchPolicies, CheckPermissions}
+	if params.Simulate {
+		permissionTasks = []func(p *Preflight) error{CheckPermissionsViaSimulation}
 	}
+	tasks := []func(p *Preflight) error{FetchCaller}
+	tasks = append(tasks, permissionTasks...)
+	tasks = append(tasks, FetchDetails)
 
 	if params.Agentless {
 		integrationTypes = append(integrationTypes, Agentless)

@@ -1,0 +1,69 @@
+package aws
+
+import (
+	"testing"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestSimulationDenialReason(t *testing.T) {
+	t.Run("SCP denial wins over identity decision", func(t *testing.T) {
+		got := simulationDenialReason(types.EvaluationResult{
+			EvalDecision: types.PolicyEvaluationDecisionTypeImplicitDeny,
+			OrganizationsDecisionDetail: &types.OrganizationsDecisionDetail{
+				AllowedByOrganizations: false,
+			},
+		})
+		assert.Equal(t, "blocked by Organizations SCP", got)
+	})
+
+	t.Run("permissions boundary denial wins over identity decision", func(t *testing.T) {
+		got := simulationDenialReason(types.EvaluationResult{
+			EvalDecision: types.PolicyEvaluationDecisionTypeImplicitDeny,
+			PermissionsBoundaryDecisionDetail: &types.PermissionsBoundaryDecisionDetail{
+				AllowedByPermissionsBoundary: false,
+			},
+		})
+		assert.Equal(t, "blocked by permissions boundary", got)
+	})
+
+	t.Run("explicit deny in identity policy", func(t *testing.T) {
+		got := simulationDenialReason(types.EvaluationResult{
+			EvalDecision: types.PolicyEvaluationDecisionTypeExplicitDeny,
+		})
+		assert.Equal(t, "explicit deny in identity policy", got)
+	})
+
+	t.Run("implicit deny in identity policy", func(t *testing.T) {
+		got := simulationDenialReason(types.EvaluationResult{
+			EvalDecision: types.PolicyEvaluationDecisionTypeImplicitDeny,
+		})
+		assert.Equal(t, "no identity policy grants this action", got)
+	})
+
+	t.Run("SCP allowed but identity denies still reports identity reason", func(t *testing.T) {
+		got := simulationDenialReason(types.EvaluationResult{
+			EvalDecision: types.PolicyEvaluationDecisionTypeImplicitDeny,
+			OrganizationsDecisionDetail: &types.OrganizationsDecisionDetail{
+				AllowedByOrganizations: true,
+			},
+		})
+		assert.Equal(t, "no identity policy grants this action", got)
+	})
+}
+
+func TestIsAllowed(t *testing.T) {
+	assert.True(t, isAllowed(types.PolicyEvaluationDecisionTypeAllowed))
+	assert.False(t, isAllowed(types.PolicyEvaluationDecisionTypeExplicitDeny))
+	assert.False(t, isAllowed(types.PolicyEvaluationDecisionTypeImplicitDeny))
+}
+
+// Compile-time check that the EvaluationResult fields we depend on still
+// have the types we expect from the IAM SDK. Guards against a vendored SDK
+// upgrade silently changing the shape of the API we read.
+var _ = func() *string {
+	r := types.EvaluationResult{EvalActionName: aws.String("iam:GetRole")}
+	return r.EvalActionName
+}
