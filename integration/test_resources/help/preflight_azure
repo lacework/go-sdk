@@ -1,0 +1,35 @@
+Run preflight checks against an Azure subscription to verify the caller has
+the role assignments required by the selected Lacework integrations.
+Credentials are resolved using DefaultAzureCredential unless --client-id and
+--client-secret are provided for a service principal.
+
+At least one integration flag must be set: --agentless, --config, or
+--activity-log.
+
+Usage:
+  lacework preflight azure [flags]
+
+Flags:
+      --activity-log             check permissions for the Activity Log integration
+      --agentless                check permissions for the Agentless integration
+      --client-id string         Azure service principal client ID
+      --client-secret string     Azure service principal client secret
+      --config                   check permissions for the Config integration
+  -h, --help                     help for azure
+      --region string            Azure region to use for region-scoped checks
+      --subscription-id string   Azure subscription ID (required)
+      --tenant-id string         Azure tenant ID (required when using --client-id/--client-secret)
+
+Global Flags:
+  -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
+  -k, --api_key string      access key id
+  -s, --api_secret string   secret access key
+      --api_token string    access token (replaces the use of api_key and api_secret)
+      --debug               turn on debug logging
+      --json                switch commands output from human-readable to json format
+      --nocache             turn off caching
+      --nocolor             turn off colors
+      --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
+      --organization        access organization level data sets (org admins only)
+  -p, --profile string      switch between profiles configured at ~/.lacework.toml
+      --subaccount string   sub-account name inside your organization (org admins only)

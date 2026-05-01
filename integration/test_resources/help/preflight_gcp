@@ -1,0 +1,36 @@
+Run preflight checks against a GCP project to verify the caller has the IAM
+permissions required by the selected Lacework integrations. Credentials are
+resolved from --access-token, --credentials-file, or the
+GOOGLE_APPLICATION_CREDENTIALS environment variable.
+
+At least one integration flag must be set: --agentless, --audit-log,
+--config, or --gke-audit-log.
+
+Usage:
+  lacework preflight gcp [flags]
+
+Flags:
+      --access-token string       GCP OAuth2 access token
+      --agentless                 check permissions for the Agentless integration
+      --audit-log                 check permissions for the Audit Log integration
+      --config                    check permissions for the Config integration
+      --credentials-file string   Path to a GCP service account credentials JSON file
+      --gke-audit-log             check permissions for the GKE Audit Log integration
+  -h, --help                      help for gcp
+      --org-id string             GCP organization ID; sets the integration to org-level when non-empty
+      --project-id string         GCP project ID (required)
+      --region string             GCP region to use for region-scoped checks
+
+Global Flags:
+  -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
+  -k, --api_key string      access key id
+  -s, --api_secret string   secret access key
+      --api_token string    access token (replaces the use of api_key and api_secret)
+      --debug               turn on debug logging
+      --json                switch commands output from human-readable to json format
+      --nocache             turn off caching
+      --nocolor             turn off colors
+      --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
+      --organization        access organization level data sets (org admins only)
+  -p, --profile string      switch between profiles configured at ~/.lacework.toml
+      --subaccount string   sub-account name inside your organization (org admins only)

@@ -29,6 +29,7 @@ Available Commands:
   help                    Help about any command
   policy                  Manage policies
   policy-exception        Manage policy exceptions
+  preflight               Run preflight checks against a cloud account
   query                   Run and manage queries
   report-rule             Manage report rules
   resource-group          Manage resource groups
