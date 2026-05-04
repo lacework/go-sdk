@@ -2,12 +2,14 @@ package aws
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/aws/smithy-go"
 )
 
 // simulateBatchSize caps how many actions are evaluated per
@@ -70,6 +72,11 @@ func CheckPermissionsViaSimulation(p *Preflight) error {
 		}
 		results, err := simulatePrincipalPolicyAll(ctx, iamSvc, sourceArn, actions[start:end])
 		if err != nil {
+			if isAWSAccessDenied(err) {
+				return fmt.Errorf(
+					"--simulate requires iam:SimulatePrincipalPolicy on the caller; "+
+						"add it to the role's policy and re-run: %w", err)
+			}
 			return err
 		}
 		for _, result := range results {
@@ -128,12 +135,33 @@ func simulationPolicySourceArn(
 	}
 	role, err := iamSvc.GetRole(ctx, &iam.GetRoleInput{RoleName: aws.String(caller.Name)})
 	if err != nil {
+		if isAWSAccessDenied(err) {
+			return "", fmt.Errorf(
+				"--simulate requires iam:GetRole on %s to translate the assumed-role "+
+					"session into a role ARN; add iam:GetRole to the role's policy and "+
+					"re-run: %w", caller.Name, err)
+		}
 		return "", fmt.Errorf("resolving role ARN for %s: %w", caller.Name, err)
 	}
 	if role.Role == nil || role.Role.Arn == nil {
 		return "", fmt.Errorf("iam:GetRole returned no ARN for %s", caller.Name)
 	}
 	return *role.Role.Arn, nil
+}
+
+// isAWSAccessDenied reports whether err is an AWS API error indicating the
+// caller lacks permission. IAM and STS use AccessDenied; some services use
+// AccessDeniedException; EC2-style services use UnauthorizedOperation.
+func isAWSAccessDenied(err error) bool {
+	var apiErr smithy.APIError
+	if !errors.As(err, &apiErr) {
+		return false
+	}
+	switch apiErr.ErrorCode() {
+	case "AccessDenied", "AccessDeniedException", "UnauthorizedOperation":
+		return true
+	}
+	return false
 }
 
 func isAllowed(decision types.PolicyEvaluationDecisionType) bool {

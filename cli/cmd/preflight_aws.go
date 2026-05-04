@@ -44,8 +44,13 @@ At least one integration flag must be set: --agentless, --config,
 
 By default, the caller's identity-based policies are inspected locally. Pass
 --simulate to evaluate each required action through the IAM policy simulator
-instead — this also accounts for Organizations service control policies and
-permissions boundaries, which a local policy walk cannot see.`,
+instead — this also accounts for permissions boundaries and unconditional
+Organizations service control policies, which a local policy walk cannot see.
+Note: the simulator skips SCPs that have any conditions, and does not
+evaluate resource control policies (RCPs). Condition keys (e.g. aws:SourceIp,
+aws:MultiFactorAuthPresent, aws:PrincipalTag/*) are not supplied, so policies
+that grant access only when such conditions are met may be reported as denied
+even though the call would succeed in production.`,
 		Args:         cobra.NoArgs,
 		SilenceUsage: true,
 		RunE:         runPreflightAws,
@@ -65,7 +70,7 @@ func init() {
 	flags.BoolVar(&preflightAwsState.isOrg, "is-org", false,
 		"treat the account as an AWS Organizations management account")
 	flags.BoolVar(&preflightAwsState.simulate, "simulate", false,
-		"use IAM SimulatePrincipalPolicy (covers SCPs and permissions boundaries)")
+		"use IAM SimulatePrincipalPolicy (covers permissions boundaries and unconditional SCPs)")
 	flags.StringVar(&preflightAwsState.region, "region", "",
 		"AWS region to use for API calls")
 	flags.StringVar(&preflightAwsState.profile, "profile", "",
