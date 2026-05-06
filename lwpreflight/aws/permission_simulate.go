@@ -26,7 +26,6 @@ const simulateBatchSize = 50
 func CheckPermissionsViaSimulation(p *Preflight) error {
 	if p.caller.IsRoot {
 		// Root is unconstrained by IAM policies, SCPs, or boundaries.
-		p.caller.IsAdmin = true
 		return nil
 	}
 

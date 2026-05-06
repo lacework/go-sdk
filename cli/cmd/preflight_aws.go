@@ -127,18 +127,20 @@ func runPreflightAws(_ *cobra.Command, _ []string) error {
 		return preflightExitError(toStringErrorMap(result.Errors))
 	}
 
-	renderAwsHumanResult(result, integrationsRequestedAws(s))
+	renderAwsHumanResult(result, integrationsRequestedAws(s), s.simulate)
 	return preflightExitError(toStringErrorMap(result.Errors))
 }
 
-func renderAwsHumanResult(result *aws.Result, integrations []string) {
+func renderAwsHumanResult(result *aws.Result, integrations []string, simulated bool) {
 	cli.OutputHuman("Preflight check: AWS\n\n")
 	cli.OutputHuman("Caller\n")
 	cli.OutputHuman("  ARN:     %s\n", result.Caller.ARN)
 	cli.OutputHuman("  Account: %s\n", result.Caller.AccountID)
 	cli.OutputHuman("  User ID: %s\n", result.Caller.UserID)
 	cli.OutputHuman("  Name:    %s\n", result.Caller.Name)
-	cli.OutputHuman("  Admin:   %t\n", result.Caller.IsAdmin)
+	if !simulated {
+		cli.OutputHuman("  Admin:   %t\n", result.Caller.IsAdmin)
+	}
 
 	if len(integrations) > 0 {
 		cli.OutputHuman("\nIntegrations checked: %s\n", strings.Join(integrations, ", "))
