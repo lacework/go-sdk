@@ -22,6 +22,7 @@ var (
 		cloudtrail      bool
 		eksAuditLog     bool
 		isOrg           bool
+		simulate        bool
 		region          string
 		profile         string
 		accessKeyID     string
@@ -39,7 +40,17 @@ config files, EC2 instance profile) unless explicit --profile or
 --access-key-id/--secret-access-key flags are provided.
 
 At least one integration flag must be set: --agentless, --config,
---cloudtrail, or --eks-audit-log.`,
+--cloudtrail, or --eks-audit-log.
+
+By default, the caller's identity-based policies are inspected locally. Pass
+--simulate to evaluate each required action through the IAM policy simulator
+instead — this also accounts for permissions boundaries and unconditional
+Organizations service control policies, which a local policy walk cannot see.
+Note: the simulator skips SCPs that have any conditions, and does not
+evaluate resource control policies (RCPs). Condition keys (e.g. aws:SourceIp,
+aws:MultiFactorAuthPresent, aws:PrincipalTag/*) are not supplied, so policies
+that grant access only when such conditions are met may be reported as denied
+even though the call would succeed in production.`,
 		Args:         cobra.NoArgs,
 		SilenceUsage: true,
 		RunE:         runPreflightAws,
@@ -58,6 +69,8 @@ func init() {
 		"check permissions for the EKS Audit Log integration")
 	flags.BoolVar(&preflightAwsState.isOrg, "is-org", false,
 		"treat the account as an AWS Organizations management account")
+	flags.BoolVar(&preflightAwsState.simulate, "simulate", false,
+		"use IAM SimulatePrincipalPolicy (covers permissions boundaries and unconditional SCPs)")
 	flags.StringVar(&preflightAwsState.region, "region", "",
 		"AWS region to use for API calls")
 	flags.StringVar(&preflightAwsState.profile, "profile", "",
@@ -84,6 +97,7 @@ func runPreflightAws(_ *cobra.Command, _ []string) error {
 		CloudTrail:      s.cloudtrail,
 		EksAuditLog:     s.eksAuditLog,
 		IsOrg:           s.isOrg,
+		Simulate:        s.simulate,
 		Region:          s.region,
 		Profile:         s.profile,
 		AccessKeyID:     s.accessKeyID,
@@ -113,18 +127,20 @@ func runPreflightAws(_ *cobra.Command, _ []string) error {
 		return preflightExitError(toStringErrorMap(result.Errors))
 	}
 
-	renderAwsHumanResult(result, integrationsRequestedAws(s))
+	renderAwsHumanResult(result, integrationsRequestedAws(s), s.simulate)
 	return preflightExitError(toStringErrorMap(result.Errors))
 }
 
-func renderAwsHumanResult(result *aws.Result, integrations []string) {
+func renderAwsHumanResult(result *aws.Result, integrations []string, simulated bool) {
 	cli.OutputHuman("Preflight check: AWS\n\n")
 	cli.OutputHuman("Caller\n")
 	cli.OutputHuman("  ARN:     %s\n", result.Caller.ARN)
 	cli.OutputHuman("  Account: %s\n", result.Caller.AccountID)
 	cli.OutputHuman("  User ID: %s\n", result.Caller.UserID)
 	cli.OutputHuman("  Name:    %s\n", result.Caller.Name)
-	cli.OutputHuman("  Admin:   %t\n", result.Caller.IsAdmin)
+	if !simulated {
+		cli.OutputHuman("  Admin:   %t\n", result.Caller.IsAdmin)
+	}
 
 	if len(integrations) > 0 {
 		cli.OutputHuman("\nIntegrations checked: %s\n", strings.Join(integrations, ", "))
@@ -155,6 +171,7 @@ func integrationsRequestedAws(s struct {
 	cloudtrail      bool
 	eksAuditLog     bool
 	isOrg           bool
+	simulate        bool
 	region          string
 	profile         string
 	accessKeyID     string
