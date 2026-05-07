@@ -56,6 +56,7 @@ This will prompt you for your Lacework account and a set of API access keys.
 * [lacework generate](lacework_generate.md)	 - Generate code to onboard your account
 * [lacework policy](lacework_policy.md)	 - Manage policies
 * [lacework policy-exception](lacework_policy-exception.md)	 - Manage policy exceptions
+* [lacework preflight](lacework_preflight.md)	 - Run preflight checks against a cloud account
 * [lacework query](lacework_query.md)	 - Run and manage queries
 * [lacework report-rule](lacework_report-rule.md)	 - Manage report rules
 * [lacework resource-group](lacework_resource-group.md)	 - Manage resource groups
