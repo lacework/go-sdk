@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/organizations"
 	"github.com/aws/aws-sdk-go-v2/service/servicequotas"
 )
 
@@ -36,6 +37,41 @@ func CheckVPCQuota(p *Preflight) error {
 			fmt.Sprintf("VPC Quota limit exceeded in region %s", p.awsConfig.Region),
 		)
 	}
+
+	return nil
+}
+
+func CheckCloudTrailOrgServiceEnabled(p *Preflight) error {
+	p.verboseWriter.Write("Discovering enabled services in the organization")
+
+	ctx := context.Background()
+	orgSvc := organizations.NewFromConfig(p.awsConfig)
+
+	servicesOutput, err := orgSvc.ListAWSServiceAccessForOrganization(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	for _, service := range servicesOutput.EnabledServicePrincipals {
+		switch *service.ServicePrincipal {
+		case "controltower.amazonaws.com":
+			p.details.ControlTowerAccess = true
+		case "cloudtrail.amazonaws.com":
+			p.details.CloudTrailOrgServiceEnabled = true
+		}
+	}
+
+	if p.details.ControlTowerAccess || p.details.CloudTrailOrgServiceEnabled {
+		return nil
+	}
+
+	p.verboseWriter.Write("Verifying CloudTrail is enabled as a trusted service in the organization")
+	p.errors[CloudTrail] = append(
+		p.errors[CloudTrail],
+		"CloudTrail is not enabled as a trusted service in the AWS Organization. "+
+			"Enable it from the management account: "+
+			"aws organizations enable-aws-service-access --service-principal cloudtrail.amazonaws.com",
+	)
 
 	return nil
 }
