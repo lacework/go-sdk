@@ -130,6 +130,7 @@ var RequiredPermissions = map[IntegrationType][]string{
 		"secretsmanager:GetResourcePolicy",
 		"secretsmanager:GetSecretValue",
 		"secretsmanager:PutSecretValue",
+		"secretsmanager:TagResource",
 		"servicequotas:GetServiceQuota",
 	},
 	Config: {
