@@ -3,6 +3,7 @@ package azure
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/resources/armsubscriptions"
 )
@@ -45,11 +46,11 @@ func FetchDetails(p *Preflight) error {
 				}
 			}
 
-			//Filter for Recommmended (GA) regions
-			if location.Metadata != nil && location.Metadata.RegionCategory != nil {
-				if *location.Metadata.RegionCategory != armsubscriptions.RegionCategoryRecommended {
-					continue
-				}
+			// filter out Microsoft-internal staging/canary regions (e.g. eastusstg, centraluseuap).
+			// Note: we intentionally do NOT filter on RegionCategoryRecommended — Azure marks
+			// fully functional regions like westus, eastus2 and westus3 as "Other" (CAD-2132).
+			if strings.HasSuffix(*location.Name, "stg") || strings.HasSuffix(*location.Name, "euap") {
+				continue
 			}
 
 			// add to available regions
