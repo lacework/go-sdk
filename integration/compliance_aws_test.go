@@ -28,6 +28,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// skipNoComplianceReportData skips tests that depend on the CI account's AWS
+// compliance report data, which currently comes back empty ("ERROR no data
+// found in the report"; nightly builds red since 2026-05-27). Remove these
+// skips once the test account's AWS config integration is collecting again.
+func skipNoComplianceReportData(t *testing.T) {
+	t.Skip("skipping: CI test account returns no AWS compliance report data")
+}
+
 func TestComplianceAwsList(t *testing.T) {
 	out, err, exitcode := LaceworkCLIWithTOMLConfig(
 		"compliance", "aws", "list",
@@ -40,6 +48,7 @@ func TestComplianceAwsList(t *testing.T) {
 }
 
 func TestComplianceAwsGetReportFilter(t *testing.T) {
+	skipNoComplianceReportData(t)
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--status", "compliant",
 		"--report_name", "AWS NIST 800-171 rev2")
@@ -68,6 +77,7 @@ func TestComplianceAwsGetReportFilter(t *testing.T) {
 }
 
 func TestComplianceAwsGetReportDetails(t *testing.T) {
+	skipNoComplianceReportData(t)
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	detailsOutput := "recommendations showing"
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--details")
@@ -99,6 +109,7 @@ func TestComplianceAwsGetReportDetails(t *testing.T) {
 }
 
 func TestComplianceAwsGetReportCsvOutput(t *testing.T) {
+	skipNoComplianceReportData(t)
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	// re-use the directory to take advantage of our caching mechanism
 	dir := createTOMLConfigFromCIvars()
@@ -130,6 +141,7 @@ func TestComplianceAwsGetReportCsvOutput(t *testing.T) {
 }
 
 func TestComplianceAwsGetReportFiltersWithJsonOutput(t *testing.T) {
+	skipNoComplianceReportData(t)
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--severity", "critical", "--json")
 	severities := []string{"\"severity\": 2", "\"severity\": 3", "\"severity\": 4", "\"severity\": 5"}
@@ -154,6 +166,7 @@ func TestComplianceAwsGetReportAccountIDWithAlias(t *testing.T) {
 }
 
 func TestComplianceAwsGetReportTypeAWS_SOC_2(t *testing.T) {
+	skipNoComplianceReportData(t)
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--report_name", "AWS SOC 2")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -167,6 +180,7 @@ func TestComplianceAwsGetReportTypeAWS_SOC_2(t *testing.T) {
 }
 
 func TestComplianceAwsGetReportByName(t *testing.T) {
+	skipNoComplianceReportData(t)
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--report_name", "AWS Cloud Security Alliance Cloud Control Matrix (CSA CCM) v4.0.5")
 	assert.Empty(t, err.String(), "STDERR should be empty")
@@ -197,6 +211,7 @@ func _TestComplianceAwsGetAllReportType(t *testing.T) {
 	}
 }
 func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
+	skipNoComplianceReportData(t)
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	out, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "--type", "AWS_CIS_14", "lacework-global-34")
 
@@ -219,6 +234,7 @@ func TestComplianceAwsGetReportRecommendationID(t *testing.T) {
 }
 
 func TestComplianceAwsGetReportRecommendationIDNotFound(t *testing.T) {
+	skipNoComplianceReportData(t)
 	account := os.Getenv("LW_INT_TEST_AWS_ACC")
 	_, err, exitcode := LaceworkCLIWithTOMLConfig("compliance", "aws", "get-report", account, "rec-not-found")
 	assert.Equal(t, 1, exitcode, "EXITCODE is not the expected one")
