@@ -77,6 +77,19 @@ func New(params Params) (*Preflight, error) {
 	tasks := []func(p *Preflight) error{FetchCaller}
 	tasks = append(tasks, permissionTasks...)
 
+	if params.IsOrg {
+		tasks = append(tasks, FetchOrgInfo)
+		if params.Agentless {
+			tasks = append(tasks, FetchOrgAccounts)
+		}
+		if params.Config {
+			tasks = append(tasks, FetchOrgUnits)
+		}
+		if params.CloudTrail {
+			tasks = append(tasks, CheckCloudTrailOrgServiceEnabled)
+		}
+	}
+
 	if params.Agentless {
 		integrationTypes = append(integrationTypes, Agentless)
 		tasks = append(tasks, FetchRegions)
@@ -95,19 +108,6 @@ func New(params Params) (*Preflight, error) {
 			tasks = append(tasks, FetchRegions)
 		}
 		tasks = append(tasks, FetchEKSClusters)
-	}
-
-	if params.IsOrg {
-		tasks = append(tasks, FetchOrgInfo)
-		if params.Agentless {
-			tasks = append(tasks, FetchOrgAccounts)
-		}
-		if params.Config {
-			tasks = append(tasks, FetchOrgUnits)
-		}
-		if params.CloudTrail {
-			tasks = append(tasks, CheckCloudTrailOrgServiceEnabled)
-		}
 	}
 
 	preflight := &Preflight{
