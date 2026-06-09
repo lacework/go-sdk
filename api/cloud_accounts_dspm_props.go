@@ -54,10 +54,10 @@ func (p *DspmProps) UnmarshalJSON(data []byte) error {
 
 // DspmPropsConfig contains DSPM-specific configuration
 type DspmPropsConfig struct {
-	ScanIntervalHours   *int                     `json:"scanIntervalHours,omitempty"`
-	MaxDownloadBytes    *int                     `json:"maxDownloadBytes,omitempty"`
-	DatastoreFilters    *DspmDatastoreFilters    `json:"datastoreFilters,omitempty"`
-	SubscriptionFilters *DspmSubscriptionFilters `json:"subscriptionFilters,omitempty"`
+	ScanIntervalHours *int                  `json:"scanIntervalHours,omitempty"`
+	MaxDownloadBytes  *int                  `json:"maxDownloadBytes,omitempty"`
+	DatastoreFilters  *DspmDatastoreFilters `json:"datastoreFilters,omitempty"`
+	AccountFilters    *DspmAccountFilters   `json:"accountFilters,omitempty"`
 }
 
 // DspmDatastoreFilters configures which datastores to include/exclude from scanning
@@ -66,20 +66,21 @@ type DspmDatastoreFilters struct {
 	DatastoreNames []string `json:"datastoreNames"`
 }
 
-// DspmSubscriptionFilters configures which subscriptions to include/exclude from a
-// TENANT-level Azure scan, mirroring DspmDatastoreFilters.
-type DspmSubscriptionFilters struct {
-	FilterMode      string   `json:"filterMode"`
-	SubscriptionIds []string `json:"subscriptionIds"`
+// DspmAccountFilters configures which accounts to include/exclude from an
+// organization/tenant-level scan (AWS accounts or Azure subscriptions), mirroring
+// DspmDatastoreFilters. Cloud-agnostic: "account" == an Azure subscription too.
+type DspmAccountFilters struct {
+	FilterMode string   `json:"filterMode"`
+	AccountIds []string `json:"accountIds"`
 }
 
 // dspmPropsConfigUpper mirrors DspmPropsConfig with UPPER_SNAKE_CASE JSON tags
 // for deserializing PATCH responses.
 type dspmPropsConfigUpper struct {
-	ScanIntervalHours   *int                          `json:"SCAN_INTERVAL_HOURS,omitempty"`
-	MaxDownloadBytes    *int                          `json:"MAX_DOWNLOAD_BYTES,omitempty"`
-	DatastoreFilters    *dspmDatastoreFiltersUpper    `json:"DATASTORE_FILTERS,omitempty"`
-	SubscriptionFilters *dspmSubscriptionFiltersUpper `json:"SUBSCRIPTION_FILTERS,omitempty"`
+	ScanIntervalHours *int                       `json:"SCAN_INTERVAL_HOURS,omitempty"`
+	MaxDownloadBytes  *int                       `json:"MAX_DOWNLOAD_BYTES,omitempty"`
+	DatastoreFilters  *dspmDatastoreFiltersUpper `json:"DATASTORE_FILTERS,omitempty"`
+	AccountFilters    *dspmAccountFiltersUpper   `json:"ACCOUNT_FILTERS,omitempty"`
 }
 
 type dspmDatastoreFiltersUpper struct {
@@ -87,9 +88,9 @@ type dspmDatastoreFiltersUpper struct {
 	DatastoreNames []string `json:"DATASTORE_NAMES"`
 }
 
-type dspmSubscriptionFiltersUpper struct {
-	FilterMode      string   `json:"FILTER_MODE"`
-	SubscriptionIds []string `json:"SUBSCRIPTION_IDS"`
+type dspmAccountFiltersUpper struct {
+	FilterMode string   `json:"FILTER_MODE"`
+	AccountIds []string `json:"ACCOUNT_IDS"`
 }
 
 func (u *dspmPropsConfigUpper) toConfig() *DspmPropsConfig {
@@ -103,10 +104,10 @@ func (u *dspmPropsConfigUpper) toConfig() *DspmPropsConfig {
 			DatastoreNames: u.DatastoreFilters.DatastoreNames,
 		}
 	}
-	if u.SubscriptionFilters != nil {
-		cfg.SubscriptionFilters = &DspmSubscriptionFilters{
-			FilterMode:      u.SubscriptionFilters.FilterMode,
-			SubscriptionIds: u.SubscriptionFilters.SubscriptionIds,
+	if u.AccountFilters != nil {
+		cfg.AccountFilters = &DspmAccountFilters{
+			FilterMode: u.AccountFilters.FilterMode,
+			AccountIds: u.AccountFilters.AccountIds,
 		}
 	}
 	return cfg
