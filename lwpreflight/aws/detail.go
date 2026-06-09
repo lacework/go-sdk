@@ -2,7 +2,6 @@ package aws
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 
@@ -12,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/eks"
 	"github.com/aws/aws-sdk-go-v2/service/organizations"
-	"github.com/lacework/go-sdk/v2/lwpreflight/logger"
+	"golang.org/x/sync/errgroup"
 )
 
 type Details struct {
@@ -44,159 +43,95 @@ type EKSCluster struct {
 	Region string
 }
 
-func FetchDetails(p *Preflight) error {
-	p.details = Details{
-		OrgAccountIDs: []string{},
-		OrgUnitIDs:    []string{},
-		Regions:       []string{},
-		EKSClusters:   []EKSCluster{},
-	}
-
-	err := fetchOrg(p)
-	if err != nil {
-		return err
-	}
-
-	err = fetchRegions(p)
-	if err != nil {
-		return err
-	}
-
-	err = fetchExistingTrail(p)
-	if err != nil {
-		logger.Log.Warn(err.Error())
-	}
-
-	err = fetchEKSClusters(p)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func fetchOrg(p *Preflight) error {
+func FetchOrgInfo(p *Preflight) error {
 	p.verboseWriter.Write("Discovering organization information")
 
 	ctx := context.Background()
 	orgSvc := organizations.NewFromConfig(p.awsConfig)
 
-	// Check if the caller can access org
 	_, err := orgSvc.DescribeAccount(ctx, &organizations.DescribeAccountInput{
 		AccountId: &p.caller.AccountID,
 	})
 	if err != nil {
-		// Only respect errors if org level is enabled. Same for code below
-		if p.isOrg {
-			return err
-		}
-		return nil
+		return err
 	}
+
 	p.details.OrgAccess = true
 
-	// Get management account ID and org ID
 	orgOutput, err := orgSvc.DescribeOrganization(ctx, nil)
 	if err != nil {
-		if p.isOrg {
-			return err
-		}
-		return nil
+		return err
 	}
+
 	p.details.ManagementAccountID = *orgOutput.Organization.MasterAccountId
 	p.details.IsManagementAccount = *orgOutput.Organization.MasterAccountId == p.caller.AccountID
 	p.details.OrgID = *orgOutput.Organization.Id
 
-	if p.isOrg && !p.details.IsManagementAccount {
+	if !p.details.IsManagementAccount {
 		return fmt.Errorf("The account %s is not a management account."+
 			"Please use a management account to continue with organization level integration.",
 			p.caller.AccountID,
 		)
 	}
 
+	return nil
+}
+
+func FetchOrgAccounts(p *Preflight) error {
 	p.verboseWriter.Write("Discovering all accounts in the organization")
 
-	// Get account IDs in the org
+	ctx := context.Background()
+	orgSvc := organizations.NewFromConfig(p.awsConfig)
+
 	accountsOutput, err := orgSvc.ListAccounts(ctx, nil)
 	if err != nil {
-		if p.isOrg {
-			return err
-		}
-		return nil
+		return err
 	}
+
+	p.details.OrgAccountIDs = []string{}
 	for _, a := range accountsOutput.Accounts {
 		p.details.OrgAccountIDs = append(p.details.OrgAccountIDs, *a.Id)
 	}
 
+	return nil
+}
+
+func FetchOrgUnits(p *Preflight) error {
 	p.verboseWriter.Write("Discovering root organization unit")
 
-	// Get root org unit ID and all org unit IDs
+	ctx := context.Background()
+	orgSvc := organizations.NewFromConfig(p.awsConfig)
+
 	rootsOutput, err := orgSvc.ListRoots(ctx, nil)
 	if err != nil {
-		if p.isOrg {
-			return err
-		}
+		return err
+	}
+	if len(rootsOutput.Roots) == 0 {
 		return nil
 	}
-	if len(rootsOutput.Roots) > 0 {
-		p.verboseWriter.Write("Discovering all organization units")
+	p.details.RootOrgUnitID = *rootsOutput.Roots[0].Id
 
-		p.details.RootOrgUnitID = *rootsOutput.Roots[0].Id
-		orgUnitsOutput, err := orgSvc.ListOrganizationalUnitsForParent(
-			ctx,
-			&organizations.ListOrganizationalUnitsForParentInput{
-				ParentId: &p.details.RootOrgUnitID,
-			},
-		)
-		if err != nil {
-			if p.isOrg {
-				return err
-			}
-			return nil
-		}
-		for _, ou := range orgUnitsOutput.OrganizationalUnits {
-			p.details.OrgUnitIDs = append(p.details.OrgUnitIDs, *ou.Id)
-		}
-	}
+	p.verboseWriter.Write("Discovering all organization units")
 
-	p.verboseWriter.Write("Discovering enabled services in the organization")
-
-	// Check enabled services
-	servicesOutput, err := orgSvc.ListAWSServiceAccessForOrganization(ctx, nil)
-	if err != nil {
-		if p.isOrg {
-			return err
-		}
-		return nil
-	}
-	for _, service := range servicesOutput.EnabledServicePrincipals {
-		switch *service.ServicePrincipal {
-		case "controltower.amazonaws.com":
-			p.details.ControlTowerAccess = true
-		case "cloudtrail.amazonaws.com":
-			p.details.CloudTrailOrgServiceEnabled = true
-		}
-	}
-
-	return nil
-}
-
-func CheckCloudTrailOrgServiceEnabled(p *Preflight) error {
-	if p.details.ControlTowerAccess || p.details.CloudTrailOrgServiceEnabled {
-		return nil
-	}
-
-	p.verboseWriter.Write("Verifying CloudTrail is enabled as a trusted service in the organization")
-	p.errors[CloudTrail] = append(
-		p.errors[CloudTrail],
-		"CloudTrail is not enabled as a trusted service in the AWS Organization. "+
-			"Enable it from the management account: "+
-			"aws organizations enable-aws-service-access --service-principal cloudtrail.amazonaws.com",
+	orgUnitsOutput, err := orgSvc.ListOrganizationalUnitsForParent(
+		ctx,
+		&organizations.ListOrganizationalUnitsForParentInput{
+			ParentId: &p.details.RootOrgUnitID,
+		},
 	)
+	if err != nil {
+		return err
+	}
+
+	p.details.OrgUnitIDs = []string{}
+	for _, ou := range orgUnitsOutput.OrganizationalUnits {
+		p.details.OrgUnitIDs = append(p.details.OrgUnitIDs, *ou.Id)
+	}
 
 	return nil
 }
 
-func fetchRegions(p *Preflight) error {
+func FetchRegions(p *Preflight) error {
 	p.verboseWriter.Write("Discovering enabled regions")
 
 	ec2Svc := ec2.NewFromConfig(p.awsConfig)
@@ -205,6 +140,7 @@ func fetchRegions(p *Preflight) error {
 		return err
 	}
 
+	p.details.Regions = []string{}
 	for _, r := range output.Regions {
 		if *r.OptInStatus == "opt-in-not-required" || *r.OptInStatus == "opted-in" {
 			p.details.Regions = append(p.details.Regions, *r.RegionName)
@@ -214,7 +150,7 @@ func fetchRegions(p *Preflight) error {
 	return nil
 }
 
-func fetchExistingTrail(p *Preflight) error {
+func FetchExistingTrail(p *Preflight) error {
 	var trail *cloudtrailTypes.Trail
 	var err error
 
@@ -226,6 +162,10 @@ func fetchExistingTrail(p *Preflight) error {
 
 	if err != nil {
 		return err
+	}
+
+	if trail == nil {
+		return nil
 	}
 
 	p.details.ExistingTrail = Trail{
@@ -284,7 +224,7 @@ func fetchEligibleTrail(p *Preflight) (*cloudtrailTypes.Trail, error) {
 	}
 
 	if eligibleTrail == nil {
-		return nil, errors.New("can not find any existing eligible trail")
+		return nil, nil
 	}
 
 	return eligibleTrail, nil
@@ -310,7 +250,7 @@ func fetchControlTowerTrail(p *Preflight) (*cloudtrailTypes.Trail, error) {
 		}
 	}
 	if trailRegion == "" {
-		return nil, errors.New("can not find the trail with name \"aws-controltower-BaselineCloudTrail\"")
+		return nil, nil
 	}
 
 	trailSvc = cloudtrail.NewFromConfig(p.awsConfig, func(o *cloudtrail.Options) {
@@ -323,55 +263,39 @@ func fetchControlTowerTrail(p *Preflight) (*cloudtrailTypes.Trail, error) {
 	trail := trailOutput.Trail
 
 	if trail.S3BucketName == nil || *trail.S3BucketName == "" {
-		return nil, errors.New("CloudTrail S3 bucket must be set when using Control Tower")
+		return nil, nil
 	}
 	if trail.SnsTopicARN == nil || *trail.SnsTopicARN == "" {
-		return nil, errors.New("CloudTrail SNS topic must be set when using Control Tower")
+		return nil, nil
 	}
 
 	return trail, nil
 }
 
-func fetchEKSClusters(p *Preflight) error {
+func FetchEKSClusters(p *Preflight) error {
 	p.verboseWriter.Write("Discovering EKS clusters")
 
-	var numRegions = len(p.details.Regions)
-	var wg sync.WaitGroup
-	var ch = make(chan EKSCluster, numRegions)
+	g, ctx := errgroup.WithContext(context.Background())
+	var mu sync.Mutex
 
-	wg.Add(numRegions)
-
-	// Collect EKS cluster information for each region
+	p.details.EKSClusters = []EKSCluster{}
 	for _, region := range p.details.Regions {
 		cfg := p.awsConfig
 		cfg.Region = region
-		go func(cfg aws.Config, ch chan<- EKSCluster) {
+		g.Go(func() error {
 			eksSvc := eks.NewFromConfig(cfg)
-			output, err := eksSvc.ListClusters(context.Background(), nil)
+			output, err := eksSvc.ListClusters(ctx, nil)
 			if err != nil {
-				logger.Log.Warnf(
-					"Discovering EKS Clusters: unable to check region %s. ERROR: %s",
-					region, err.Error(),
-				)
-			} else {
-				for _, name := range output.Clusters {
-					ch <- EKSCluster{Name: name, Region: region}
-				}
+				return fmt.Errorf("region %s: %w", region, err)
 			}
-			wg.Done()
-		}(cfg, ch)
+			mu.Lock()
+			for _, name := range output.Clusters {
+				p.details.EKSClusters = append(p.details.EKSClusters, EKSCluster{Name: name, Region: region})
+			}
+			mu.Unlock()
+			return nil
+		})
 	}
 
-	// Wait until we discover all clusters from all regions
-	go func() {
-		wg.Wait()
-		close(ch)
-	}()
-
-	// Receive EKS cluster information
-	for cluster := range ch {
-		p.details.EKSClusters = append(p.details.EKSClusters, cluster)
-	}
-
-	return nil
+	return g.Wait()
 }
