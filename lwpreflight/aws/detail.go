@@ -131,7 +131,6 @@ func FetchOrgUnits(p *Preflight) error {
 	return nil
 }
 
-
 func FetchRegions(p *Preflight) error {
 	p.verboseWriter.Write("Discovering enabled regions")
 
