@@ -63,7 +63,13 @@ type azureDspmToken struct {
 
 // AzureDspmData contains the data needed by Lacework platform services.
 type AzureDspmData struct {
-	TenantID          string               `json:"tenantId,omitempty"`
+	TenantID string `json:"tenantId,omitempty"`
+	// IntegrationLevel is either SUBSCRIPTION (scan a single subscription) or
+	// TENANT (scan every subscription in the tenant). Reuses the constants
+	// AzureSubscriptionIntegration / AzureTenantIntegration. This lives on the
+	// integration data (not props) so it surfaces on the Cloud Accounts page,
+	// mirroring the Azure agentless integration.
+	IntegrationLevel  string               `json:"integrationLevel,omitempty"`
 	StorageAccountUrl string               `json:"storageAccountUrl,omitempty"`
 	BlobContainerName string               `json:"blobContainerName,omitempty"`
 	Credentials       AzureDspmCredentials `json:"credentials"`
