@@ -67,6 +67,12 @@ type AwsDspmData struct {
 	BucketArn         string                         `json:"bucketArn,omitempty"`
 	CrossAccountCreds AwsDspmCrossAccountCredentials `json:"crossAccountCredentials"`
 	Regions           []string                       `json:"regions,omitempty"`
+	// IntegrationLevel is ACCOUNT (single account) or ORG (whole organization),
+	// mirroring AzureDspmData.IntegrationLevel (SUBSCRIPTION/TENANT).
+	IntegrationLevel string `json:"integrationLevel,omitempty"`
+	// ManagementAccount is the AWS organization's management account ID; set only
+	// for ORG-level integrations.
+	ManagementAccount string `json:"managementAccount,omitempty"`
 }
 
 type AwsDspmCrossAccountCredentials struct {
