@@ -1,13 +1,16 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v2.13.0`.
+Another day, another release. These are the release notes for the version `v2.14.0`.
 
 ## Features
-* feat(cli): add --simulate flag to preflight aws (#1829) (Lokesh Vadlamudi)([f420be91](https://github.com/lacework/go-sdk/commit/f420be918bede9f714caac1f23a758892fb84feb))
-* feat(cli): add preflight command for cloud onboarding checks (#1828) (Lokesh Vadlamudi)([18bbb2f2](https://github.com/lacework/go-sdk/commit/18bbb2f2c7efc8d2daaea48ae22d1c3afac3b7f1))
-* feat(lwpreflight): add CloudTrail org trusted service check (#1826) (Lokesh Vadlamudi)([ea4d7f3b](https://github.com/lacework/go-sdk/commit/ea4d7f3b8e4abb1b31344e26fa034cf3fc7fbff9))
+* feat(AWLS2-1027): tenant level support for Azure DSPM (#1835) (Joseph Wilder)([bdf7c23d](https://github.com/lacework/go-sdk/commit/bdf7c23dbcca66eb4b970ed0efd6059be9d50754))
+## Bug Fixes
+* fix(pre-flight): stop filtering out non-Recommended Azure regions in region discovery (CAD-2132) (#1833) (Lokesh Vadlamudi)([76b64083](https://github.com/lacework/go-sdk/commit/76b64083ee5798c9b25e035da326e9dc1fda5f44))
+* fix: report missing secretsmanager:TagResource in agentless preflight (CAD-2093) (#1832) (Lokesh Vadlamudi)([bf89134d](https://github.com/lacework/go-sdk/commit/bf89134d8d6d378f452a5429ff10c247b0d23b44))
 ## Other Changes
-* chore: add Jira ticket section at top of PR template (#1827) (Lokesh Vadlamudi)([76d8d7f8](https://github.com/lacework/go-sdk/commit/76d8d7f85b6100e4112c1c9f2a3bc7dcd2c8dc97))
-* ci: version bump to v2.12.2-dev (Lacework)([b1df7de0](https://github.com/lacework/go-sdk/commit/b1df7de05716ee5eb31d5031d52423fc5b110390))
+* chore: run go mod tidy to mark golang.org/x/sync as a direct dependency (#1836) (Lokesh Vadlamudi)([1738055b](https://github.com/lacework/go-sdk/commit/1738055bfb7a8b9a0aaacba7e2598a9f4cbba686))
+* chore(CAD-2106): clean up AWS Config and CloudTrail permissions (#1831) (Pengyuan Zhao)([65b649bd](https://github.com/lacework/go-sdk/commit/65b649bd03587f69281708280d34260105384a41))
+* chore: skip AWS compliance report integration tests (no CI data) (#1834) (Lokesh Vadlamudi)([b59dff0f](https://github.com/lacework/go-sdk/commit/b59dff0f6d899e599e877352fcedd1773e95a03e))
+* ci: version bump to v2.13.1-dev (Lacework)([d6091405](https://github.com/lacework/go-sdk/commit/d609140568b310c37ca734a8fa1717d853434d10))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
