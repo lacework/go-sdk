@@ -64,6 +64,7 @@ type azureDspmToken struct {
 // AzureDspmData contains the data needed by Lacework platform services.
 type AzureDspmData struct {
 	TenantID          string               `json:"tenantId,omitempty"`
+	IntegrationLevel  string               `json:"integrationLevel,omitempty"`
 	StorageAccountUrl string               `json:"storageAccountUrl,omitempty"`
 	BlobContainerName string               `json:"blobContainerName,omitempty"`
 	Credentials       AzureDspmCredentials `json:"credentials"`

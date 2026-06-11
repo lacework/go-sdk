@@ -57,6 +57,7 @@ type DspmPropsConfig struct {
 	ScanIntervalHours *int                  `json:"scanIntervalHours,omitempty"`
 	MaxDownloadBytes  *int                  `json:"maxDownloadBytes,omitempty"`
 	DatastoreFilters  *DspmDatastoreFilters `json:"datastoreFilters,omitempty"`
+	AccountFilters    *DspmAccountFilters   `json:"accountFilters,omitempty"`
 }
 
 // DspmDatastoreFilters configures which datastores to include/exclude from scanning
@@ -65,17 +66,31 @@ type DspmDatastoreFilters struct {
 	DatastoreNames []string `json:"datastoreNames"`
 }
 
+// DspmAccountFilters configures which accounts to include/exclude from an
+// organization/tenant-level scan (AWS accounts or Azure subscriptions), mirroring
+// DspmDatastoreFilters. Cloud-agnostic: "account" == an Azure subscription too.
+type DspmAccountFilters struct {
+	FilterMode string   `json:"filterMode"`
+	AccountIds []string `json:"accountIds"`
+}
+
 // dspmPropsConfigUpper mirrors DspmPropsConfig with UPPER_SNAKE_CASE JSON tags
 // for deserializing PATCH responses.
 type dspmPropsConfigUpper struct {
 	ScanIntervalHours *int                       `json:"SCAN_INTERVAL_HOURS,omitempty"`
 	MaxDownloadBytes  *int                       `json:"MAX_DOWNLOAD_BYTES,omitempty"`
 	DatastoreFilters  *dspmDatastoreFiltersUpper `json:"DATASTORE_FILTERS,omitempty"`
+	AccountFilters    *dspmAccountFiltersUpper   `json:"ACCOUNT_FILTERS,omitempty"`
 }
 
 type dspmDatastoreFiltersUpper struct {
 	FilterMode     string   `json:"FILTER_MODE"`
 	DatastoreNames []string `json:"DATASTORE_NAMES"`
+}
+
+type dspmAccountFiltersUpper struct {
+	FilterMode string   `json:"FILTER_MODE"`
+	AccountIds []string `json:"ACCOUNT_IDS"`
 }
 
 func (u *dspmPropsConfigUpper) toConfig() *DspmPropsConfig {
@@ -87,6 +102,12 @@ func (u *dspmPropsConfigUpper) toConfig() *DspmPropsConfig {
 		cfg.DatastoreFilters = &DspmDatastoreFilters{
 			FilterMode:     u.DatastoreFilters.FilterMode,
 			DatastoreNames: u.DatastoreFilters.DatastoreNames,
+		}
+	}
+	if u.AccountFilters != nil {
+		cfg.AccountFilters = &DspmAccountFilters{
+			FilterMode: u.AccountFilters.FilterMode,
+			AccountIds: u.AccountFilters.AccountIds,
 		}
 	}
 	return cfg

@@ -18,6 +18,11 @@
 
 package api
 
+const (
+	AwsAccountIntegration string = "ACCOUNT"
+	AwsOrgIntegration     string = "ORG"
+)
+
 // GetAwsDspm gets a single AwsDspm integration matching the provided integration guid
 func (svc *CloudAccountsService) GetAwsDspm(guid string) (
 	response AwsDspmResponse,
@@ -67,6 +72,8 @@ type AwsDspmData struct {
 	BucketArn         string                         `json:"bucketArn,omitempty"`
 	CrossAccountCreds AwsDspmCrossAccountCredentials `json:"crossAccountCredentials"`
 	Regions           []string                       `json:"regions,omitempty"`
+	IntegrationLevel  string                         `json:"integrationLevel,omitempty"`
+	ManagementAccount string                         `json:"managementAccount,omitempty"`
 }
 
 type AwsDspmCrossAccountCredentials struct {
