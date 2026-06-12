@@ -92,6 +92,32 @@ func TestGenerationConfig(t *testing.T) {
 	assert.Equal(t, reqProviderAndRegion(moduleImportConfig), hcl)
 }
 
+func TestGenerationConfigExistingRole(t *testing.T) {
+	iamRoleArn := "arn:aws:iam::123456789012:role/test-role"
+	iamRoleName := "test-role"
+	extId := "1234567890123456"
+
+	data, err := createConfig(&GenerateAwsTfConfigurationArgs{
+		Config:          true,
+		ExistingIamRole: NewExistingIamRoleDetails(iamRoleName, iamRoleArn, extId),
+	})
+
+	assert.Nil(t, err)
+	assert.Len(t, data, 1)
+	assert.Equal(t,
+		"use_existing_iam_role=true\n",
+		string(data[0].Body().GetAttribute("use_existing_iam_role").BuildTokens(nil).Bytes()))
+	assert.Equal(t,
+		fmt.Sprintf("iam_role_name=\"%s\"\n", iamRoleName),
+		string(data[0].Body().GetAttribute("iam_role_name").BuildTokens(nil).Bytes()))
+	assert.Equal(t,
+		fmt.Sprintf("iam_role_arn=\"%s\"\n", iamRoleArn),
+		string(data[0].Body().GetAttribute("iam_role_arn").BuildTokens(nil).Bytes()))
+	assert.Equal(t,
+		fmt.Sprintf("iam_role_external_id=\"%s\"\n", extId),
+		string(data[0].Body().GetAttribute("iam_role_external_id").BuildTokens(nil).Bytes()))
+}
+
 func TestGenerationConfigWithExtraBlocks(t *testing.T) {
 	extraBlock, err := lwgenerate.HclCreateGenericBlock("variable", []string{"var_name"}, nil)
 	assert.NoError(t, err)
