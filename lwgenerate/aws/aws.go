@@ -1021,13 +1021,18 @@ func createConfig(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, erro
 		lwgenerate.HclModuleWithVersion(lwgenerate.AwsConfigVersion),
 		lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}),
 	}
+	attributes := map[string]interface{}{}
 	if args.LaceworkAccountID != "" {
-		moduleDetails = append(
-			moduleDetails,
-			lwgenerate.HclModuleWithAttributes(
-				map[string]interface{}{"lacework_aws_account_id": args.LaceworkAccountID},
-			),
-		)
+		attributes["lacework_aws_account_id"] = args.LaceworkAccountID
+	}
+	if !args.ExistingIamRole.IsEmpty() {
+		attributes["use_existing_iam_role"] = true
+		attributes["iam_role_name"] = args.ExistingIamRole.Name
+		attributes["iam_role_arn"] = args.ExistingIamRole.Arn
+		attributes["iam_role_external_id"] = args.ExistingIamRole.ExternalId
+	}
+	if len(attributes) > 0 {
+		moduleDetails = append(moduleDetails, lwgenerate.HclModuleWithAttributes(attributes))
 	}
 
 	moduleBlock, err := lwgenerate.NewModule(
