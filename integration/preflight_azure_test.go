@@ -8,6 +8,7 @@ import (
 
 	"github.com/lacework/go-sdk/v2/lwpreflight/azure"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPreflightAzure(t *testing.T) {
@@ -29,10 +30,10 @@ func TestPreflightAzure(t *testing.T) {
 		ClientSecret:   clientSecret,
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	result, err := preflight.Run()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotEmpty(t, result.Caller.ObjectID)
 	assert.False(t, result.Caller.IsAdmin)
 	assert.NotEmpty(t, result.Caller.TenantID)
