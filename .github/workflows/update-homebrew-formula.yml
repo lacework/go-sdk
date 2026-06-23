@@ -21,7 +21,7 @@ jobs:
 
       - name: Set up Homebrew
         id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@main
 
       - name: Create local Homebrew tap
         working-directory: homebrew-tap
@@ -39,6 +39,9 @@ jobs:
           sudo chmod -R 777 $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/.git
           cd $(brew --repository)/Library/Taps/lacework/homebrew-lacework-cli/
           echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
+          # Recent Homebrew refuses to load formulae from third-party taps unless
+          # they are explicitly trusted; this is a locally-created tap so trust it.
+          brew trust lacework/lacework-cli
           make update-cli-version
 
       - name: Notify Slack on Failure
