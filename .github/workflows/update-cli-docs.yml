@@ -27,7 +27,9 @@ jobs:
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
         working-directory: "docs_lw/docusaurus"
         run: |
-          git remote set-url origin git@github.com:lacework/docs_lw.git
+          # Keep the token-authenticated HTTPS remote configured by actions/checkout
+          # above. Switching origin to SSH (git@github.com) fails the docs push with
+          # "Permission denied (publickey)" because no SSH key is loaded in CI.
           sudo apt-get update -y
           sudo apt-get install gpg-agent -y
           echo "$GPG_SECRET_KEY" | base64 --decode | gpg --import --no-tty --batch --yes
