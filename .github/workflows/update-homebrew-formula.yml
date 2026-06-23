@@ -8,8 +8,10 @@ on:
       - completed
 
 jobs:
-  update-homefrew-formula:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  update-homebrew-formula:
+    # Run after a successful Release, or when dispatched manually (where
+    # github.event.workflow_run is absent and the conclusion check is false).
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
