@@ -274,6 +274,30 @@ func mockVulnerabilitiesContainersResponse() string {
         "fixed_version": ""
       },
       "imageId": "sha256:123472164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+      "riskInfo": {
+        "factors": [
+          "cve",
+          "reachability",
+		  "activeExploits",
+	      "knownExploits"
+	    ],
+	    "factors_breakdown": {
+	      "active_containers": 0,
+		  "cve_counts": {
+		    "Critical": 2,
+		    "High": 13,
+		    "Medium": 14,
+		    "Other": 20
+	      },
+		  "exploit_summary": {
+		    "disclosure_in_wild": "Yes",
+		    "exploit_public": "Yes",
+		    "exploit_virus_malware": "No",
+		    "exploit_wormified": "No"
+		  },
+	      "internet_reachability": "Unknown"
+  	    }
+      },
       "severity": "Low",
       "startTime": "2022-02-10T10:05:11.418Z",
       "status": "EXCEPTION",
@@ -342,6 +366,30 @@ func mockVulnerabilitiesContainersResponse() string {
         "fixed_version": ""
       },
       "imageId": "sha256:123472164cb78c4d04f57bd66201c775e2dab08fce394806a03a933c5daf9e48",
+      "riskInfo": {
+        "factors": [
+          "cve",
+          "reachability",
+		  "activeExploits",
+	      "knownExploits"
+	    ],
+	    "factors_breakdown": {
+	      "active_containers": 0,
+		  "cve_counts": {
+		    "Critical": 2,
+		    "High": 13,
+		    "Medium": 14,
+		    "Other": 20
+	      },
+		  "exploit_summary": {
+		    "disclosure_in_wild": "Yes",
+		    "exploit_public": "Yes",
+		    "exploit_virus_malware": "No",
+		    "exploit_wormified": "No"
+		  },
+	      "internet_reachability": "Unknown"
+  	    }
+      },
       "severity": "Info",
       "startTime": "2022-02-10T10:05:11.418Z",
       "status": "VULNERABLE",
