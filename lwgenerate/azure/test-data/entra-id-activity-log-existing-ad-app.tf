@@ -16,7 +16,7 @@ provider "azurerm" {
   }
 }
 
-module "microsoft-entra-id-activity-log" {
+module "az_entra_id_activity_log" {
   source                      = "lacework/microsoft-entra-id-activity-log/azure"
   version                     = "~> 0.3"
   application_id              = "testID"

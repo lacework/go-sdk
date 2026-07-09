@@ -889,7 +889,7 @@ func createEntraIdActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwri
 		)
 
 		moduleBlock, err := lwgenerate.NewModule(
-			"microsoft-entra-id-activity-log",
+			"az_entra_id_activity_log",
 			lwgenerate.LWAzureEntraIdActivityLogSource,
 			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.LWAzureEntraIdActivityLogVersion))...,
 		).ToBlock()
