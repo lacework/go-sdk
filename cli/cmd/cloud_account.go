@@ -59,8 +59,15 @@ var (
 		Use:     "delete",
 		Aliases: []string{"rm"},
 		Short:   "Delete a cloud account integration",
-		Args:    cobra.ExactArgs(1),
-		RunE:    cloudAccountDelete,
+		Long: `Delete a single cloud account integration by its integration GUID:
+
+    lacework cloud-account delete <intg_guid>
+
+Or delete many at once from a backup file produced by 'cloud-account backup':
+
+    lacework cloud-account delete --bulk --file backup.json`,
+		Args: cobra.MaximumNArgs(1),
+		RunE: cloudAccountDelete,
 	}
 
 	// cloudAccountMigrateCmd represents the migrate sub-command inside the cloud accounts command
@@ -72,6 +79,13 @@ var (
 	}
 )
 
+// delete command flags (the --bulk mode reads a backup file)
+var (
+	deleteBulk   bool   // --bulk
+	deleteFile   string // -f/--file
+	deleteDryRun bool   // --dry-run
+)
+
 func init() {
 	// add the cloud-account command
 	rootCmd.AddCommand(cloudAccountCommand)
@@ -80,11 +94,20 @@ func init() {
 	cloudAccountCommand.AddCommand(cloudAccountDeleteCmd)
 	cloudAccountCommand.AddCommand(cloudAccountCreateCmd)
 	cloudAccountCommand.AddCommand(cloudAccountMigrateCmd)
+	// The composable bulk commands (backup/restore/cleanup) self-register in their own files.
 
 	// add type flag to cloud accounts list command
 	cloudAccountListCmd.Flags().StringVarP(&cloudAccountType,
 		"type", "t", "", "list all cloud accounts of a specific type",
 	)
+
+	// delete --bulk flags
+	cloudAccountDeleteCmd.Flags().BoolVar(&deleteBulk,
+		"bulk", false, "delete every integration listed in --file")
+	cloudAccountDeleteCmd.Flags().StringVarP(&deleteFile,
+		"file", "f", "", "backup file listing the integrations to delete (with --bulk)")
+	cloudAccountDeleteCmd.Flags().BoolVar(&deleteDryRun,
+		"dry-run", false, "show what would be deleted without deleting")
 }
 
 func cloudAccountsToTable(cloudAccounts []api.CloudAccountRaw) [][]string {
@@ -139,6 +162,14 @@ func cloudAccountList(_ *cobra.Command, _ []string) error {
 }
 
 func cloudAccountDelete(_ *cobra.Command, args []string) error {
+	if deleteBulk {
+		return cloudAccountDeleteBulk(args)
+	}
+
+	if len(args) != 1 {
+		return errors.New("a cloud account GUID is required (or use --bulk --file)")
+	}
+
 	cli.StartProgress(" Deleting cloud account...")
 	err := cli.LwApi.V2.CloudAccounts.Delete(args[0])
 	cli.StopProgress()
@@ -146,6 +177,54 @@ func cloudAccountDelete(_ *cobra.Command, args []string) error {
 		return errors.Wrap(err, "unable to delete cloud account")
 	}
 	cli.OutputHuman("The cloud account %s was deleted.\n", args[0])
+	return nil
+}
+
+func cloudAccountDeleteBulk(args []string) error {
+	if len(args) > 0 {
+		return errors.New("do not pass a GUID with --bulk; the integrations come from --file")
+	}
+	if deleteFile == "" {
+		return errors.New("--file is required with --bulk")
+	}
+
+	backup, err := readCloudAccountBackup(deleteFile)
+	if err != nil {
+		return err
+	}
+
+	cli.OutputHuman("Found %d integration(s) in %s:\n", backup.Count, deleteFile)
+	for _, intg := range backup.Integrations {
+		cli.OutputHuman("  %s  %s  (%s)\n", intg.IntgGuid, intg.Name, intg.Type)
+	}
+
+	if deleteDryRun {
+		cli.OutputHuman("\nDry-run: no integrations were deleted. Re-run without --dry-run to delete.\n")
+		return nil
+	}
+
+	if !confirmBulkOperation(fmt.Sprintf("Delete %d cloud account integration(s)?", backup.Count)) {
+		cli.OutputHuman("Aborted. No integrations were deleted.\n")
+		return nil
+	}
+
+	var deleted, failed int
+	for _, intg := range backup.Integrations {
+		cli.StartProgress(fmt.Sprintf(" Deleting %s...", intg.IntgGuid))
+		err := cli.LwApi.V2.CloudAccounts.Delete(intg.IntgGuid)
+		cli.StopProgress()
+		if err != nil {
+			cli.OutputHuman("Failed to delete %s (%s): %s\n", intg.IntgGuid, intg.Name, err.Error())
+			failed++
+			continue
+		}
+		deleted++
+	}
+
+	cli.OutputHuman("\nDeleted %d integration(s); %d failure(s).\n", deleted, failed)
+	if failed > 0 {
+		return errors.Errorf("%d integration(s) could not be deleted", failed)
+	}
 	return nil
 }
 
