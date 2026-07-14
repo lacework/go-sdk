@@ -21,10 +21,13 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	iamtypes "github.com/aws/aws-sdk-go-v2/service/iam/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
@@ -47,6 +50,7 @@ var (
 	cleanupAssumeRoleName string // --assume-role-name
 	cleanupAwsProfile     string // --aws-profile
 	cleanupAwsRegion      string // --aws-region
+	cleanupNoAssumeRole   bool   // --no-assume-role
 	cleanupDryRun         bool   // --dry-run
 )
 
@@ -63,7 +67,10 @@ func init() {
 	cloudAccountCleanupCmd.Flags().StringVar(&cleanupAwsProfile,
 		"aws-profile", "", "AWS profile to use as the base credentials for cleanup")
 	cloudAccountCleanupCmd.Flags().StringVar(&cleanupAwsRegion,
-		"aws-region", "", "AWS region for the IAM/STS clients")
+		"aws-region", "", "AWS region for the base STS client and the first region searched for stacks")
+	cloudAccountCleanupCmd.Flags().BoolVar(&cleanupNoAssumeRole,
+		"no-assume-role", false,
+		"use the current AWS credentials directly instead of assuming a role in each account")
 	cloudAccountCleanupCmd.Flags().BoolVar(&cleanupDryRun,
 		"dry-run", false, "show what would be deleted without deleting")
 }
@@ -75,12 +82,22 @@ var cloudAccountCleanupCmd = &cobra.Command{
 integrations this removes the IAM role and the customer-managed/inline policies created for the
 integration; AWS-managed policies (such as SecurityAudit) are only detached, never deleted.
 
+If the integration was onboarded with the Lacework CloudFormation template, the owning
+CloudFormation stack is detected (via the role) and deleted as well, so no orphaned/drifted stack is
+left behind. Integrations not created by CloudFormation (e.g. Terraform, console, or API) have no
+stack and get IAM cleanup only. The IAM cleanup and stack deletion are independent - a failure of one
+does not block the other.
+
 The role to remove is taken from each backed-up integration's role ARN, so no resource names are
-guessed. The command assumes a role (default OrganizationAccountAccessRole) into each account, so run
-it with credentials for your AWS Organizations management account.
+guessed. By default the command assumes a role (default OrganizationAccountAccessRole) into each
+target account, so run it with credentials for your AWS Organizations management account. If a target
+account is the same account your credentials are already in (for example the management account's own
+integration), the assume-role is skipped and the current credentials are used directly. Pass
+--no-assume-role to always use the current credentials without assuming a role.
 
     lacework cloud-account cleanup --file backup.json --aws-profile management
     lacework cloud-account cleanup --file backup.json --type AwsCfg --dry-run
+    lacework cloud-account cleanup --file backup.json --no-assume-role   # run directly in one account
 
 Use --type to restrict cleanup to a single integration type (it also selects the cleanup strategy).
 Types without a cleanup implementation are reported and skipped.`,
@@ -130,7 +147,8 @@ func cloudAccountCleanup(_ *cobra.Command, _ []string) error {
 	}
 
 	if !cleanupDryRun {
-		if !confirmBulkOperation(fmt.Sprintf("Delete IAM role(s) and their policies in %d target(s)?", len(targets))) {
+		if !confirmBulkOperation(fmt.Sprintf(
+			"Delete IAM role(s)/policies and any owning CloudFormation stack in %d target(s)?", len(targets))) {
 			cli.OutputHuman("Aborted. No resources were deleted.\n")
 			return nil
 		}
@@ -142,35 +160,78 @@ func cloudAccountCleanup(_ *cobra.Command, _ []string) error {
 		return errors.Wrap(err, "unable to load AWS credentials")
 	}
 
+	// Learn which account the base credentials belong to, so we can skip the assume-role for any
+	// target that is already that account (e.g. the management account's own integration). If this
+	// lookup fails we fall back to assuming for every cross-account target.
+	baseAccountID := ""
+	if !cleanupNoAssumeRole {
+		if baseAccountID, err = callerAccountID(ctx, base); err != nil {
+			cli.OutputHuman("Warning: could not determine the current AWS account (%s); "+
+				"will assume %s for every target.\n", err.Error(), cleanupAssumeRoleName)
+		}
+	}
+
+	finder := newStackFinder(ctx, base)
+
 	var cleaned, missing, skipped int
+	var stacksDeleted, stacksFailed int
 	for _, t := range targets {
 		cli.OutputHuman("\naccount=%s role=%s\n", t.accountID, t.roleName)
-		iamClient, err := assumeIntoAccount(ctx, base, t.accountID)
+		cfg, err := accountConfigForTarget(ctx, base, baseAccountID, t.accountID)
 		if err != nil {
 			cli.OutputHuman("  skipped: unable to assume %s in %s: %s\n",
 				cleanupAssumeRoleName, t.accountID, err.Error())
 			skipped++
 			continue
 		}
+		iamClient := iam.NewFromConfig(cfg)
+
+		// Pass 0 (read-only, before deleting the role): find the owning CloudFormation stack, if any,
+		// by querying DescribeStackResources for the role across regions. Must run while the role
+		// still exists; any detection error is a warning and never blocks the IAM cleanup below.
+		cli.StartProgress(fmt.Sprintf(" Searching for the CloudFormation stack owning %s...", t.roleName))
+		stackName, stackRegion, derr := finder.find(ctx, cfg, t.roleName)
+		cli.StopProgress()
+		if derr != nil {
+			cli.OutputHuman("  warning: could not check for a CloudFormation stack: %s\n", derr.Error())
+		}
+
+		// Pass 1: delete the role and its policies (unchanged behavior).
 		found, err := cleanupIamRole(ctx, iamClient, t.roleName, !cleanupDryRun)
-		if err != nil {
+		switch {
+		case err != nil:
 			cli.OutputHuman("  error: %s\n", err.Error())
 			skipped++
-			continue
-		}
-		if !found {
+		case !found:
 			cli.OutputHuman("  role not found - already cleaned up.\n")
 			missing++
-			continue
+		default:
+			cleaned++
 		}
-		cleaned++
+
+		// Pass 2: delete the owning stack (best-effort, independent of the IAM result above), using a
+		// CloudFormation client in the stack's own region.
+		if stackName != "" {
+			cfnCfg := cfg.Copy()
+			if stackRegion != "" {
+				cfnCfg.Region = stackRegion
+			}
+			cfnClient := cloudformation.NewFromConfig(cfnCfg)
+			if err := deleteCfnStack(ctx, cfnClient, stackName, !cleanupDryRun); err != nil {
+				cli.OutputHuman("  stack cleanup failed for %s: %s\n", stackName, err.Error())
+				stacksFailed++
+			} else {
+				stacksDeleted++
+			}
+		}
 	}
 
-	verb := "cleaned"
+	roleVerb, stackVerb := "cleaned", "deleted"
 	if cleanupDryRun {
-		verb = "would clean"
+		roleVerb, stackVerb = "would clean", "would delete"
 	}
-	cli.OutputHuman("\n%s %d role(s); %d already gone; %d skipped.\n", verb, cleaned, missing, skipped)
+	cli.OutputHuman("\n%s %d role(s); %d already gone; %d skipped.\n", roleVerb, cleaned, missing, skipped)
+	cli.OutputHuman("%s %d CloudFormation stack(s); %d failed.\n", stackVerb, stacksDeleted, stacksFailed)
 	if cleanupDryRun {
 		cli.OutputHuman("Dry-run only. Re-run without --dry-run to delete.\n")
 	}
@@ -224,17 +285,131 @@ func buildAwsBaseConfig(ctx context.Context) (aws.Config, error) {
 	return config.LoadDefaultConfig(ctx, opts...)
 }
 
-// assumeIntoAccount assumes <assume-role-name> in the target account and returns an IAM client.
-func assumeIntoAccount(ctx context.Context, base aws.Config, accountID string) (*iam.Client, error) {
+// callerAccountID returns the AWS account id that the given credentials belong to.
+func callerAccountID(ctx context.Context, cfg aws.Config) (string, error) {
+	out, err := sts.NewFromConfig(cfg).GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+	if err != nil {
+		return "", err
+	}
+	return aws.ToString(out.Account), nil
+}
+
+// accountConfigForTarget returns the aws.Config to use for a target account. It uses the base
+// credentials directly when --no-assume-role is set or when the target is already the base
+// credentials' own account (e.g. the management account's own integration); otherwise it assumes
+// <assume-role-name> in the target account. The returned config lets the caller build both IAM and
+// CloudFormation clients.
+func accountConfigForTarget(ctx context.Context, base aws.Config, baseAccountID, accountID string) (aws.Config, error) {
+	if cleanupNoAssumeRole || (baseAccountID != "" && accountID == baseAccountID) {
+		return base, nil
+	}
 	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", accountID, cleanupAssumeRoleName)
 	provider := stscreds.NewAssumeRoleProvider(sts.NewFromConfig(base), roleArn)
 	cfg := base.Copy()
 	cfg.Credentials = aws.NewCredentialsCache(provider)
 	// Fail fast if the assume-role can't be resolved.
 	if _, err := cfg.Credentials.Retrieve(ctx); err != nil {
-		return nil, err
+		return aws.Config{}, err
 	}
-	return iam.NewFromConfig(cfg), nil
+	return cfg, nil
+}
+
+// standardRegions is the fallback set of regions to search when the account's enabled regions can't
+// be listed (e.g. missing ec2:DescribeRegions permission).
+var standardRegions = []string{
+	"us-east-1", "us-east-2", "us-west-1", "us-west-2",
+	"ca-central-1", "sa-east-1",
+	"eu-west-1", "eu-west-2", "eu-west-3", "eu-central-1", "eu-north-1", "eu-south-1",
+	"ap-south-1", "ap-southeast-1", "ap-southeast-2",
+	"ap-northeast-1", "ap-northeast-2", "ap-northeast-3", "ap-east-1",
+	"me-south-1", "af-south-1",
+}
+
+// stackFinder locates the CloudFormation stack that owns an IAM role. CloudFormation is regional and
+// IAM roles do not carry the aws:cloudformation:* tags, so we can't read the region off the role;
+// instead we query DescribeStackResources by physical resource id (the role name) across candidate
+// regions. The region of the first hit is promoted to the front, so once one stack is found the rest
+// of the run usually resolves in a single call.
+type stackFinder struct {
+	regions []string
+}
+
+func newStackFinder(ctx context.Context, base aws.Config) *stackFinder {
+	var regions []string
+	if out, err := ec2.NewFromConfig(base).DescribeRegions(ctx, &ec2.DescribeRegionsInput{}); err == nil {
+		for _, r := range out.Regions {
+			if n := aws.ToString(r.RegionName); n != "" {
+				regions = append(regions, n)
+			}
+		}
+	}
+	if len(regions) == 0 {
+		regions = append(regions, standardRegions...)
+	}
+	// Search the explicitly requested / base region first.
+	preferred := cleanupAwsRegion
+	if preferred == "" {
+		preferred = base.Region
+	}
+	return &stackFinder{regions: moveRegionToFront(regions, preferred)}
+}
+
+// find returns the name and region of the stack that owns roleName in the given account config, or
+// empty strings if no stack manages it (e.g. a non-CloudFormation role). Must run while the role
+// still exists.
+func (f *stackFinder) find(ctx context.Context, cfg aws.Config, roleName string) (string, string, error) {
+	var lastErr error
+	for _, region := range f.regions {
+		rc := cfg.Copy()
+		rc.Region = region
+		out, err := cloudformation.NewFromConfig(rc).DescribeStackResources(ctx,
+			&cloudformation.DescribeStackResourcesInput{PhysicalResourceId: &roleName})
+		if err != nil {
+			// A "does not exist" ValidationError just means no stack in this region; keep looking.
+			if !strings.Contains(err.Error(), "does not exist") {
+				lastErr = err
+			}
+			continue
+		}
+		for _, r := range out.StackResources {
+			if r.StackName != nil && *r.StackName != "" {
+				f.regions = moveRegionToFront(f.regions, region)
+				return *r.StackName, region, nil
+			}
+		}
+	}
+	// Only surface an error if nothing was found AND a non-"not found" error occurred.
+	return "", "", lastErr
+}
+
+func moveRegionToFront(regions []string, region string) []string {
+	if region == "" {
+		return regions
+	}
+	out := make([]string, 0, len(regions)+1)
+	out = append(out, region)
+	for _, r := range regions {
+		if r != region {
+			out = append(out, r)
+		}
+	}
+	return out
+}
+
+// deleteCfnStack deletes a CloudFormation stack and waits for the deletion to complete. When apply is
+// false it only logs what it would do. Deleting a stack whose resources were already removed
+// out-of-band is idempotent - CloudFormation treats the missing resources as already deleted.
+func deleteCfnStack(ctx context.Context, c *cloudformation.Client, stackName string, apply bool) error {
+	if !apply {
+		cli.OutputHuman("  would delete CloudFormation stack %s\n", stackName)
+		return nil
+	}
+	cli.OutputHuman("  deleting CloudFormation stack %s\n", stackName)
+	if _, err := c.DeleteStack(ctx, &cloudformation.DeleteStackInput{StackName: &stackName}); err != nil {
+		return err
+	}
+	waiter := cloudformation.NewStackDeleteCompleteWaiter(c)
+	return waiter.Wait(ctx, &cloudformation.DescribeStacksInput{StackName: &stackName}, 10*time.Minute)
 }
 
 // cleanupIamRole detaches/deletes the role's policies and the role itself. When apply is false it
@@ -247,55 +422,60 @@ func cleanupIamRole(ctx context.Context, c *iam.Client, roleName string, apply b
 		return false, err
 	}
 
-	// Attached managed policies: detach all; delete the customer-managed ones.
-	attachPager := iam.NewListAttachedRolePoliciesPaginator(c, &iam.ListAttachedRolePoliciesInput{RoleName: &roleName})
-	for attachPager.HasMorePages() {
-		page, err := attachPager.NextPage(ctx)
-		if err != nil {
-			return true, err
+	// Gather the role's policies up front so we can report a count before touching anything.
+	attached, err := collectAttachedPolicies(ctx, c, roleName)
+	if err != nil {
+		return true, err
+	}
+	inline, err := collectInlinePolicies(ctx, c, roleName)
+	if err != nil {
+		return true, err
+	}
+
+	customerManaged := 0
+	for _, p := range attached {
+		if isCustomerManagedPolicy(aws.ToString(p.PolicyArn)) {
+			customerManaged++
 		}
-		for _, p := range page.AttachedPolicies {
-			arnStr := aws.ToString(p.PolicyArn)
-			name := aws.ToString(p.PolicyName)
+	}
+	cli.OutputHuman("  %d policy(ies) to delete (%d customer-managed, %d inline); %d AWS-managed to detach only\n",
+		customerManaged+len(inline), customerManaged, len(inline), len(attached)-customerManaged)
+
+	// Attached managed policies: detach all; delete the customer-managed ones.
+	for _, p := range attached {
+		arnStr := aws.ToString(p.PolicyArn)
+		name := aws.ToString(p.PolicyName)
+		if apply {
+			if _, err := c.DetachRolePolicy(ctx, &iam.DetachRolePolicyInput{
+				RoleName: &roleName, PolicyArn: p.PolicyArn,
+			}); err != nil && !isNoSuchEntity(err) {
+				return true, err
+			}
+		}
+		logCleanup(apply, "detach", name)
+		if isCustomerManagedPolicy(arnStr) {
 			if apply {
-				if _, err := c.DetachRolePolicy(ctx, &iam.DetachRolePolicyInput{
-					RoleName: &roleName, PolicyArn: p.PolicyArn,
-				}); err != nil && !isNoSuchEntity(err) {
+				if err := deleteCustomerManagedPolicy(ctx, c, arnStr); err != nil {
 					return true, err
 				}
 			}
-			logCleanup(apply, "detach", name)
-			if isCustomerManagedPolicy(arnStr) {
-				if apply {
-					if err := deleteCustomerManagedPolicy(ctx, c, arnStr); err != nil {
-						return true, err
-					}
-				}
-				logCleanup(apply, "delete customer-managed policy", name)
-			} else {
-				cli.OutputHuman("  keep AWS-managed policy %s (detached only)\n", name)
-			}
+			logCleanup(apply, "delete customer-managed policy", name)
+		} else {
+			cli.OutputHuman("  keep AWS-managed policy %s (detached only)\n", name)
 		}
 	}
 
 	// Inline policies.
-	inlinePager := iam.NewListRolePoliciesPaginator(c, &iam.ListRolePoliciesInput{RoleName: &roleName})
-	for inlinePager.HasMorePages() {
-		page, err := inlinePager.NextPage(ctx)
-		if err != nil {
-			return true, err
-		}
-		for _, name := range page.PolicyNames {
-			if apply {
-				n := name
-				if _, err := c.DeleteRolePolicy(ctx, &iam.DeleteRolePolicyInput{
-					RoleName: &roleName, PolicyName: &n,
-				}); err != nil && !isNoSuchEntity(err) {
-					return true, err
-				}
+	for _, name := range inline {
+		if apply {
+			n := name
+			if _, err := c.DeleteRolePolicy(ctx, &iam.DeleteRolePolicyInput{
+				RoleName: &roleName, PolicyName: &n,
+			}); err != nil && !isNoSuchEntity(err) {
+				return true, err
 			}
-			logCleanup(apply, "delete inline policy", name)
 		}
+		logCleanup(apply, "delete inline policy", name)
 	}
 
 	// The role itself.
@@ -306,6 +486,34 @@ func cleanupIamRole(ctx context.Context, c *iam.Client, roleName string, apply b
 	}
 	logCleanup(apply, "delete role", roleName)
 	return true, nil
+}
+
+// collectAttachedPolicies returns all managed policies attached to the role.
+func collectAttachedPolicies(ctx context.Context, c *iam.Client, roleName string) ([]iamtypes.AttachedPolicy, error) {
+	var out []iamtypes.AttachedPolicy
+	pager := iam.NewListAttachedRolePoliciesPaginator(c, &iam.ListAttachedRolePoliciesInput{RoleName: &roleName})
+	for pager.HasMorePages() {
+		page, err := pager.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, page.AttachedPolicies...)
+	}
+	return out, nil
+}
+
+// collectInlinePolicies returns the names of all inline policies on the role.
+func collectInlinePolicies(ctx context.Context, c *iam.Client, roleName string) ([]string, error) {
+	var out []string
+	pager := iam.NewListRolePoliciesPaginator(c, &iam.ListRolePoliciesInput{RoleName: &roleName})
+	for pager.HasMorePages() {
+		page, err := pager.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, page.PolicyNames...)
+	}
+	return out, nil
 }
 
 // deleteCustomerManagedPolicy removes non-default versions then deletes the policy. A DeleteConflict

@@ -231,6 +231,11 @@ github.com/aws/aws-sdk-go-v2/internal/endpoints/v2
 # github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3
 ## explicit; go 1.22
 github.com/aws/aws-sdk-go-v2/internal/ini
+# github.com/aws/aws-sdk-go-v2/service/cloudformation v1.57.0
+## explicit; go 1.21
+github.com/aws/aws-sdk-go-v2/service/cloudformation
+github.com/aws/aws-sdk-go-v2/service/cloudformation/internal/endpoints
+github.com/aws/aws-sdk-go-v2/service/cloudformation/types
 # github.com/aws/aws-sdk-go-v2/service/cloudtrail v1.48.4
 ## explicit; go 1.22
 github.com/aws/aws-sdk-go-v2/service/cloudtrail
