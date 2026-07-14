@@ -400,11 +400,10 @@ func moveRegionToFront(regions []string, region string) []string {
 // false it only logs what it would do. Deleting a stack whose resources were already removed
 // out-of-band is idempotent - CloudFormation treats the missing resources as already deleted.
 func deleteCfnStack(ctx context.Context, c *cloudformation.Client, stackName string, apply bool) error {
+	logCleanup(apply, "delete CloudFormation stack", stackName)
 	if !apply {
-		cli.OutputHuman("  would delete CloudFormation stack %s\n", stackName)
 		return nil
 	}
-	cli.OutputHuman("  deleting CloudFormation stack %s\n", stackName)
 	if _, err := c.DeleteStack(ctx, &cloudformation.DeleteStackInput{StackName: &stackName}); err != nil {
 		return err
 	}
