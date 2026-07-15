@@ -1,0 +1,63 @@
+Re-register a missing Lacework cloud-account integration for one account onboarded through a
+Lacework onboarding template, when the integration is missing - whether the underlying IAM role is
+still healthy or was dropped (in which case it is rebuilt first).
+
+The template is selected with --method, named <cloud>-<template>. Only "aws-cfg-org" (AWS Config
+organization onboarding) is implemented today; more AWS templates and other clouds (gcp, azure) are
+planned and will be added as additional --method values. The rest of this help describes the
+aws-cfg-org method.
+
+The org-config setup Lambda registers each member account with Lacework but does NOT reconcile: if a
+registration (or the member stack) is dropped, replaying is the only recovery. For aws-cfg-org this
+command is state-aware and does the minimum needed for the account:
+
+  - member stack instance present, integration missing -> re-register the integration only
+  - member stack instance missing (role gone) but the account is in a targeted OU -> re-create the
+    stack instance (which rebuilds the IAM role), wait for it, then register the integration
+  - integration already present -> nothing to do
+  - account not in any targeted OU, or the management StackSet is gone -> report and do nothing
+
+It registers directly against the Lacework API (deriving the member role ARN and external id from
+the stack instance), so you get the result synchronously instead of the setup Lambda's 5-minute
+fire-and-forget. When it registers directly the integration is named "<LaceworkAccount>-Config".
+
+Naming note: in the rebuild path (member stack instance missing), re-creating the instance fires the
+template's own setup Lambda, which registers the integration first. In that case this command reports
+"already onboarded" and the integration keeps the Lambda's name - the account is still fully
+recovered, just registered by the Lambda rather than directly.
+
+Run it with credentials for your AWS Organizations management account (the account that owns the
+management stack):
+
+    lacework cloud-account repair --account-id 123456789012 --stack-name lacework-aws-cfg-org
+    lacework cloud-account repair --account-id 123456789012 --stack-name lacework-aws-cfg-org --dry-run
+
+Creating a stack instance only works when the account already belongs to an OU the StackSet targets.
+If it does not, add the account to a targeted OU (or add its OU to the stack's OrganizationalUnits
+parameter) first - this command reports that case and does nothing.
+
+Usage:
+  lacework cloud-account repair [flags]
+
+Flags:
+      --account-id string    AWS account id whose AwsCfg integration is missing (required)
+      --aws-profile string   AWS profile for the org management account credentials
+      --aws-region string    AWS region the management stack/stackset live in (default us-east-1)
+      --dry-run              show what would be re-registered without calling the Lacework API
+  -h, --help                 help for repair
+      --method string        onboarding template to repair (supported: aws-cfg-org) (default "aws-cfg-org")
+      --stack-name string    name of the Lacework AWS Config org management CloudFormation stack (required)
+
+Global Flags:
+  -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
+  -k, --api_key string      access key id
+  -s, --api_secret string   secret access key
+      --api_token string    access token (replaces the use of api_key and api_secret)
+      --debug               turn on debug logging
+      --json                switch commands output from human-readable to json format
+      --nocache             turn off caching
+      --nocolor             turn off colors
+      --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
+      --organization        access organization level data sets (org admins only)
+  -p, --profile string      switch between profiles configured at ~/.lacework.toml
+      --subaccount string   sub-account name inside your organization (org admins only)

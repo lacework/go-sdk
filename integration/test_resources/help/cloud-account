@@ -13,6 +13,7 @@ Available Commands:
   delete       Delete a cloud account integration
   list         List all available cloud account integrations
   migrate      Mark a GCPv1 (storage-based) cloud account integration for migration
+  repair       Re-register a missing cloud-account integration from its onboarding template
   restore      Re-create cloud account integrations from a backup file
   show         Show a single cloud account integration
 
