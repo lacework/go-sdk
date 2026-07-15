@@ -1,0 +1,50 @@
+Delete the cloud-side resources that a deleted integration left behind. For AWS cross-account
+integrations this removes the IAM role and the customer-managed/inline policies created for the
+integration; AWS-managed policies (such as SecurityAudit) are only detached, never deleted.
+
+If the integration was onboarded with the Lacework CloudFormation template, the owning
+CloudFormation stack is detected (via the role) and deleted as well, so no orphaned/drifted stack is
+left behind. Integrations not created by CloudFormation (e.g. Terraform, console, or API) have no
+stack and get IAM cleanup only. The IAM cleanup and stack deletion are independent - a failure of one
+does not block the other.
+
+The role to remove is taken from each backed-up integration's role ARN, so no resource names are
+guessed. By default the command assumes a role (default OrganizationAccountAccessRole) into each
+target account, so run it with credentials for your AWS Organizations management account. If a target
+account is the same account your credentials are already in (for example the management account's own
+integration), the assume-role is skipped and the current credentials are used directly. Pass
+--no-assume-role to always use the current credentials without assuming a role.
+
+    lacework cloud-account cleanup --file backup.json --aws-profile management
+    lacework cloud-account cleanup --file backup.json --type AwsCfg --dry-run
+    lacework cloud-account cleanup --file backup.json --no-assume-role   # run directly in one account
+
+Use --type to restrict cleanup to a single integration type (it also selects the cleanup strategy).
+Types without a cleanup implementation are reported and skipped.
+
+Usage:
+  lacework cloud-account cleanup [flags]
+
+Flags:
+      --assume-role-name string   IAM role name to assume in each account for cleanup (default "OrganizationAccountAccessRole")
+      --aws-profile string        AWS profile to use as the base credentials for cleanup
+      --aws-region string         AWS region for the base STS client and the first region searched for stacks
+      --dry-run                   show what would be deleted without deleting
+  -f, --file string               backup file identifying the resources to clean up
+  -h, --help                      help for cleanup
+      --no-assume-role            use the current AWS credentials directly instead of assuming a role in each account
+  -t, --type string               only clean up records of this type (selects the cleanup strategy)
+
+Global Flags:
+  -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)
+  -k, --api_key string      access key id
+  -s, --api_secret string   secret access key
+      --api_token string    access token (replaces the use of api_key and api_secret)
+      --debug               turn on debug logging
+      --json                switch commands output from human-readable to json format
+      --nocache             turn off caching
+      --nocolor             turn off colors
+      --noninteractive      turn off interactive mode (disable spinners, prompts, etc.)
+      --organization        access organization level data sets (org admins only)
+  -p, --profile string      switch between profiles configured at ~/.lacework.toml
+      --subaccount string   sub-account name inside your organization (org admins only)
