@@ -96,7 +96,10 @@ func repairAwsCfgOrg() error {
 
 	// 1. LaceworkAccount (tenant) from the management stack parameters.
 	cli.StartProgress(" Reading the management stack...")
-	laceworkAccount, err := stackParameter(ctx, cfn, repairStackName, "LaceworkAccount")
+	laceworkAccount, found, err := stackParameter(ctx, cfn, repairStackName, "LaceworkAccount")
+	if err == nil && !found {
+		err = errors.Errorf("stack %s has no LaceworkAccount parameter; is it the management stack?", repairStackName)
+	}
 	if err != nil {
 		cli.StopProgress()
 		return err
@@ -124,7 +127,10 @@ func repairAwsCfgOrg() error {
 	// No stack instance means the IAM role does not exist; re-create the instance (which rebuilds the
 	// role) before registering. This only lands the account if it is under an OU the StackSet targets.
 	if !found {
-		targetOUs := targetOUsParam(ctx, cfn)
+		targetOUs, err := targetOUsParam(ctx, cfn)
+		if err != nil {
+			return err
+		}
 		if repairDryRun {
 			if cli.JSONOutput() {
 				return cli.OutputJSON(map[string]interface{}{
@@ -190,10 +196,10 @@ func repairAwsCfgOrg() error {
 	}
 	if alreadyOnboarded {
 		if cli.JSONOutput() {
+			// Same shape --all reports per account, so consumers parse one contract.
 			return cli.OutputJSON(map[string]interface{}{
 				"accountId": repairAccountID,
-				"action":    "none",
-				"status":    "already-onboarded",
+				"action":    "already-onboarded",
 			})
 		}
 		cli.OutputHuman("\nAccount %s is already onboarded; nothing to do.\n", repairAccountID)
@@ -263,21 +269,25 @@ func repairRegisterResult(action, accountID, name, roleArn, externalID, intgGuid
 	return r
 }
 
-// stackParameter returns the value of a named parameter on a CloudFormation stack.
-func stackParameter(ctx context.Context, cfn *cloudformation.Client, stackName, key string) (string, error) {
+// stackParameter returns the value of a named parameter on a CloudFormation stack, with
+// found=false (and no error) when the stack exists but has no such parameter - the caller
+// decides whether that is fatal.
+func stackParameter(
+	ctx context.Context, cfn *cloudformation.Client, stackName, key string,
+) (value string, found bool, err error) {
 	out, err := cfn.DescribeStacks(ctx, &cloudformation.DescribeStacksInput{StackName: aws.String(stackName)})
 	if err != nil {
-		return "", errors.Wrapf(err, "unable to describe stack %s", stackName)
+		return "", false, errors.Wrapf(err, "unable to describe stack %s", stackName)
 	}
 	if len(out.Stacks) == 0 {
-		return "", errors.Errorf("stack %s not found", stackName)
+		return "", false, errors.Errorf("stack %s not found", stackName)
 	}
 	for _, p := range out.Stacks[0].Parameters {
 		if aws.ToString(p.ParameterKey) == key {
-			return aws.ToString(p.ParameterValue), nil
+			return aws.ToString(p.ParameterValue), true, nil
 		}
 	}
-	return "", errors.Errorf("stack %s has no %s parameter", stackName, key)
+	return "", false, nil
 }
 
 // stackResourcePhysicalID returns the physical resource id for a logical resource on a stack.
@@ -321,11 +331,11 @@ func memberStackID(
 }
 
 // targetOUsParam returns the OU ids the StackSet targets, from the management stack's
-// OrganizationalUnits parameter. Returns nil if the parameter is absent.
-func targetOUsParam(ctx context.Context, cfn *cloudformation.Client) []string {
-	raw, err := stackParameter(ctx, cfn, repairStackName, "OrganizationalUnits")
+// OrganizationalUnits parameter. Returns nil (no error) if the parameter is absent.
+func targetOUsParam(ctx context.Context, cfn *cloudformation.Client) ([]string, error) {
+	raw, _, err := stackParameter(ctx, cfn, repairStackName, "OrganizationalUnits")
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	var ous []string
 	for _, ou := range strings.Split(raw, ",") {
@@ -333,7 +343,7 @@ func targetOUsParam(ctx context.Context, cfn *cloudformation.Client) []string {
 			ous = append(ous, ou)
 		}
 	}
-	return ous
+	return ous, nil
 }
 
 // createMemberInstances re-deploys the member stack into the given accounts by creating stack
@@ -408,7 +418,10 @@ func stackUID(stackID string) string {
 func repairAwsCfgOrgAll(
 	ctx context.Context, cfg aws.Config, cfn *cloudformation.Client, laceworkAccount, stackSetName string,
 ) error {
-	targetOUs := targetOUsParam(ctx, cfn)
+	targetOUs, err := targetOUsParam(ctx, cfn)
+	if err != nil {
+		return err
+	}
 	if len(targetOUs) == 0 {
 		return errors.Errorf(
 			"stack %s has no OrganizationalUnits parameter; there are no targeted OUs to sweep", repairStackName)
@@ -436,13 +449,25 @@ func repairAwsCfgOrgAll(
 
 	missingInstance, missingIntegration := diffRepairTargets(expected, instances, registered)
 
+	// repairAllJSON is the single --json envelope for every --all outcome (healthy, dry-run,
+	// repaired), so consumers parse one shape and key off dryRun / the array contents.
+	repairAllJSON := func(repaired []map[string]interface{}) error {
+		out := map[string]interface{}{
+			"targetOUs":            targetOUs,
+			"expectedAccounts":     len(expected),
+			"missingStackInstance": missingInstance,
+			"missingIntegration":   missingIntegration,
+			"repaired":             repaired,
+		}
+		if repairDryRun {
+			out["dryRun"] = true
+		}
+		return cli.OutputJSON(out)
+	}
+
 	if len(missingInstance) == 0 && len(missingIntegration) == 0 {
 		if cli.JSONOutput() {
-			return cli.OutputJSON(map[string]interface{}{
-				"targetOUs":        targetOUs,
-				"expectedAccounts": len(expected),
-				"repaired":         []interface{}{},
-			})
+			return repairAllJSON([]map[string]interface{}{})
 		}
 		cli.OutputHuman("All %d accounts in the targeted OUs are onboarded; nothing to do.\n", len(expected))
 		return nil
@@ -450,13 +475,7 @@ func repairAwsCfgOrgAll(
 
 	if repairDryRun {
 		if cli.JSONOutput() {
-			return cli.OutputJSON(map[string]interface{}{
-				"targetOUs":            targetOUs,
-				"expectedAccounts":     len(expected),
-				"missingStackInstance": missingInstance,
-				"missingIntegration":   missingIntegration,
-				"dryRun":               true,
-			})
+			return repairAllJSON([]map[string]interface{}{})
 		}
 		cli.OutputHuman("Found %d accounts in the targeted OUs (%s):\n", len(expected), strings.Join(targetOUs, ","))
 		cli.OutputHuman("  missing stack instance (role gone): %s\n", orNone(missingInstance))
@@ -482,7 +501,7 @@ func repairAwsCfgOrgAll(
 
 	// Register everything unregistered. For just-rebuilt accounts the template's setup Lambda
 	// usually wins the race, which surfaces here as already-onboarded - still a full recovery.
-	var results []map[string]interface{}
+	results := []map[string]interface{}{}
 	failed := 0
 	for _, accountID := range append(missingInstance, missingIntegration...) {
 		stackID, ok := instances[accountID]
@@ -502,12 +521,7 @@ func repairAwsCfgOrgAll(
 	}
 
 	if cli.JSONOutput() {
-		err = cli.OutputJSON(map[string]interface{}{
-			"targetOUs":        targetOUs,
-			"expectedAccounts": len(expected),
-			"repaired":         results,
-		})
-		if err != nil {
+		if err := repairAllJSON(results); err != nil {
 			return err
 		}
 	} else {
@@ -553,6 +567,8 @@ func repairOneRegistration(laceworkAccount, accountID, stackID string) map[strin
 func diffRepairTargets(
 	expected []string, instances map[string]string, registered map[string]bool,
 ) (missingInstance, missingIntegration []string) {
+	// non-nil so the --json envelope renders [] instead of null
+	missingInstance, missingIntegration = []string{}, []string{}
 	for _, accountID := range expected {
 		if _, ok := instances[accountID]; !ok {
 			missingInstance = append(missingInstance, accountID)

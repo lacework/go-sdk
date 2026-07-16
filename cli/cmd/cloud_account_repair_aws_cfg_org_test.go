@@ -113,4 +113,11 @@ func TestDiffRepairTargets(t *testing.T) {
 
 	assert.Equal(t, []string{"333333333333", "444444444444"}, missingInstance)
 	assert.Equal(t, []string{"222222222222"}, missingIntegration)
+
+	// healthy fleet: both buckets empty but non-nil, so the --json envelope renders [] not null
+	missingInstance, missingIntegration = diffRepairTargets([]string{"111111111111"}, instances, registered)
+	assert.NotNil(t, missingInstance)
+	assert.NotNil(t, missingIntegration)
+	assert.Empty(t, missingInstance)
+	assert.Empty(t, missingIntegration)
 }
