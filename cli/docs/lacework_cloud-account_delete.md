@@ -8,6 +8,16 @@ hide_title: true
 
 Delete a cloud account integration
 
+### Synopsis
+
+Delete a single cloud account integration by its integration GUID:
+
+    lacework cloud-account delete <intg_guid>
+
+Or delete many at once from a backup file produced by 'cloud-account backup':
+
+    lacework cloud-account delete --bulk --file backup.json
+
 ```
 lacework cloud-account delete [flags]
 ```
@@ -15,7 +25,10 @@ lacework cloud-account delete [flags]
 ### Options
 
 ```
-  -h, --help   help for delete
+      --bulk          delete every integration listed in --file
+      --dry-run       show what would be deleted without deleting
+  -f, --file string   backup file listing the integrations to delete (with --bulk)
+  -h, --help          help for delete
 ```
 
 ### Options inherited from parent commands

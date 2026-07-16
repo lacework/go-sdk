@@ -38,9 +38,13 @@ Manage cloud account integrations with Lacework
 ### SEE ALSO
 
 * [lacework](lacework.md)	 - A tool to manage the Lacework cloud security platform.
+* [lacework cloud-account backup](lacework_cloud-account_backup.md)	 - Back up cloud account integrations of a given type to a file
+* [lacework cloud-account cleanup](lacework_cloud-account_cleanup.md)	 - Delete leftover cloud resources for the integrations in a backup file
 * [lacework cloud-account create](lacework_cloud-account_create.md)	 - Create a new cloud account integration
 * [lacework cloud-account delete](lacework_cloud-account_delete.md)	 - Delete a cloud account integration
 * [lacework cloud-account list](lacework_cloud-account_list.md)	 - List all available cloud account integrations
 * [lacework cloud-account migrate](lacework_cloud-account_migrate.md)	 - Mark a GCPv1 (storage-based) cloud account integration for migration
+* [lacework cloud-account repair](lacework_cloud-account_repair.md)	 - Re-register a missing cloud-account integration from its onboarding template
+* [lacework cloud-account restore](lacework_cloud-account_restore.md)	 - Re-create cloud account integrations from a backup file
 * [lacework cloud-account show](lacework_cloud-account_show.md)	 - Show a single cloud account integration
 
