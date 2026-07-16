@@ -94,3 +94,23 @@ func TestRepairRegisterResult(t *testing.T) {
 		assert.False(t, hasDryRun, "applied outcome must not report dryRun")
 	})
 }
+
+// --all classifies each expected account into exactly one bucket: no stack instance means rebuild
+// then register; an instance without an integration means register only; fully onboarded means skip.
+func TestDiffRepairTargets(t *testing.T) {
+	expected := []string{"111111111111", "222222222222", "333333333333", "444444444444"}
+	instances := map[string]string{
+		"111111111111": "arn:aws:cloudformation:us-east-1:111111111111:stack/s/aaaa1111-x",
+		"222222222222": "arn:aws:cloudformation:us-east-1:222222222222:stack/s/bbbb2222-x",
+		// 333333333333 and 444444444444 have no instance
+	}
+	registered := map[string]bool{
+		"111111111111": true, // healthy: instance + integration
+		// 222222222222 has an instance but no integration
+	}
+
+	missingInstance, missingIntegration := diffRepairTargets(expected, instances, registered)
+
+	assert.Equal(t, []string{"333333333333", "444444444444"}, missingInstance)
+	assert.Equal(t, []string{"222222222222"}, missingIntegration)
+}

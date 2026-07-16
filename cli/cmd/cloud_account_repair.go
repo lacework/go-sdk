@@ -86,11 +86,17 @@ template's own setup Lambda, which registers the integration first. In that case
 "already onboarded" and the integration keeps the Lambda's name - the account is still fully
 recovered, just registered by the Lambda rather than directly.
 
+With --all instead of --account-id, the command sweeps every ACTIVE account under the StackSet's
+targeted OUs (recursively, excluding the organization management account), finds the ones missing
+their member stack and/or integration, rebuilds all missing stack instances in one StackSet
+operation, and registers every unregistered account. With --dry-run it only reports the diff.
+
 Run it with credentials for your AWS Organizations management account (the account that owns the
 management stack):
 
     lacework cloud-account repair --account-id 123456789012 --stack-name lacework-aws-cfg-org
     lacework cloud-account repair --account-id 123456789012 --stack-name lacework-aws-cfg-org --dry-run
+    lacework cloud-account repair --all --stack-name lacework-aws-cfg-org --dry-run
 
 Creating a stack instance only works when the account already belongs to an OU the StackSet targets.
 If it does not, add the account to a targeted OU (or add its OU to the stack's OrganizationalUnits
