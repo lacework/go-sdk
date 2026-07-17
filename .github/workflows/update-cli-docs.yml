@@ -61,8 +61,3 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_DOC_PULL_REQUESTS }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-  # NOTE: the former `deploy-cli-docs` job was removed. It published the docs to
-  # the legacy Netlify site behind docs.lacework.net, which now 301-redirects to
-  # docs.fortinet.com/product/lacework-forticnapp. The Netlify site was
-  # decommissioned, so the job failed on every run (Netlify API 404). CLI docs
-  # are now published through Fortinet's docs pipeline.
