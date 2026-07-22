@@ -157,9 +157,19 @@ download_artifacts() {
   log "downloading signed artifacts for v$VERSION"
   aws s3 sync "s3://lacework-cli/builds/v${VERSION}/signed" bin/signed
 
+  # Bound the wait so a stalled/failed signing job fails the release loudly
+  # instead of hanging forever. SIGN_WAIT_TIMEOUT_SECONDS defaults to 45m.
+  local wait_timeout=${SIGN_WAIT_TIMEOUT_SECONDS:-2700}
+  local waited=0
   while [ ! -n "$(ls -1 bin/signed/.completed 2>/dev/null)"  ]; do
-    log "waiting for signed artifacts..."
+    if [ "$waited" -ge "$wait_timeout" ]; then
+      log "ERROR: timed out after ${waited}s waiting for signed artifacts (s3://lacework-cli/builds/v${VERSION}/signed/.completed)"
+      log "check the 'Windows Sign and Release' workflow in lacework-dev/lacework-cli-signing"
+      exit 1
+    fi
+    log "waiting for signed artifacts... (${waited}s/${wait_timeout}s)"
     sleep 5
+    waited=$((waited + 5))
     aws s3 sync "s3://lacework-cli/builds/v${VERSION}/signed" bin/signed
   done
 
