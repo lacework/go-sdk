@@ -40,12 +40,20 @@ jobs:
           make prepare
           scripts/release.sh build
 
-      - name: Notify Slack to Sign Artifacts
+      - name: Trigger Windows Signing
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+        run: |
+          gh workflow run windows-signing.yml \
+            --repo lacework-dev/lacework-cli-signing \
+            --field branch_or_tag=${{ github.ref_name }}
+
+      - name: Notify Slack of Signing
         uses: slackapi/slack-github-action@v1.25.0
         with:
           payload: |
             {
-              "text": "<@U0279A42HV0> sign_cli ${{ github.ref_name }} https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
+              "text": "Windows signing triggered for Lacework CLI ${{ github.ref_name }} https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
