@@ -48,17 +48,6 @@ jobs:
             --repo lacework-dev/lacework-cli-signing \
             --field branch_or_tag=${{ github.ref_name }}
 
-      - name: Notify Slack of Signing
-        uses: slackapi/slack-github-action@v1.25.0
-        with:
-          payload: |
-            {
-              "text": "Windows signing triggered for Lacework CLI ${{ github.ref_name }} https://github.com/lacework/go-sdk/actions/runs/${{ github.run_id }}"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-
       - name: Create Release
         env:
           GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
