@@ -133,7 +133,6 @@ var RequiredPermissions = map[IntegrationType][]string{
 		"monitoring.timeSeries.list",
 		"resourcemanager.projects.get",
 		"resourcemanager.projects.getIamPolicy",
-		"resourcemanager.projects.list",
 		"resourcemanager.projects.setIamPolicy",
 		"serviceusage.quotas.get",
 		"serviceusage.quotas.update",
