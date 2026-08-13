@@ -247,6 +247,7 @@ var RequiredPermissions = map[IntegrationType][]string{
 	},
 	EksAuditLog: {
 		"ec2:DescribeRegions",
+		"eks:ListClusters",
 		"s3:CreateBucket",
 		"s3:DeleteBucket",
 		"s3:ListBucket",
@@ -676,6 +677,7 @@ var RequiredPermissionsForOrg = map[IntegrationType][]string{
 	},
 	EksAuditLog: {
 		"ec2:DescribeRegions",
+		"eks:ListClusters",
 		"organizations:DescribeAccount",
 		"organizations:DescribeOrganization",
 		"organizations:ListAccounts",

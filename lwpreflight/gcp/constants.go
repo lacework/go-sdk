@@ -64,6 +64,7 @@ var RequiredPermissions = map[IntegrationType][]string{
 		"storage.buckets.list",
 		"storage.buckets.setIamPolicy",
 		"storage.objects.delete",
+		"storage.objects.list",
 	},
 	AuditLog: {
 		"cloudscheduler.locations.list",
@@ -133,7 +134,6 @@ var RequiredPermissions = map[IntegrationType][]string{
 		"monitoring.timeSeries.list",
 		"resourcemanager.projects.get",
 		"resourcemanager.projects.getIamPolicy",
-		"resourcemanager.projects.list",
 		"resourcemanager.projects.setIamPolicy",
 		"serviceusage.quotas.get",
 		"serviceusage.quotas.update",
@@ -254,6 +254,7 @@ var RequiredPermissionsForOrg = map[IntegrationType][]string{
 		"storage.buckets.list",
 		"storage.buckets.setIamPolicy",
 		"storage.objects.delete",
+		"storage.objects.list",
 	},
 	AuditLog: {
 		"billing.accounts.get",
