@@ -1,10 +1,12 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v2.15.1`.
+Another day, another release. These are the release notes for the version `v2.15.2`.
 
+## Bug Fixes
+* fix(lwpreflight): correct GCP and AWS required-permission lists (#1852) (Lokesh Vadlamudi)([17476c38](https://github.com/lacework/go-sdk/commit/17476c38fc13fc1799ee14c564897fc948d3a0a1))
 ## Other Changes
-* chore: remove incorrect GCP permissions (#1848) (Pengyuan Zhao)([62cf416d](https://github.com/lacework/go-sdk/commit/62cf416d8ab2eb0d12377c9c4ed3afee15bcaf85))
-* ci: retire dead deploy-cli-docs Netlify job (#1847) (Lokesh Vadlamudi)([e9b5111f](https://github.com/lacework/go-sdk/commit/e9b5111f2668d72f43ced4627734fe85abd49a4e))
-* ci: version bump to v2.15.1-dev (Lacework)([49ab8887](https://github.com/lacework/go-sdk/commit/49ab8887a52044ccfe3e9dc4d5a419c2b90162ef))
+* chore: remove CLI signing Slack message from release.yml (#1851) (Pengyuan Zhao)([a0106bd4](https://github.com/lacework/go-sdk/commit/a0106bd4677b226431fc08d545327fbf989f9324))
+* chore(CAD-2190): use OICD instead of MFA token + static keys for release (#1850) (Pengyuan Zhao)([808698f5](https://github.com/lacework/go-sdk/commit/808698f5ee073df3172c91cc290e0cae63ece64f))
+* ci: version bump to v2.15.2-dev (Lacework)([90e3c96e](https://github.com/lacework/go-sdk/commit/90e3c96e358d403b6fe3605092703d5e3cb4de92))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
