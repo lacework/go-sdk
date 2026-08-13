@@ -649,6 +649,125 @@ module "lacework_aws_agentless_scanning_region_scanning-1-us-east-1" {
 }
 `
 
+// Adding the organization root must not change a byte of the output when every monitored entry is
+// already an OU or the root -- that is what keeps existing deployments from churning their
+// CloudFormation stack set instance, whose deployment_targets are all ForceNew.
+func TestGenerationAgentlessOrganizationRootNoChurnForOrgUnitTargets(t *testing.T) {
+	generate := func(mods ...AwsTerraformModifier) string {
+		base := []AwsTerraformModifier{
+			WithAwsProfile("main"),
+			WithAwsRegion("us-east-2"),
+			WithAgentlessManagementAccountID("123456789000"),
+			WithAgentlessMonitoredAccountIDs([]string{"ou-abcd-12345678", "r-abcd"}),
+			WithAgentlessScanningAccounts(
+				NewAwsSubAccount("", "us-east-1", "us-east-1"),
+			),
+		}
+		hcl, err := NewTerraform(true, true, false, false, append(base, mods...)...).Generate()
+		assert.Nil(t, err)
+		return hcl
+	}
+
+	withoutRoot := generate()
+	withRoot := generate(WithAgentlessOrganizationRootID("r-abcd"))
+
+	assert.Equal(t, withoutRoot, withRoot)
+	assert.NotContains(t, withRoot, "account_filter_type")
+	assert.NotContains(t, withRoot, "snapshot_role_accounts")
+}
+
+func TestGenerationAgentlessOrganizationMixedTargets(t *testing.T) {
+	hcl, err := NewTerraform(
+		true,
+		true,
+		false,
+		false,
+		WithAwsProfile("main"),
+		WithAwsRegion("us-east-2"),
+		WithAgentlessManagementAccountID("123456789000"),
+		WithAgentlessMonitoredAccountIDs([]string{"ou-abcd-12345678", "123456789001"}),
+		WithAgentlessOrganizationRootID("r-abcd"),
+		WithAgentlessScanningAccounts(
+			NewAwsSubAccount("", "us-east-1", "us-east-1"),
+			NewAwsSubAccount("", "us-east-2", "us-east-2"),
+		),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, moduleImportAgentlessOrganizationMixedTargets, hcl)
+}
+
+func TestGenerationAgentlessOrganizationAccountTargetsOnly(t *testing.T) {
+	hcl, err := NewTerraform(
+		true,
+		true,
+		false,
+		false,
+		WithAwsProfile("main"),
+		WithAwsRegion("us-east-2"),
+		WithAgentlessManagementAccountID("123456789000"),
+		WithAgentlessMonitoredAccountIDs([]string{"123456789001", "123456789002"}),
+		WithAgentlessOrganizationRootID("r-abcd"),
+		WithAgentlessScanningAccounts(
+			NewAwsSubAccount("", "us-east-1", "us-east-1"),
+		),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, moduleImportAgentlessOrganizationAccountTargetsOnly, hcl)
+}
+
+func TestGenerationAgentlessOrganizationRootValidation(t *testing.T) {
+	generate := func(mods ...AwsTerraformModifier) error {
+		base := []AwsTerraformModifier{
+			WithAwsProfile("main"),
+			WithAwsRegion("us-east-2"),
+			WithAgentlessManagementAccountID("123456789000"),
+			WithAgentlessScanningAccounts(NewAwsSubAccount("", "us-east-1", "us-east-1")),
+		}
+		_, err := NewTerraform(true, true, false, false, append(base, mods...)...).Generate()
+		return err
+	}
+
+	t.Run("individual account without a root or per-account profile is still rejected", func(t *testing.T) {
+		err := generate(WithAgentlessMonitoredAccountIDs([]string{"123456789001"}))
+		assert.EqualError(t, err, "invalid inputs: must specify profile/region for single monitored"+
+			" accounts for Agentless organization integration")
+	})
+
+	t.Run("individual account is accepted once a root anchors the stack set", func(t *testing.T) {
+		err := generate(
+			WithAgentlessMonitoredAccountIDs([]string{"123456789001"}),
+			WithAgentlessOrganizationRootID("r-abcd"),
+		)
+		assert.Nil(t, err)
+	})
+
+	t.Run("root must be an organization root ID", func(t *testing.T) {
+		err := generate(
+			WithAgentlessMonitoredAccountIDs([]string{"123456789001"}),
+			WithAgentlessOrganizationRootID("ou-abcd-12345678"),
+		)
+		assert.EqualError(t, err, "invalid inputs: Agentless organization root ID must be an AWS"+
+			" Organizations root ID (r-*)")
+	})
+
+	t.Run("stack set targets must be 12-digit account IDs", func(t *testing.T) {
+		err := generate(
+			WithAgentlessMonitoredAccountIDs([]string{"1234"}),
+			WithAgentlessOrganizationRootID("r-abcd"),
+		)
+		assert.EqualError(t, err, "invalid inputs: monitored accounts must be 12-digit AWS account"+
+			" IDs, organizational unit IDs, or the organization root ID")
+	})
+
+	t.Run("an empty monitored list is still rejected", func(t *testing.T) {
+		err := generate(WithAgentlessOrganizationRootID("r-abcd"))
+		assert.EqualError(t, err, "invalid inputs: must specify monitored account ID list for"+
+			" Agentless organization integration")
+	})
+}
+
 var moduleImportAgentlessOrganization = `terraform {
   required_providers {
     aws = {
@@ -766,6 +885,214 @@ resource "aws_cloudformation_stack_set_instance" "snapshot_role" {
 
   deployment_targets {
     organizational_unit_ids = ["ou-abcd-12345678"]
+  }
+}
+`
+
+var moduleImportAgentlessOrganizationMixedTargets = `terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    lacework = {
+      source  = "lacework/lacework"
+      version = "~> 2.0"
+    }
+  }
+}
+
+provider "aws" {
+  alias   = "main"
+  profile = "main"
+  region  = "us-east-2"
+}
+
+provider "aws" {
+  alias   = "us-east-1"
+  profile = ""
+  region  = "us-east-1"
+}
+
+provider "aws" {
+  alias   = "us-east-2"
+  profile = ""
+  region  = "us-east-2"
+}
+
+module "lacework_aws_agentless_management_scanning_role" {
+  source                  = "lacework/agentless-scanning/aws"
+  version                 = "~> 0.6"
+  global_module_reference = module.lacework_aws_agentless_scanning_global
+  snapshot_role           = true
+
+  providers = {
+    aws = aws.main
+  }
+}
+
+module "lacework_aws_agentless_scanning_global" {
+  source  = "lacework/agentless-scanning/aws"
+  version = "~> 0.6"
+  global  = true
+  organization = {
+    management_account = "123456789000"
+    monitored_accounts = ["ou-abcd-12345678", "123456789001"]
+  }
+  regional = true
+
+  providers = {
+    aws = aws.us-east-1
+  }
+}
+
+module "lacework_aws_agentless_scanning_region_us-east-2" {
+  source                  = "lacework/agentless-scanning/aws"
+  version                 = "~> 0.6"
+  global_module_reference = module.lacework_aws_agentless_scanning_global
+  regional                = true
+
+  providers = {
+    aws = aws.us-east-2
+  }
+}
+
+resource "aws_cloudformation_stack_set" "snapshot_role" {
+  capabilities = ["CAPABILITY_NAMED_IAM"]
+  description  = "Lacework AWS Agentless Workload Scanning Organization Roles"
+  name         = "lacework-agentless-scanning-stackset"
+  parameters = {
+    ECSTaskRoleArn     = module.lacework_aws_agentless_scanning_global.agentless_scan_ecs_task_role_arn
+    ExternalId         = module.lacework_aws_agentless_scanning_global.external_id
+    ResourceNamePrefix = module.lacework_aws_agentless_scanning_global.prefix
+    ResourceNameSuffix = module.lacework_aws_agentless_scanning_global.suffix
+  }
+  permission_model = "SERVICE_MANAGED"
+  template_url     = "https://agentless-workload-scanner.s3.amazonaws.com/cloudformation-lacework/latest/snapshot-role.json"
+
+  provider = aws.main
+
+  auto_deployment {
+    enabled                          = true
+    retain_stacks_on_account_removal = false
+  }
+
+  lifecycle {
+    ignore_changes = [administration_role_arn]
+  }
+}
+
+resource "aws_cloudformation_stack_set_instance" "snapshot_role" {
+  stack_set_name = aws_cloudformation_stack_set.snapshot_role.name
+
+  provider = aws.main
+
+  deployment_targets {
+    account_filter_type     = "DIFFERENCE"
+    accounts                = ["123456789001"]
+    organizational_unit_ids = ["ou-abcd-12345678"]
+  }
+}
+
+resource "aws_cloudformation_stack_set_instance" "snapshot_role_accounts" {
+  depends_on     = [aws_cloudformation_stack_set_instance.snapshot_role]
+  stack_set_name = aws_cloudformation_stack_set.snapshot_role.name
+
+  provider = aws.main
+
+  deployment_targets {
+    account_filter_type     = "INTERSECTION"
+    accounts                = ["123456789001"]
+    organizational_unit_ids = ["r-abcd"]
+  }
+}
+`
+
+var moduleImportAgentlessOrganizationAccountTargetsOnly = `terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    lacework = {
+      source  = "lacework/lacework"
+      version = "~> 2.0"
+    }
+  }
+}
+
+provider "aws" {
+  alias   = "main"
+  profile = "main"
+  region  = "us-east-2"
+}
+
+provider "aws" {
+  alias   = "us-east-1"
+  profile = ""
+  region  = "us-east-1"
+}
+
+module "lacework_aws_agentless_management_scanning_role" {
+  source                  = "lacework/agentless-scanning/aws"
+  version                 = "~> 0.6"
+  global_module_reference = module.lacework_aws_agentless_scanning_global
+  snapshot_role           = true
+
+  providers = {
+    aws = aws.main
+  }
+}
+
+module "lacework_aws_agentless_scanning_global" {
+  source  = "lacework/agentless-scanning/aws"
+  version = "~> 0.6"
+  global  = true
+  organization = {
+    management_account = "123456789000"
+    monitored_accounts = ["123456789001", "123456789002"]
+  }
+  regional = true
+
+  providers = {
+    aws = aws.us-east-1
+  }
+}
+
+resource "aws_cloudformation_stack_set" "snapshot_role" {
+  capabilities = ["CAPABILITY_NAMED_IAM"]
+  description  = "Lacework AWS Agentless Workload Scanning Organization Roles"
+  name         = "lacework-agentless-scanning-stackset"
+  parameters = {
+    ECSTaskRoleArn     = module.lacework_aws_agentless_scanning_global.agentless_scan_ecs_task_role_arn
+    ExternalId         = module.lacework_aws_agentless_scanning_global.external_id
+    ResourceNamePrefix = module.lacework_aws_agentless_scanning_global.prefix
+    ResourceNameSuffix = module.lacework_aws_agentless_scanning_global.suffix
+  }
+  permission_model = "SERVICE_MANAGED"
+  template_url     = "https://agentless-workload-scanner.s3.amazonaws.com/cloudformation-lacework/latest/snapshot-role.json"
+
+  provider = aws.main
+
+  auto_deployment {
+    enabled                          = true
+    retain_stacks_on_account_removal = false
+  }
+
+  lifecycle {
+    ignore_changes = [administration_role_arn]
+  }
+}
+
+resource "aws_cloudformation_stack_set_instance" "snapshot_role_accounts" {
+  stack_set_name = aws_cloudformation_stack_set.snapshot_role.name
+
+  provider = aws.main
+
+  deployment_targets {
+    account_filter_type     = "INTERSECTION"
+    accounts                = ["123456789001","123456789002"]
+    organizational_unit_ids = ["r-abcd"]
   }
 }
 `
