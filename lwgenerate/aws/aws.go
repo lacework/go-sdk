@@ -1413,15 +1413,24 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			args.AgentlessOrganizationRootID != "" &&
 			len(accountIDs) > 0
 
-		// When the account-filter path is inactive this is emitted unconditionally, exactly as it
-		// always has been, so existing callers keep byte-identical output.
-		if !targetAccountsByStackSet || len(OUIDs) > 0 {
+		// CreateStackInstances cannot express "these OUs plus these accounts" in a single call
+		// (UNION is rejected for create), so each kind of target needs its own instance.
+		//
+		// The OU instance is skipped only when the account instance covers the whole selection on
+		// its own. In particular it is still emitted when there are no OUs at all and the account
+		// path is inactive: that degenerate empty-list output is what callers got before this
+		// account-filter path existed, and is preserved so their generated HCL is unchanged.
+		emitOrgUnitInstance := len(OUIDs) > 0 || !targetAccountsByStackSet
+		// When both instances exist they need to cooperate: disjoint targets, and serialized.
+		bothInstances := emitOrgUnitInstance && targetAccountsByStackSet
+
+		if emitOrgUnitInstance {
 			targetAttrs := map[string]interface{}{
 				"organizational_unit_ids": lwgenerate.CreateSimpleTraversal(
 					[]string{fmt.Sprintf("[%s]", strings.Join(OUIDs, ","))},
 				),
 			}
-			if targetAccountsByStackSet {
+			if bothInstances {
 				// A selected account may also live inside a selected OU. DIFFERENCE excludes the
 				// individually-targeted accounts from this instance so the two instances target
 				// provably disjoint sets — CloudFormation rejects a second instance covering an
@@ -1485,7 +1494,7 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 					[]string{"aws_cloudformation_stack_set", "snapshot_role", "name"},
 				),
 			}
-			if len(OUIDs) > 0 {
+			if bothInstances {
 				// CloudFormation allows only one operation per stack set at a time and the AWS
 				// provider does not retry OperationInProgressException on create, so the two
 				// instances must be serialized explicitly.
