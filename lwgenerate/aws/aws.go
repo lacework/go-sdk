@@ -1362,9 +1362,6 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 				accountIDs = append(accountIDs, fmt.Sprintf("\"%s\"", accountID))
 			}
 		}
-		targetAccountsByStackSet := len(args.AgentlessMonitoredAccounts) == 0 &&
-			args.AgentlessOrganizationRootID != "" &&
-			len(accountIDs) > 0
 
 		// Each kind of target needs its own instance, because a single deployment_targets block
 		// cannot express "these OUs plus these accounts". Of the four account filters only UNION
@@ -1373,13 +1370,14 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 		// resource ever makes: every deployment_targets field is ForceNew in the AWS provider, so
 		// changing a target replaces the instance rather than updating it. UNION is therefore out
 		// of reach here even on a later apply.
-		emitOrgUnitInstance := len(OUIDs) > 0
 		// When both instances exist they need to cooperate: disjoint targets, and serialized.
-		bothInstances := emitOrgUnitInstance && targetAccountsByStackSet
+		targetOUsByStackSet := len(OUIDs) > 0
+		targetAccountsByStackSet := len(args.AgentlessMonitoredAccounts) == 0 &&
+			args.AgentlessOrganizationRootID != "" &&
+			len(accountIDs) > 0
 
-		// With no instance to deploy there is nothing for the stack set to do -- every monitored
-		// account is already covered by its own provider alias in AgentlessMonitoredAccounts.
-		if emitOrgUnitInstance || targetAccountsByStackSet {
+		// Creates StackSet template
+		if targetOUsByStackSet || targetAccountsByStackSet {
 			autoDeploymentBlock, err := lwgenerate.HclCreateGenericBlock(
 				"auto_deployment",
 				nil,
@@ -1427,17 +1425,14 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			blocks = append(blocks, stacksetResource)
 		}
 
-		if emitOrgUnitInstance {
-			// No account_filter_type unless the second instance forces one below. Omitting it means
-			// UNION by default, which is harmless with no accounts to union, and it is what every
-			// deployment generated so far already has -- spelling it NONE would be equivalent but
-			// ForceNew, replacing every existing instance and every snapshot role with it.
+		// Creates StackSet instance for OUs
+		if targetOUsByStackSet {
 			targetAttrs := map[string]interface{}{
 				"organizational_unit_ids": lwgenerate.CreateSimpleTraversal(
 					[]string{fmt.Sprintf("[%s]", strings.Join(OUIDs, ","))},
 				),
 			}
-			if bothInstances {
+			if targetAccountsByStackSet {
 				// A selected account may also live inside a selected OU. DIFFERENCE excludes the
 				// individually-targeted accounts from this instance so the two instances target
 				// provably disjoint sets — CloudFormation rejects a second instance covering an
@@ -1453,7 +1448,7 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			}
 			stacksetInstanceResource, err := lwgenerate.NewResource(
 				"aws_cloudformation_stack_set_instance",
-				"snapshot_role",
+				"snapshot_role_ous",
 				lwgenerate.HclResourceWithAttributesAndProviderDetails(
 					map[string]interface{}{
 						"stack_set_name": lwgenerate.CreateSimpleTraversal(
@@ -1472,6 +1467,7 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			blocks = append(blocks, stacksetInstanceResource)
 		}
 
+		// Creates StackSet instance for accounts
 		if targetAccountsByStackSet {
 			// INTERSECTION against the organization root: deploy only to these accounts. The root
 			// is an ancestor of every account, so it is always a valid anchor.
@@ -1501,12 +1497,12 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 					[]string{"aws_cloudformation_stack_set", "snapshot_role", "name"},
 				),
 			}
-			if bothInstances {
+			if targetOUsByStackSet {
 				// CloudFormation allows only one operation per stack set at a time and the AWS
 				// provider does not retry OperationInProgressException on create, so the two
 				// instances must be serialized explicitly.
 				instanceAttrs["depends_on"] = lwgenerate.CreateSimpleTraversal(
-					[]string{"[aws_cloudformation_stack_set_instance.snapshot_role]"},
+					[]string{"[aws_cloudformation_stack_set_instance.snapshot_role_ous]"},
 				)
 			}
 

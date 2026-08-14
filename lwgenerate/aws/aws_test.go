@@ -906,7 +906,7 @@ resource "aws_cloudformation_stack_set" "snapshot_role" {
   }
 }
 
-resource "aws_cloudformation_stack_set_instance" "snapshot_role" {
+resource "aws_cloudformation_stack_set_instance" "snapshot_role_ous" {
   stack_set_name = aws_cloudformation_stack_set.snapshot_role.name
 
   provider = aws.main
@@ -1010,7 +1010,7 @@ resource "aws_cloudformation_stack_set" "snapshot_role" {
   }
 }
 
-resource "aws_cloudformation_stack_set_instance" "snapshot_role" {
+resource "aws_cloudformation_stack_set_instance" "snapshot_role_ous" {
   stack_set_name = aws_cloudformation_stack_set.snapshot_role.name
 
   provider = aws.main
@@ -1023,7 +1023,7 @@ resource "aws_cloudformation_stack_set_instance" "snapshot_role" {
 }
 
 resource "aws_cloudformation_stack_set_instance" "snapshot_role_accounts" {
-  depends_on     = [aws_cloudformation_stack_set_instance.snapshot_role]
+  depends_on     = [aws_cloudformation_stack_set_instance.snapshot_role_ous]
   stack_set_name = aws_cloudformation_stack_set.snapshot_role.name
 
   provider = aws.main
