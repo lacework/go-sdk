@@ -1349,57 +1349,10 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			blocks = append(blocks, monitoredModule)
 		}
 
-		autoDeploymentBlock, err := lwgenerate.HclCreateGenericBlock(
-			"auto_deployment",
-			nil,
-			map[string]interface{}{"enabled": true, "retain_stacks_on_account_removal": false},
-		)
-		if err != nil {
-			return nil, err
-		}
-		lifecycleBlock, err := lwgenerate.HclCreateGenericBlock(
-			"lifecycle",
-			nil,
-			map[string]interface{}{
-				"ignore_changes": lwgenerate.CreateSimpleTraversal([]string{"[administration_role_arn]"}),
-			},
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		stacksetResource, err := lwgenerate.NewResource(
-			"aws_cloudformation_stack_set",
-			"snapshot_role",
-			lwgenerate.HclResourceWithAttributesAndProviderDetails(
-				map[string]interface{}{
-					"capabilities":     lwgenerate.CreateSimpleTraversal([]string{"[\"CAPABILITY_NAMED_IAM\"]"}),
-					"description":      "Lacework AWS Agentless Workload Scanning Organization Roles",
-					"name":             "lacework-agentless-scanning-stackset",
-					"permission_model": "SERVICE_MANAGED",
-					"template_url": "https://agentless-workload-scanner.s3.amazonaws.com" +
-						"/cloudformation-lacework/latest/snapshot-role.json",
-					"parameters": lwgenerate.CreateMapTraversalTokens(map[string]string{
-						"ExternalId":         "module.lacework_aws_agentless_scanning_global.external_id",
-						"ECSTaskRoleArn":     "module.lacework_aws_agentless_scanning_global.agentless_scan_ecs_task_role_arn",
-						"ResourceNamePrefix": "module.lacework_aws_agentless_scanning_global.prefix",
-						"ResourceNameSuffix": "module.lacework_aws_agentless_scanning_global.suffix",
-					}),
-				},
-				[]string{"aws.main"},
-			),
-			lwgenerate.HclResourceWithGenericBlocks(autoDeploymentBlock, lifecycleBlock),
-		).ToResourceBlock()
-		if err != nil {
-			return nil, err
-		}
-		blocks = append(blocks, stacksetResource)
-
 		// Split the monitored list into the two things a StackSet can target. OUs and the root are
 		// targeted directly; individual accounts can only be reached by narrowing an ancestor OU
-		// with an account filter, which needs AgentlessOrganizationRootID. Without that root we
-		// keep the historical behavior of silently dropping individual accounts here — they are
-		// instead handled by the per-account provider aliases in AgentlessMonitoredAccounts.
+		// with an account filter, which needs AgentlessOrganizationRootID. Without that root the
+		// account IDs are left to the per-account provider aliases in AgentlessMonitoredAccounts.
 		OUIDs := []string{}
 		accountIDs := []string{}
 		for _, accountID := range args.AgentlessMonitoredAccountIDs {
@@ -1413,16 +1366,61 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			args.AgentlessOrganizationRootID != "" &&
 			len(accountIDs) > 0
 
-		// CreateStackInstances cannot express "these OUs plus these accounts" in a single call
-		// (UNION is rejected for create), so each kind of target needs its own instance.
-		//
-		// The OU instance is skipped only when the account instance covers the whole selection on
-		// its own. In particular it is still emitted when there are no OUs at all and the account
-		// path is inactive: that degenerate empty-list output is what callers got before this
-		// account-filter path existed, and is preserved so their generated HCL is unchanged.
-		emitOrgUnitInstance := len(OUIDs) > 0 || !targetAccountsByStackSet
+		// CreateStackInstances cannot express "these OUs plus these accounts" in a single call (UNION
+		// is rejected for create), so each kind of target needs its own instance.
+		emitOrgUnitInstance := len(OUIDs) > 0
 		// When both instances exist they need to cooperate: disjoint targets, and serialized.
 		bothInstances := emitOrgUnitInstance && targetAccountsByStackSet
+
+		// With no instance to deploy there is nothing for the stack set to do -- every monitored
+		// account is already covered by its own provider alias in AgentlessMonitoredAccounts.
+		if emitOrgUnitInstance || targetAccountsByStackSet {
+			autoDeploymentBlock, err := lwgenerate.HclCreateGenericBlock(
+				"auto_deployment",
+				nil,
+				map[string]interface{}{"enabled": true, "retain_stacks_on_account_removal": false},
+			)
+			if err != nil {
+				return nil, err
+			}
+			lifecycleBlock, err := lwgenerate.HclCreateGenericBlock(
+				"lifecycle",
+				nil,
+				map[string]interface{}{
+					"ignore_changes": lwgenerate.CreateSimpleTraversal([]string{"[administration_role_arn]"}),
+				},
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			stacksetResource, err := lwgenerate.NewResource(
+				"aws_cloudformation_stack_set",
+				"snapshot_role",
+				lwgenerate.HclResourceWithAttributesAndProviderDetails(
+					map[string]interface{}{
+						"capabilities":     lwgenerate.CreateSimpleTraversal([]string{"[\"CAPABILITY_NAMED_IAM\"]"}),
+						"description":      "Lacework AWS Agentless Workload Scanning Organization Roles",
+						"name":             "lacework-agentless-scanning-stackset",
+						"permission_model": "SERVICE_MANAGED",
+						"template_url": "https://agentless-workload-scanner.s3.amazonaws.com" +
+							"/cloudformation-lacework/latest/snapshot-role.json",
+						"parameters": lwgenerate.CreateMapTraversalTokens(map[string]string{
+							"ExternalId":         "module.lacework_aws_agentless_scanning_global.external_id",
+							"ECSTaskRoleArn":     "module.lacework_aws_agentless_scanning_global.agentless_scan_ecs_task_role_arn",
+							"ResourceNamePrefix": "module.lacework_aws_agentless_scanning_global.prefix",
+							"ResourceNameSuffix": "module.lacework_aws_agentless_scanning_global.suffix",
+						}),
+					},
+					[]string{"aws.main"},
+				),
+				lwgenerate.HclResourceWithGenericBlocks(autoDeploymentBlock, lifecycleBlock),
+			).ToResourceBlock()
+			if err != nil {
+				return nil, err
+			}
+			blocks = append(blocks, stacksetResource)
+		}
 
 		if emitOrgUnitInstance {
 			targetAttrs := map[string]interface{}{

@@ -768,6 +768,34 @@ func TestGenerationAgentlessOrganizationRootValidation(t *testing.T) {
 	})
 }
 
+// A monitored list of only individual accounts, each already reachable through its own provider
+// alias, leaves the stack set with nothing to deploy. It used to emit an instance targeting
+// `organizational_unit_ids = []`, which CloudFormation rejects.
+func TestGenerationAgentlessOrganizationNoStackSetWhenNothingToTarget(t *testing.T) {
+	hcl, err := NewTerraform(
+		true,
+		true,
+		false,
+		false,
+		WithAwsProfile("main"),
+		WithAwsRegion("us-east-2"),
+		WithAgentlessManagementAccountID("123456789000"),
+		WithAgentlessMonitoredAccountIDs([]string{"123456789001"}),
+		WithAgentlessMonitoredAccounts(
+			NewAwsSubAccount("monitored-account-1", "us-west-2", "monitored-account-1-us-west-2"),
+		),
+		WithAgentlessScanningAccounts(
+			NewAwsSubAccount("scanning-1", "us-east-1", "scanning-1-us-east-1"),
+		),
+	).Generate()
+	assert.Nil(t, err)
+
+	// The account still gets its snapshot role, just through its provider alias.
+	assert.Contains(t, hcl, "module \"lacework_aws_agentless_monitored_scanning_role_monitored-account-1-us-west-2\"")
+	assert.NotContains(t, hcl, "aws_cloudformation_stack_set")
+	assert.NotContains(t, hcl, "organizational_unit_ids")
+}
+
 var moduleImportAgentlessOrganization = `terraform {
   required_providers {
     aws = {
