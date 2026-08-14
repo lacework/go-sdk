@@ -1366,8 +1366,13 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 			args.AgentlessOrganizationRootID != "" &&
 			len(accountIDs) > 0
 
-		// CreateStackInstances cannot express "these OUs plus these accounts" in a single call (UNION
-		// is rejected for create), so each kind of target needs its own instance.
+		// Each kind of target needs its own instance, because a single deployment_targets block
+		// cannot express "these OUs plus these accounts". Of the four account filters only UNION
+		// widens the OU selection that way -- INTERSECTION, DIFFERENCE and NONE all narrow it --
+		// and AWS does not accept UNION on CreateStackInstances, which is the only call this
+		// resource ever makes: every deployment_targets field is ForceNew in the AWS provider, so
+		// changing a target replaces the instance rather than updating it. UNION is therefore out
+		// of reach here even on a later apply.
 		emitOrgUnitInstance := len(OUIDs) > 0
 		// When both instances exist they need to cooperate: disjoint targets, and serialized.
 		bothInstances := emitOrgUnitInstance && targetAccountsByStackSet
@@ -1423,6 +1428,10 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 		}
 
 		if emitOrgUnitInstance {
+			// No account_filter_type unless the second instance forces one below. Omitting it means
+			// UNION by default, which is harmless with no accounts to union, and it is what every
+			// deployment generated so far already has -- spelling it NONE would be equivalent but
+			// ForceNew, replacing every existing instance and every snapshot role with it.
 			targetAttrs := map[string]interface{}{
 				"organizational_unit_ids": lwgenerate.CreateSimpleTraversal(
 					[]string{fmt.Sprintf("[%s]", strings.Join(OUIDs, ","))},
