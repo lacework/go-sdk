@@ -350,6 +350,12 @@ func (args *GenerateAwsTfConfigurationArgs) Validate() error {
 			if len(args.AgentlessMonitoredAccountIDs) == 0 {
 				return errors.New("must specify monitored account ID list for Agentless organization integration")
 			}
+			for _, accountID := range args.AgentlessMonitoredAccountIDs {
+				if !agentlessMonitoredAccountFormat.MatchString(accountID) {
+					return errors.New("monitored accounts must be 12-digit AWS account IDs," +
+						" organizational unit IDs (ou-*), or the organization root ID (r-*)")
+				}
+			}
 			// A single monitored account needs its snapshot role created somehow: either with a
 			// per-account provider alias (profile/region), or by a StackSet anchored on the
 			// organization root. With neither, the account would be scanned but never given a role.
@@ -364,23 +370,9 @@ func (args *GenerateAwsTfConfigurationArgs) Validate() error {
 				}
 			}
 
-			if args.AgentlessOrganizationRootID != "" {
-				if !regexp.MustCompile(`^r-[0-9a-z]{4,32}$`).MatchString(args.AgentlessOrganizationRootID) {
-					return errors.New("Agentless organization root ID must be an AWS Organizations root ID (r-*)")
-				}
-				// Anything routed to a CloudFormation DeploymentTargets.Accounts filter must be
-				// exactly 12 digits, which is stricter than the Terraform module's own regex.
-				if len(args.AgentlessMonitoredAccounts) == 0 {
-					for _, accountID := range args.AgentlessMonitoredAccountIDs {
-						if isAgentlessOrgUnitID(accountID) {
-							continue
-						}
-						if !regexp.MustCompile(`^\d{12}$`).MatchString(accountID) {
-							return errors.New("monitored accounts must be 12-digit AWS account IDs," +
-								" organizational unit IDs, or the organization root ID")
-						}
-					}
-				}
+			if args.AgentlessOrganizationRootID != "" &&
+				!regexp.MustCompile(`^r-[0-9a-z]{4,32}$`).MatchString(args.AgentlessOrganizationRootID) {
+				return errors.New("Agentless organization root ID must be an AWS Organizations root ID (r-*)")
 			}
 			if len(args.AgentlessScanningAccounts) == 0 {
 				return errors.New("must specify scanning accounts for Agentless organization integration")
@@ -1237,6 +1229,14 @@ func createCloudtrail(args *GenerateAwsTfConfigurationArgs) (*hclwrite.Block, er
 		lwgenerate.HclModuleWithAttributes(attributes),
 	).ToBlock()
 }
+
+// Every monitored-account entry reaches the generated HCL as a raw token, so the format is
+// validated rather than trusted from the caller. Mirrors the validation in the
+// terraform-aws-agentless-scanning module and in the wizard (AWSMonitoredAccountRegex) so all three
+// accept the same IDs, except that an account must be exactly 12 digits here: that is what
+// CloudFormation's DeploymentTargets.Accounts requires, and the module's own bound is looser.
+var agentlessMonitoredAccountFormat = regexp.MustCompile(
+	`^(\d{12}|ou-[0-9a-z]{4,32}-[0-9a-z]{8,32}|r-[0-9a-z]{4,32})$`)
 
 // isAgentlessOrgUnitID reports whether a monitored-account entry is an organizational unit or the
 // organization root, as opposed to an individual account ID. CloudFormation deployment targets

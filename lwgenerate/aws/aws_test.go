@@ -752,19 +752,73 @@ func TestGenerationAgentlessOrganizationRootValidation(t *testing.T) {
 			" Organizations root ID (r-*)")
 	})
 
-	t.Run("stack set targets must be 12-digit account IDs", func(t *testing.T) {
-		err := generate(
-			WithAgentlessMonitoredAccountIDs([]string{"1234"}),
-			WithAgentlessOrganizationRootID("r-abcd"),
-		)
-		assert.EqualError(t, err, "invalid inputs: monitored accounts must be 12-digit AWS account"+
-			" IDs, organizational unit IDs, or the organization root ID")
-	})
-
 	t.Run("an empty monitored list is still rejected", func(t *testing.T) {
 		err := generate(WithAgentlessOrganizationRootID("r-abcd"))
 		assert.EqualError(t, err, "invalid inputs: must specify monitored account ID list for"+
 			" Agentless organization integration")
+	})
+}
+
+// Monitored-account entries are written into the generated HCL as raw tokens -- monitored_accounts
+// on the global module takes every entry, whatever else is configured -- so a quote inside one would
+// close the string and let the rest be parsed as Terraform. The format check has to cover every
+// entry on every path, not only the ones a stack set targets.
+func TestGenerationAgentlessOrganizationMonitoredAccountFormat(t *testing.T) {
+	const formatError = "invalid inputs: monitored accounts must be 12-digit AWS account IDs," +
+		" organizational unit IDs (ou-*), or the organization root ID (r-*)"
+
+	generate := func(monitored []string, mods ...AwsTerraformModifier) error {
+		base := []AwsTerraformModifier{
+			WithAwsProfile("main"),
+			WithAwsRegion("us-east-2"),
+			WithAgentlessManagementAccountID("123456789000"),
+			WithAgentlessScanningAccounts(NewAwsSubAccount("", "us-east-1", "us-east-1")),
+			WithAgentlessMonitoredAccountIDs(monitored),
+		}
+		_, err := NewTerraform(true, true, false, false, append(base, mods...)...).Generate()
+		return err
+	}
+
+	accepted := map[string][]string{
+		"an account ID":          {"123456789001"},
+		"an organizational unit": {"ou-abcd-12345678"},
+		"the organization root":  {"r-abcd"},
+		"a mix of all three":     {"123456789001", "ou-abcd-12345678", "r-abcd"},
+		"the longest legal IDs": {
+			"ou-abcdefghijklmnopqrstuvwxyz012345-abcdefghijklmnopqrstuvwxyz012345",
+			"r-abcdefghijklmnopqrstuvwxyz012345",
+		},
+	}
+	for name, monitored := range accepted {
+		t.Run("accepts "+name, func(t *testing.T) {
+			assert.Nil(t, generate(monitored, WithAgentlessOrganizationRootID("r-abcd")))
+		})
+	}
+
+	rejected := map[string][]string{
+		"a root that closes the string":     {`r-abcd"], evil = "`},
+		"an account that closes the string": {`123456789001"], evil = "`},
+		"a trailing quote on an org unit":   {`ou-abcd-12345678"`},
+		"an uppercase org unit":             {"ou-ABCD-12345678"},
+		"an account ID that is too short":   {"1234"},
+		"an org unit missing its suffix":    {"ou-abcd"},
+		"a bare root prefix":                {"r-"},
+		"one bad entry among good ones":     {"123456789001", "ou-abcd-12345678", "r-abcd\" evil"},
+	}
+	for name, monitored := range rejected {
+		t.Run("rejects "+name, func(t *testing.T) {
+			assert.EqualError(t, generate(monitored, WithAgentlessOrganizationRootID("r-abcd")), formatError)
+		})
+	}
+
+	// The CLI never sets an organization root and provisions monitored accounts through per-account
+	// provider aliases instead, so the check must not be gated on either of those.
+	t.Run("rejects an injected entry on the per-account provider path", func(t *testing.T) {
+		err := generate(
+			[]string{`123456789001"], evil = "`},
+			WithAgentlessMonitoredAccounts(NewAwsSubAccount("monitored-1", "us-west-2")),
+		)
+		assert.EqualError(t, err, formatError)
 	})
 }
 
