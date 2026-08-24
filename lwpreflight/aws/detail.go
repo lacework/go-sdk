@@ -83,14 +83,18 @@ func FetchOrgAccounts(p *Preflight) error {
 	ctx := context.Background()
 	orgSvc := organizations.NewFromConfig(p.awsConfig)
 
-	accountsOutput, err := orgSvc.ListAccounts(ctx, nil)
-	if err != nil {
-		return err
-	}
-
 	p.details.OrgAccountIDs = []string{}
-	for _, a := range accountsOutput.Accounts {
-		p.details.OrgAccountIDs = append(p.details.OrgAccountIDs, *a.Id)
+	// Paginated: ListAccounts returns at most 20 accounts per page, so an unpaginated call
+	// silently truncates every organization larger than that.
+	paginator := organizations.NewListAccountsPaginator(orgSvc, &organizations.ListAccountsInput{})
+	for paginator.HasMorePages() {
+		accountsOutput, err := paginator.NextPage(ctx)
+		if err != nil {
+			return err
+		}
+		for _, a := range accountsOutput.Accounts {
+			p.details.OrgAccountIDs = append(p.details.OrgAccountIDs, *a.Id)
+		}
 	}
 
 	return nil
@@ -113,19 +117,23 @@ func FetchOrgUnits(p *Preflight) error {
 
 	p.verboseWriter.Write("Discovering all organization units")
 
-	orgUnitsOutput, err := orgSvc.ListOrganizationalUnitsForParent(
-		ctx,
+	p.details.OrgUnitIDs = []string{}
+	// Paginated for the same reason as ListAccounts above. Still only one level below the root:
+	// nested OUs are not enumerated, and callers let users type a nested OU ID by hand.
+	paginator := organizations.NewListOrganizationalUnitsForParentPaginator(
+		orgSvc,
 		&organizations.ListOrganizationalUnitsForParentInput{
 			ParentId: &p.details.RootOrgUnitID,
 		},
 	)
-	if err != nil {
-		return err
-	}
-
-	p.details.OrgUnitIDs = []string{}
-	for _, ou := range orgUnitsOutput.OrganizationalUnits {
-		p.details.OrgUnitIDs = append(p.details.OrgUnitIDs, *ou.Id)
+	for paginator.HasMorePages() {
+		orgUnitsOutput, err := paginator.NextPage(ctx)
+		if err != nil {
+			return err
+		}
+		for _, ou := range orgUnitsOutput.OrganizationalUnits {
+			p.details.OrgUnitIDs = append(p.details.OrgUnitIDs, *ou.Id)
+		}
 	}
 
 	return nil

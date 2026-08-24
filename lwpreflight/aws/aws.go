@@ -82,7 +82,10 @@ func New(params Params) (*Preflight, error) {
 		if params.Agentless {
 			tasks = append(tasks, FetchOrgAccounts)
 		}
-		if params.Config {
+		// Agentless needs the root and OU IDs too: an org-level Agentless integration lets the
+		// user pick the org root, OUs, or individual accounts to monitor, and the root anchors
+		// the StackSet deployment target when individual accounts are chosen.
+		if params.Config || params.Agentless {
 			tasks = append(tasks, FetchOrgUnits)
 		}
 		if params.CloudTrail {
