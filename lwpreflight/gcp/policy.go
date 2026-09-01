@@ -153,7 +153,11 @@ func fetchOrgPolicies(p *Preflight) ([]*cloudresourcemanagerV3.Policy, error) {
 
 	policy, err := crmSvcV3.Organizations.GetIamPolicy(
 		fmt.Sprintf("organizations/%s", p.orgID),
-		&cloudresourcemanagerV3.GetIamPolicyRequest{},
+		&cloudresourcemanagerV3.GetIamPolicyRequest{
+			Options: &cloudresourcemanagerV3.GetPolicyOptions{
+				RequestedPolicyVersion: 3,
+			},
+		},
 	).Do()
 	if err != nil {
 		return nil, err
