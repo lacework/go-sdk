@@ -15,7 +15,7 @@ Flags:
       --client-id string          Azure service principal client ID
       --client-secret string      Azure service principal client secret
       --config                    check permissions for the Config integration
-      --existing-ad-application   reuse an existing Entra ID application for Config/Activity Log instead of creating one, which waives the directory roles needed to create it
+      --existing-ad-application   reuse an existing Entra ID application for Config/Activity Log (skips the directory-role checks)
   -h, --help                      help for azure
       --region string             Azure region to use for region-scoped checks
       --subscription-id string    Azure subscription ID (required)
