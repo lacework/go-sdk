@@ -10,16 +10,18 @@ Usage:
   lacework preflight azure [flags]
 
 Flags:
-      --activity-log              check permissions for the Activity Log integration
-      --agentless                 check permissions for the Agentless integration
-      --client-id string          Azure service principal client ID
-      --client-secret string      Azure service principal client secret
-      --config                    check permissions for the Config integration
-      --existing-ad-application   reuse an existing Entra ID application for Config/Activity Log (skips the directory-role checks)
-  -h, --help                      help for azure
-      --region string             Azure region to use for region-scoped checks
-      --subscription-id string    Azure subscription ID (required)
-      --tenant-id string          Azure tenant ID (required when using --client-id/--client-secret)
+      --activity-log                           check permissions for the Activity Log integration
+      --activity-log-existing-ad-application   reuse an existing Entra ID application for Activity Log
+      --agentless                              check permissions for the Agentless integration
+      --client-id string                       Azure service principal client ID
+      --client-secret string                   Azure service principal client secret
+      --config                                 check permissions for the Config integration
+      --config-existing-ad-application         reuse an existing Entra ID application for Config
+      --existing-ad-application                reuse existing Entra ID applications for both Config and Activity Log
+  -h, --help                                   help for azure
+      --region string                          Azure region to use for region-scoped checks
+      --subscription-id string                 Azure subscription ID (required)
+      --tenant-id string                       Azure tenant ID (required when using --client-id/--client-secret)
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

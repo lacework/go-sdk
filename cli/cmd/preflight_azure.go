@@ -15,18 +15,22 @@ import (
 	"github.com/lacework/go-sdk/v2/lwpreflight/azure"
 )
 
+type azurePreflightOptions struct {
+	agentless                        bool
+	config                           bool
+	activityLog                      bool
+	existingAdApplication            bool
+	configExistingAdApplication      bool
+	activityLogExistingAdApplication bool
+	subscriptionID                   string
+	tenantID                         string
+	clientID                         string
+	clientSecret                     string
+	region                           string
+}
+
 var (
-	preflightAzureState struct {
-		agentless             bool
-		config                bool
-		activityLog           bool
-		existingAdApplication bool
-		subscriptionID        string
-		tenantID              string
-		clientID              string
-		clientSecret          string
-		region                string
-	}
+	preflightAzureState azurePreflightOptions
 
 	preflightAzureCmd = &cobra.Command{
 		Use:   "azure",
@@ -53,7 +57,11 @@ func init() {
 	flags.BoolVar(&preflightAzureState.activityLog, "activity-log", false,
 		"check permissions for the Activity Log integration")
 	flags.BoolVar(&preflightAzureState.existingAdApplication, "existing-ad-application", false,
-		"reuse an existing Entra ID application for Config/Activity Log (skips the directory-role checks)")
+		"reuse existing Entra ID applications for both Config and Activity Log")
+	flags.BoolVar(&preflightAzureState.configExistingAdApplication, "config-existing-ad-application", false,
+		"reuse an existing Entra ID application for Config")
+	flags.BoolVar(&preflightAzureState.activityLogExistingAdApplication, "activity-log-existing-ad-application", false,
+		"reuse an existing Entra ID application for Activity Log")
 	flags.StringVar(&preflightAzureState.subscriptionID, "subscription-id", "",
 		"Azure subscription ID (required)")
 	flags.StringVar(&preflightAzureState.tenantID, "tenant-id", "",
@@ -78,18 +86,15 @@ func runPreflightAzure(_ *cobra.Command, _ []string) error {
 	}
 
 	params := azure.Params{
-		Agentless:   s.agentless,
-		Config:      s.config,
-		ActivityLog: s.activityLog,
-		UseExistingAdApplication: map[azure.IntegrationType]bool{
-			azure.Config:      s.existingAdApplication,
-			azure.ActivityLog: s.existingAdApplication,
-		},
-		SubscriptionID: s.subscriptionID,
-		TenantID:       s.tenantID,
-		ClientID:       s.clientID,
-		ClientSecret:   s.clientSecret,
-		Region:         s.region,
+		Agentless:                s.agentless,
+		Config:                   s.config,
+		ActivityLog:              s.activityLog,
+		UseExistingAdApplication: existingAdApplicationsAzure(s),
+		SubscriptionID:           s.subscriptionID,
+		TenantID:                 s.tenantID,
+		ClientID:                 s.clientID,
+		ClientSecret:             s.clientSecret,
+		Region:                   s.region,
 	}
 
 	pf, err := azure.New(params)
@@ -139,17 +144,14 @@ func renderAzureHumanResult(result *azure.Result, integrations []string) {
 	}
 }
 
-func integrationsRequestedAzure(s struct {
-	agentless             bool
-	config                bool
-	activityLog           bool
-	existingAdApplication bool
-	subscriptionID        string
-	tenantID              string
-	clientID              string
-	clientSecret          string
-	region                string
-}) []string {
+func existingAdApplicationsAzure(s azurePreflightOptions) map[azure.IntegrationType]bool {
+	return map[azure.IntegrationType]bool{
+		azure.Config:      s.existingAdApplication || s.configExistingAdApplication,
+		azure.ActivityLog: s.existingAdApplication || s.activityLogExistingAdApplication,
+	}
+}
+
+func integrationsRequestedAzure(s azurePreflightOptions) []string {
 	out := []string{}
 	if s.agentless {
 		out = append(out, string(azure.Agentless))
