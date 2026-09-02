@@ -53,8 +53,7 @@ func init() {
 	flags.BoolVar(&preflightAzureState.activityLog, "activity-log", false,
 		"check permissions for the Activity Log integration")
 	flags.BoolVar(&preflightAzureState.existingAdApplication, "existing-ad-application", false,
-		"reuse an existing Entra ID application for Config/Activity Log instead of creating one, "+
-			"which waives the directory roles needed to create it")
+		"reuse an existing Entra ID application for Config/Activity Log (skips the directory-role checks)")
 	flags.StringVar(&preflightAzureState.subscriptionID, "subscription-id", "",
 		"Azure subscription ID (required)")
 	flags.StringVar(&preflightAzureState.tenantID, "tenant-id", "",
