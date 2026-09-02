@@ -2,6 +2,7 @@ package azure
 
 import (
 	"errors"
+	"maps"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -21,7 +22,7 @@ type Preflight struct {
 	tasks                    []func(p *Preflight) error
 	permissions              map[string]bool
 	permissionsWithWildcard  []string
-	useExistingAdApplication bool
+	useExistingAdApplication map[IntegrationType]bool
 
 	caller  Caller
 	details Details
@@ -45,10 +46,10 @@ type Params struct {
 	ClientID       string
 	ClientSecret   string
 	Region         string
-	// Set when config/activity log will reuse an existing Entra ID
-	// application instead of creating one, which waives the directory-role
-	// requirements for those integrations
-	UseExistingAdApplication bool
+	// UseExistingAdApplication identifies Config and Activity Log integrations
+	// that reuse an existing Entra ID application instead of creating one,
+	// which waives their directory-role requirements.
+	UseExistingAdApplication map[IntegrationType]bool
 }
 
 func New(params Params) (*Preflight, error) {
@@ -105,7 +106,7 @@ func New(params Params) (*Preflight, error) {
 		integrationTypes:         integrationTypes,
 		permissions:              map[string]bool{},
 		permissionsWithWildcard:  []string{},
-		useExistingAdApplication: params.UseExistingAdApplication,
+		useExistingAdApplication: maps.Clone(params.UseExistingAdApplication),
 		tasks:                    tasks,
 		details:                  Details{},
 		errors:                   map[IntegrationType][]string{},

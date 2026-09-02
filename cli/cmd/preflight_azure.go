@@ -78,15 +78,18 @@ func runPreflightAzure(_ *cobra.Command, _ []string) error {
 	}
 
 	params := azure.Params{
-		Agentless:                s.agentless,
-		Config:                   s.config,
-		ActivityLog:              s.activityLog,
-		UseExistingAdApplication: s.existingAdApplication,
-		SubscriptionID:           s.subscriptionID,
-		TenantID:                 s.tenantID,
-		ClientID:                 s.clientID,
-		ClientSecret:             s.clientSecret,
-		Region:                   s.region,
+		Agentless:   s.agentless,
+		Config:      s.config,
+		ActivityLog: s.activityLog,
+		UseExistingAdApplication: map[azure.IntegrationType]bool{
+			azure.Config:      s.existingAdApplication,
+			azure.ActivityLog: s.existingAdApplication,
+		},
+		SubscriptionID: s.subscriptionID,
+		TenantID:       s.tenantID,
+		ClientID:       s.clientID,
+		ClientSecret:   s.clientSecret,
+		Region:         s.region,
 	}
 
 	pf, err := azure.New(params)
