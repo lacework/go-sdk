@@ -8,6 +8,15 @@ const (
 	Agentless   IntegrationType = "azure_agentless"
 )
 
+// Entra ID directory role template IDs
+// https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference
+const (
+	GlobalAdministratorRoleID           = "62e90394-69f5-4237-9190-012177145e10"
+	ApplicationAdministratorRoleID      = "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3"
+	CloudApplicationAdministratorRoleID = "158c047a-c907-4556-b7ef-446551a6b5f7"
+	PrivilegedRoleAdministratorRoleID   = "e8611ab8-c189-46e8-94e1-60213ab1f814"
+)
+
 var RequiredPermissions = map[IntegrationType][]string{
 	Config: {
 		"Microsoft.Authorization/roleAssignments/read",

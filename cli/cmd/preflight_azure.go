@@ -17,14 +17,15 @@ import (
 
 var (
 	preflightAzureState struct {
-		agentless      bool
-		config         bool
-		activityLog    bool
-		subscriptionID string
-		tenantID       string
-		clientID       string
-		clientSecret   string
-		region         string
+		agentless             bool
+		config                bool
+		activityLog           bool
+		existingAdApplication bool
+		subscriptionID        string
+		tenantID              string
+		clientID              string
+		clientSecret          string
+		region                string
 	}
 
 	preflightAzureCmd = &cobra.Command{
@@ -51,6 +52,9 @@ func init() {
 		"check permissions for the Config integration")
 	flags.BoolVar(&preflightAzureState.activityLog, "activity-log", false,
 		"check permissions for the Activity Log integration")
+	flags.BoolVar(&preflightAzureState.existingAdApplication, "existing-ad-application", false,
+		"reuse an existing Entra ID application for Config/Activity Log instead of creating one, "+
+			"which waives the directory roles needed to create it")
 	flags.StringVar(&preflightAzureState.subscriptionID, "subscription-id", "",
 		"Azure subscription ID (required)")
 	flags.StringVar(&preflightAzureState.tenantID, "tenant-id", "",
@@ -75,14 +79,15 @@ func runPreflightAzure(_ *cobra.Command, _ []string) error {
 	}
 
 	params := azure.Params{
-		Agentless:      s.agentless,
-		Config:         s.config,
-		ActivityLog:    s.activityLog,
-		SubscriptionID: s.subscriptionID,
-		TenantID:       s.tenantID,
-		ClientID:       s.clientID,
-		ClientSecret:   s.clientSecret,
-		Region:         s.region,
+		Agentless:                s.agentless,
+		Config:                   s.config,
+		ActivityLog:              s.activityLog,
+		UseExistingAdApplication: s.existingAdApplication,
+		SubscriptionID:           s.subscriptionID,
+		TenantID:                 s.tenantID,
+		ClientID:                 s.clientID,
+		ClientSecret:             s.clientSecret,
+		Region:                   s.region,
 	}
 
 	pf, err := azure.New(params)
@@ -117,7 +122,8 @@ func renderAzureHumanResult(result *azure.Result, integrations []string) {
 	cli.OutputHuman("  Object ID:    %s\n", result.Caller.ObjectID)
 	cli.OutputHuman("  Display name: %s\n", result.Caller.DisplayName)
 	cli.OutputHuman("  Tenant ID:    %s\n", result.Caller.TenantID)
-	cli.OutputHuman("  Admin:        %t\n", result.Caller.IsAdmin)
+	cli.OutputHuman("  Subscription Owner/Contributor: %t\n", result.Caller.IsAdmin)
+	cli.OutputHuman("  Directory roles: %d\n", len(result.Caller.DirectoryRoles))
 
 	if len(integrations) > 0 {
 		cli.OutputHuman("\nIntegrations checked: %s\n", strings.Join(integrations, ", "))
@@ -132,14 +138,15 @@ func renderAzureHumanResult(result *azure.Result, integrations []string) {
 }
 
 func integrationsRequestedAzure(s struct {
-	agentless      bool
-	config         bool
-	activityLog    bool
-	subscriptionID string
-	tenantID       string
-	clientID       string
-	clientSecret   string
-	region         string
+	agentless             bool
+	config                bool
+	activityLog           bool
+	existingAdApplication bool
+	subscriptionID        string
+	tenantID              string
+	clientID              string
+	clientSecret          string
+	region                string
 }) []string {
 	out := []string{}
 	if s.agentless {
