@@ -13,6 +13,18 @@ import (
 	"google.golang.org/api/iam/v1"
 )
 
+// The basic roles (owner/editor/viewer) do not list the bucket- and
+// object-scoped Cloud Storage permissions in their includedPermissions, so
+// expanding them via roles.get under-reports what the caller can actually do.
+// Cloud Storage grants those separately: every bucket created in a project
+// gets default IAM bindings for the projectOwner/projectEditor/projectViewer
+// convenience values, which map to the legacy storage roles below.
+var basicRoleStorageRoles = map[string]string{
+	"roles/owner":  "roles/storage.legacyBucketOwner",
+	"roles/editor": "roles/storage.legacyBucketOwner",
+	"roles/viewer": "roles/storage.legacyBucketReader",
+}
+
 func FetchPolicies(p *Preflight) error {
 	var err error
 	var policies []*cloudresourcemanagerV3.Policy
@@ -30,31 +42,20 @@ func FetchPolicies(p *Preflight) error {
 
 	// Loop through polices and fetch permissions
 	permissions := []string{}
-	roles := make(map[string]bool)
 
 	iamSvc, err := iam.NewService(context.Background(), p.gcpClientOption)
 	if err != nil {
 		return err
 	}
 
-	for _, policy := range policies {
-		for _, b := range policy.Bindings {
-			// Continue if already processed
-			if roles[b.Role] {
-				continue
-			}
-			for _, m := range b.Members {
-				if strings.Contains(strings.ToLower(m), strings.ToLower(p.caller.Email)) {
-					role, err := iamSvc.Roles.Get(b.Role).Do()
-					if err != nil {
-						return err
-					}
-					permissions = append(permissions, role.IncludedPermissions...)
-					roles[b.Role] = true
-					break
-				}
-			}
+	roles := rolesForCaller(policies, p.caller.Email)
+
+	for role := range roles {
+		r, err := iamSvc.Roles.Get(role).Do()
+		if err != nil {
+			return err
 		}
+		permissions = append(permissions, r.IncludedPermissions...)
 	}
 
 	for _, permission := range permissions {
@@ -62,6 +63,29 @@ func FetchPolicies(p *Preflight) error {
 	}
 
 	return nil
+}
+
+// rolesForCaller returns the set of roles bound to the caller across the given
+// policies, plus the legacy Cloud Storage role implied by any basic role.
+func rolesForCaller(policies []*cloudresourcemanagerV3.Policy, email string) map[string]bool {
+	roles := make(map[string]bool)
+	for _, policy := range policies {
+		for _, b := range policy.Bindings {
+			if roles[b.Role] {
+				continue
+			}
+			for _, m := range b.Members {
+				if strings.Contains(strings.ToLower(m), strings.ToLower(email)) {
+					roles[b.Role] = true
+					if legacyRole, ok := basicRoleStorageRoles[b.Role]; ok {
+						roles[legacyRole] = true
+					}
+					break
+				}
+			}
+		}
+	}
+	return roles
 }
 
 func fetchProjectPolicies(p *Preflight) ([]*cloudresourcemanagerV3.Policy, error) {
@@ -129,7 +153,11 @@ func fetchOrgPolicies(p *Preflight) ([]*cloudresourcemanagerV3.Policy, error) {
 
 	policy, err := crmSvcV3.Organizations.GetIamPolicy(
 		fmt.Sprintf("organizations/%s", p.orgID),
-		&cloudresourcemanagerV3.GetIamPolicyRequest{},
+		&cloudresourcemanagerV3.GetIamPolicyRequest{
+			Options: &cloudresourcemanagerV3.GetPolicyOptions{
+				RequestedPolicyVersion: 3,
+			},
+		},
 	).Do()
 	if err != nil {
 		return nil, err
