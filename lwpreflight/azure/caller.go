@@ -19,7 +19,13 @@ type Caller struct {
 	DisplayName string
 	PrincipalID string
 	TenantID    string
-	IsAdmin     bool // true if the caller has Owner or Contributor role
+	// true if the caller has the Owner or Contributor RBAC role on the
+	// subscription; says nothing about Entra ID directory roles (see
+	// DirectoryRoles)
+	IsAdmin bool
+	// Entra ID directory role template IDs actively assigned to the caller,
+	// from the token's wids claim
+	DirectoryRoles []string
 }
 
 func FetchCaller(p *Preflight) error {
@@ -46,11 +52,12 @@ func FetchCaller(p *Preflight) error {
 	}
 
 	p.caller = Caller{
-		ObjectID:    claims.ObjectID,
-		DisplayName: claims.DisplayName,
-		PrincipalID: claims.PrincipalID,
-		TenantID:    claims.TenantID,
-		IsAdmin:     isAdmin,
+		ObjectID:       claims.ObjectID,
+		DisplayName:    claims.DisplayName,
+		PrincipalID:    claims.PrincipalID,
+		TenantID:       claims.TenantID,
+		IsAdmin:        isAdmin,
+		DirectoryRoles: claims.Wids,
 	}
 
 	return nil
@@ -97,10 +104,11 @@ func checkAdminRole(cred azcore.TokenCredential, objectID, subscriptionID string
 }
 
 type JWTClaims struct {
-	ObjectID    string `json:"oid"`
-	DisplayName string `json:"name"`
-	PrincipalID string `json:"sub"`
-	TenantID    string `json:"tid"`
+	ObjectID    string   `json:"oid"`
+	DisplayName string   `json:"name"`
+	PrincipalID string   `json:"sub"`
+	TenantID    string   `json:"tid"`
+	Wids        []string `json:"wids"`
 }
 
 func parseJWTClaims(token string) (*JWTClaims, error) {

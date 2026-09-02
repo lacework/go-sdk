@@ -71,14 +71,15 @@ func TestIntegrationsRequestedAws(t *testing.T) {
 
 func TestIntegrationsRequestedAzure(t *testing.T) {
 	got := integrationsRequestedAzure(struct {
-		agentless      bool
-		config         bool
-		activityLog    bool
-		subscriptionID string
-		tenantID       string
-		clientID       string
-		clientSecret   string
-		region         string
+		agentless             bool
+		config                bool
+		activityLog           bool
+		existingAdApplication bool
+		subscriptionID        string
+		tenantID              string
+		clientID              string
+		clientSecret          string
+		region                string
 	}{config: true, activityLog: true})
 	assert.Equal(t, []string{"azure_config", "azure_activity_log"}, got)
 }

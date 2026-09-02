@@ -16,11 +16,12 @@ type azureConfig struct {
 }
 
 type Preflight struct {
-	azureConfig             azureConfig
-	integrationTypes        []IntegrationType
-	tasks                   []func(p *Preflight) error
-	permissions             map[string]bool
-	permissionsWithWildcard []string
+	azureConfig              azureConfig
+	integrationTypes         []IntegrationType
+	tasks                    []func(p *Preflight) error
+	permissions              map[string]bool
+	permissionsWithWildcard  []string
+	useExistingAdApplication bool
 
 	caller  Caller
 	details Details
@@ -44,12 +45,17 @@ type Params struct {
 	ClientID       string
 	ClientSecret   string
 	Region         string
+	// Set when config/activity log will reuse an existing Entra ID
+	// application instead of creating one, which waives the directory-role
+	// requirements for those integrations
+	UseExistingAdApplication bool
 }
 
 func New(params Params) (*Preflight, error) {
 	integrationTypes := []IntegrationType{}
 	tasks := []func(p *Preflight) error{
 		FetchCaller,
+		CheckDirectoryRoles,
 		FetchPolicies,
 		CheckPermissions,
 		FetchDetails,
@@ -95,14 +101,15 @@ func New(params Params) (*Preflight, error) {
 	}
 
 	preflight := &Preflight{
-		azureConfig:             cfg,
-		integrationTypes:        integrationTypes,
-		permissions:             map[string]bool{},
-		permissionsWithWildcard: []string{},
-		tasks:                   tasks,
-		details:                 Details{},
-		errors:                  map[IntegrationType][]string{},
-		verboseWriter:           verbosewriter.New(),
+		azureConfig:              cfg,
+		integrationTypes:         integrationTypes,
+		permissions:              map[string]bool{},
+		permissionsWithWildcard:  []string{},
+		useExistingAdApplication: params.UseExistingAdApplication,
+		tasks:                    tasks,
+		details:                  Details{},
+		errors:                   map[IntegrationType][]string{},
+		verboseWriter:            verbosewriter.New(),
 	}
 
 	return preflight, nil
