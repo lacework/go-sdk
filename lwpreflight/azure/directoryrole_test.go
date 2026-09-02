@@ -8,10 +8,14 @@ import (
 	"github.com/lacework/go-sdk/v2/lwpreflight/verbosewriter"
 )
 
-func preflightWithRoles(roles []string, useExistingAdApp bool, types ...IntegrationType) *Preflight {
+func preflightWithRoles(
+	roles []string,
+	useExistingAdApplication map[IntegrationType]bool,
+	types ...IntegrationType,
+) *Preflight {
 	return &Preflight{
 		integrationTypes:         types,
-		useExistingAdApplication: useExistingAdApp,
+		useExistingAdApplication: useExistingAdApplication,
 		caller:                   Caller{DirectoryRoles: roles},
 		errors:                   map[IntegrationType][]string{},
 		verboseWriter:            verbosewriter.New(),
@@ -19,7 +23,7 @@ func preflightWithRoles(roles []string, useExistingAdApp bool, types ...Integrat
 }
 
 func TestCheckDirectoryRolesMissingAll(t *testing.T) {
-	p := preflightWithRoles(nil, false, Config, ActivityLog, Agentless)
+	p := preflightWithRoles(nil, nil, Config, ActivityLog, Agentless)
 	assert.NoError(t, CheckDirectoryRoles(p))
 
 	// config/activity log need app creation + directory role assignment
@@ -32,7 +36,7 @@ func TestCheckDirectoryRolesMissingAll(t *testing.T) {
 
 func TestCheckDirectoryRolesMissingPrivilegedRoleAdmin(t *testing.T) {
 	p := preflightWithRoles(
-		[]string{ApplicationAdministratorRoleID}, false, Config, ActivityLog, Agentless)
+		[]string{ApplicationAdministratorRoleID}, nil, Config, ActivityLog, Agentless)
 	assert.NoError(t, CheckDirectoryRoles(p))
 
 	assert.Len(t, p.errors[Config], 1)
@@ -44,13 +48,15 @@ func TestCheckDirectoryRolesMissingPrivilegedRoleAdmin(t *testing.T) {
 
 func TestCheckDirectoryRolesGlobalAdminSatisfiesAll(t *testing.T) {
 	p := preflightWithRoles(
-		[]string{GlobalAdministratorRoleID}, false, Config, ActivityLog, Agentless)
+		[]string{GlobalAdministratorRoleID}, nil, Config, ActivityLog, Agentless)
 	assert.NoError(t, CheckDirectoryRoles(p))
 	assert.Empty(t, p.errors)
 }
 
 func TestCheckDirectoryRolesExistingAdApplication(t *testing.T) {
-	p := preflightWithRoles(nil, true, Config, ActivityLog, Agentless)
+	p := preflightWithRoles(nil, map[IntegrationType]bool{
+		Config: true, ActivityLog: true,
+	}, Config, ActivityLog, Agentless)
 	assert.NoError(t, CheckDirectoryRoles(p))
 
 	// existing AD app: config/activity log neither create an app nor assign roles
@@ -58,4 +64,27 @@ func TestCheckDirectoryRolesExistingAdApplication(t *testing.T) {
 	assert.Empty(t, p.errors[ActivityLog])
 	// agentless always creates its own app
 	assert.Len(t, p.errors[Agentless], 1)
+}
+
+func TestCheckDirectoryRolesMixedExistingAdApplication(t *testing.T) {
+	tests := []struct {
+		name                string
+		existingIntegration IntegrationType
+		newApplicationType  IntegrationType
+	}{
+		{"config reuses an application", Config, ActivityLog},
+		{"activity log reuses an application", ActivityLog, Config},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			p := preflightWithRoles(nil, map[IntegrationType]bool{
+				test.existingIntegration: true,
+			}, Config, ActivityLog)
+			assert.NoError(t, CheckDirectoryRoles(p))
+
+			assert.Empty(t, p.errors[test.existingIntegration])
+			assert.Len(t, p.errors[test.newApplicationType], 2)
+		})
+	}
 }

@@ -35,12 +35,14 @@ func CheckDirectoryRoles(p *Preflight) error {
 	)
 
 	for _, integrationType := range p.integrationTypes {
+		usesExistingAdApplication := p.useExistingAdApplication[integrationType]
+
 		// The agentless module always creates its own Entra ID application;
 		// config/activity log only do so when not reusing an existing one.
-		createsApp := integrationType == Agentless || !p.useExistingAdApplication
+		createsApp := integrationType == Agentless || !usesExistingAdApplication
 		// Only the ad-application module (config/activity log, new app only)
 		// assigns the Directory Readers role.
-		assignsDirectoryRole := integrationType != Agentless && !p.useExistingAdApplication
+		assignsDirectoryRole := integrationType != Agentless && !usesExistingAdApplication
 
 		if createsApp && !canCreateApp {
 			p.errors[integrationType] = append(p.errors[integrationType], fmt.Sprintf(
