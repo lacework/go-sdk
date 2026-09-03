@@ -2,6 +2,7 @@ package azure
 
 import (
 	"errors"
+	"maps"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
@@ -16,15 +17,19 @@ type azureConfig struct {
 }
 
 type Preflight struct {
-	azureConfig             azureConfig
-	integrationTypes        []IntegrationType
-	tasks                   []func(p *Preflight) error
-	permissions             map[string]bool
-	permissionsWithWildcard []string
+	azureConfig              azureConfig
+	integrationTypes         []IntegrationType
+	tasks                    []func(p *Preflight) error
+	permissions              map[string]bool
+	permissionsWithWildcard  []string
+	useExistingAdApplication map[IntegrationType]bool
 
 	caller  Caller
 	details Details
 	errors  map[IntegrationType][]string
+	// set when the caller's Microsoft Graph application permissions could not
+	// be read, so a directory-role error can say the second path was not seen
+	graphPermissionsErr error
 
 	verboseWriter verbosewriter.WriteCloser
 }
@@ -44,12 +49,17 @@ type Params struct {
 	ClientID       string
 	ClientSecret   string
 	Region         string
+	// UseExistingAdApplication identifies Config and Activity Log integrations
+	// that reuse an existing Entra ID application instead of creating one,
+	// which waives their directory-role requirements.
+	UseExistingAdApplication map[IntegrationType]bool
 }
 
 func New(params Params) (*Preflight, error) {
 	integrationTypes := []IntegrationType{}
 	tasks := []func(p *Preflight) error{
 		FetchCaller,
+		CheckDirectoryRoles,
 		FetchPolicies,
 		CheckPermissions,
 		FetchDetails,
@@ -95,14 +105,15 @@ func New(params Params) (*Preflight, error) {
 	}
 
 	preflight := &Preflight{
-		azureConfig:             cfg,
-		integrationTypes:        integrationTypes,
-		permissions:             map[string]bool{},
-		permissionsWithWildcard: []string{},
-		tasks:                   tasks,
-		details:                 Details{},
-		errors:                  map[IntegrationType][]string{},
-		verboseWriter:           verbosewriter.New(),
+		azureConfig:              cfg,
+		integrationTypes:         integrationTypes,
+		permissions:              map[string]bool{},
+		permissionsWithWildcard:  []string{},
+		useExistingAdApplication: maps.Clone(params.UseExistingAdApplication),
+		tasks:                    tasks,
+		details:                  Details{},
+		errors:                   map[IntegrationType][]string{},
+		verboseWriter:            verbosewriter.New(),
 	}
 
 	return preflight, nil

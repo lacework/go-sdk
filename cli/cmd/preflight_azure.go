@@ -15,17 +15,22 @@ import (
 	"github.com/lacework/go-sdk/v2/lwpreflight/azure"
 )
 
+type azurePreflightOptions struct {
+	agentless                        bool
+	config                           bool
+	activityLog                      bool
+	existingAdApplication            bool
+	configExistingAdApplication      bool
+	activityLogExistingAdApplication bool
+	subscriptionID                   string
+	tenantID                         string
+	clientID                         string
+	clientSecret                     string
+	region                           string
+}
+
 var (
-	preflightAzureState struct {
-		agentless      bool
-		config         bool
-		activityLog    bool
-		subscriptionID string
-		tenantID       string
-		clientID       string
-		clientSecret   string
-		region         string
-	}
+	preflightAzureState azurePreflightOptions
 
 	preflightAzureCmd = &cobra.Command{
 		Use:   "azure",
@@ -51,6 +56,12 @@ func init() {
 		"check permissions for the Config integration")
 	flags.BoolVar(&preflightAzureState.activityLog, "activity-log", false,
 		"check permissions for the Activity Log integration")
+	flags.BoolVar(&preflightAzureState.existingAdApplication, "existing-ad-application", false,
+		"reuse existing Entra ID applications for both Config and Activity Log")
+	flags.BoolVar(&preflightAzureState.configExistingAdApplication, "config-existing-ad-application", false,
+		"reuse an existing Entra ID application for Config")
+	flags.BoolVar(&preflightAzureState.activityLogExistingAdApplication, "activity-log-existing-ad-application", false,
+		"reuse an existing Entra ID application for Activity Log")
 	flags.StringVar(&preflightAzureState.subscriptionID, "subscription-id", "",
 		"Azure subscription ID (required)")
 	flags.StringVar(&preflightAzureState.tenantID, "tenant-id", "",
@@ -75,14 +86,15 @@ func runPreflightAzure(_ *cobra.Command, _ []string) error {
 	}
 
 	params := azure.Params{
-		Agentless:      s.agentless,
-		Config:         s.config,
-		ActivityLog:    s.activityLog,
-		SubscriptionID: s.subscriptionID,
-		TenantID:       s.tenantID,
-		ClientID:       s.clientID,
-		ClientSecret:   s.clientSecret,
-		Region:         s.region,
+		Agentless:                s.agentless,
+		Config:                   s.config,
+		ActivityLog:              s.activityLog,
+		UseExistingAdApplication: existingAdApplicationsAzure(s),
+		SubscriptionID:           s.subscriptionID,
+		TenantID:                 s.tenantID,
+		ClientID:                 s.clientID,
+		ClientSecret:             s.clientSecret,
+		Region:                   s.region,
 	}
 
 	pf, err := azure.New(params)
@@ -117,7 +129,9 @@ func renderAzureHumanResult(result *azure.Result, integrations []string) {
 	cli.OutputHuman("  Object ID:    %s\n", result.Caller.ObjectID)
 	cli.OutputHuman("  Display name: %s\n", result.Caller.DisplayName)
 	cli.OutputHuman("  Tenant ID:    %s\n", result.Caller.TenantID)
-	cli.OutputHuman("  Admin:        %t\n", result.Caller.IsAdmin)
+	cli.OutputHuman("  Subscription Owner/Contributor: %t\n", result.Caller.IsAdmin)
+	cli.OutputHuman("  Directory roles: %d\n", len(result.Caller.DirectoryRoles))
+	cli.OutputHuman("  Graph application permissions: %d\n", len(result.Caller.GraphPermissions))
 
 	if len(integrations) > 0 {
 		cli.OutputHuman("\nIntegrations checked: %s\n", strings.Join(integrations, ", "))
@@ -131,16 +145,14 @@ func renderAzureHumanResult(result *azure.Result, integrations []string) {
 	}
 }
 
-func integrationsRequestedAzure(s struct {
-	agentless      bool
-	config         bool
-	activityLog    bool
-	subscriptionID string
-	tenantID       string
-	clientID       string
-	clientSecret   string
-	region         string
-}) []string {
+func existingAdApplicationsAzure(s azurePreflightOptions) map[azure.IntegrationType]bool {
+	return map[azure.IntegrationType]bool{
+		azure.Config:      s.existingAdApplication || s.configExistingAdApplication,
+		azure.ActivityLog: s.existingAdApplication || s.activityLogExistingAdApplication,
+	}
+}
+
+func integrationsRequestedAzure(s azurePreflightOptions) []string {
 	out := []string{}
 	if s.agentless {
 		out = append(out, string(azure.Agentless))
