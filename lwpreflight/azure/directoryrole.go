@@ -5,19 +5,23 @@ import (
 	"slices"
 )
 
-// CheckDirectoryRoles validates the Entra ID directory roles that deployment
-// needs but that ARM permission checks cannot see. Deployment creates an
-// Entra ID application (all integration types when a new AD application is
-// created; agentless always creates its own), and config/activity log also
-// assign the Directory Readers role to it, which requires Privileged Role
-// Administrator. Runs unconditionally: subscription Owner/Contributor
-// (IsAdmin) is orthogonal to directory roles.
+// CheckDirectoryRoles validates the Entra ID privileges that deployment needs
+// but that ARM permission checks cannot see. Deployment creates an Entra ID
+// application (all integration types when a new AD application is created;
+// agentless always creates its own), and config/activity log also assign the
+// Directory Readers role to it. Either a directory role or the equivalent
+// Microsoft Graph application permission satisfies each requirement. Runs
+// unconditionally: subscription Owner/Contributor (IsAdmin) is orthogonal to
+// both.
 func CheckDirectoryRoles(p *Preflight) error {
 	p.verboseWriter.Write("Checking Entra ID directory roles")
 
-	hasAny := func(roleIDs ...string) bool {
-		for _, id := range roleIDs {
-			if slices.Contains(p.caller.DirectoryRoles, id) {
+	// Directory roles are GUIDs and Graph application permissions are dotted
+	// names, so the two claim spaces cannot collide in one list.
+	held := slices.Concat(p.caller.DirectoryRoles, p.caller.GraphPermissions)
+	hasAny := func(grants ...string) bool {
+		for _, grant := range grants {
+			if slices.Contains(held, grant) {
 				return true
 			}
 		}
@@ -28,11 +32,23 @@ func CheckDirectoryRoles(p *Preflight) error {
 		ApplicationAdministratorRoleID,
 		CloudApplicationAdministratorRoleID,
 		GlobalAdministratorRoleID,
+		GraphApplicationReadWriteOwnedByPermission,
+		GraphApplicationReadWriteAllPermission,
 	)
 	canAssignDirectoryRole := hasAny(
 		PrivilegedRoleAdministratorRoleID,
 		GlobalAdministratorRoleID,
+		GraphRoleManagementReadWriteDirectoryPermission,
 	)
+
+	// A caller can hold the Graph permission rather than the directory role, so
+	// a failure to read those permissions makes either message a guess.
+	unread := ""
+	if p.graphPermissionsErr != nil {
+		unread = fmt.Sprintf(
+			" (Microsoft Graph application permissions could not be read: %v)",
+			p.graphPermissionsErr)
+	}
 
 	for _, integrationType := range p.integrationTypes {
 		usesExistingAdApplication := p.useExistingAdApplication[integrationType]
@@ -47,14 +63,18 @@ func CheckDirectoryRoles(p *Preflight) error {
 		if createsApp && !canCreateApp {
 			p.errors[integrationType] = append(p.errors[integrationType], fmt.Sprintf(
 				"Required Entra ID directory role missing: Application Administrator "+
-					"(or Cloud Application Administrator) to create the Lacework Entra ID "+
-					"application for %s", integrationType))
+					"(or Cloud Application Administrator, or the "+
+					GraphApplicationReadWriteOwnedByPermission+" Microsoft Graph "+
+					"permission) to create the Lacework Entra ID application for %s%s",
+				integrationType, unread))
 		}
 		if assignsDirectoryRole && !canAssignDirectoryRole {
 			p.errors[integrationType] = append(p.errors[integrationType], fmt.Sprintf(
 				"Required Entra ID directory role missing: Privileged Role Administrator "+
-					"to assign the Directory Readers role to the Lacework Entra ID "+
-					"application for %s", integrationType))
+					"(or the "+GraphRoleManagementReadWriteDirectoryPermission+
+					" Microsoft Graph permission) to assign the Directory Readers role "+
+					"to the Lacework Entra ID application for %s%s",
+				integrationType, unread))
 		}
 	}
 

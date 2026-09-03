@@ -17,6 +17,25 @@ const (
 	PrivilegedRoleAdministratorRoleID   = "e8611ab8-c189-46e8-94e1-60213ab1f814"
 )
 
+// Microsoft Graph application permissions that grant the same capability as the
+// directory roles above. An app-only principal can hold these instead of a
+// directory role, in which case its wids claim says nothing about what it can do.
+// https://learn.microsoft.com/en-us/graph/permissions-reference
+//
+// Deliberately limited to the permissions Microsoft documents as sufficient on
+// their own. A missing entry costs a false failure, which the caller can fix by
+// assigning a directory role; a wrong entry would wave a caller through to a
+// deployment that then fails.
+const (
+	// Create and manage any application registration and service principal.
+	GraphApplicationReadWriteAllPermission = "Application.ReadWrite.All"
+	// Create applications, and manage the ones this principal owns, which
+	// includes every application it creates.
+	GraphApplicationReadWriteOwnedByPermission = "Application.ReadWrite.OwnedBy"
+	// Assign a directory role, such as Directory Readers, to a principal.
+	GraphRoleManagementReadWriteDirectoryPermission = "RoleManagement.ReadWrite.Directory"
+)
+
 var RequiredPermissions = map[IntegrationType][]string{
 	Config: {
 		"Microsoft.Authorization/roleAssignments/read",

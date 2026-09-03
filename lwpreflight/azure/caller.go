@@ -26,6 +26,11 @@ type Caller struct {
 	// Entra ID directory role template IDs actively assigned to the caller,
 	// from the token's wids claim
 	DirectoryRoles []string
+	// Microsoft Graph application permissions granted to the caller, from the
+	// roles claim of a Graph-audience token. Empty for a delegated (user)
+	// credential, whose effective permission is bounded by its own directory
+	// roles anyway.
+	GraphPermissions []string
 }
 
 func FetchCaller(p *Preflight) error {
@@ -51,16 +56,49 @@ func FetchCaller(p *Preflight) error {
 		return err
 	}
 
+	// Best effort: a caller can hold Graph application permissions instead of a
+	// directory role. Failing to read them only costs the checks that fall back
+	// to directory roles alone, so it must not fail preflight.
+	graphPermissions, err := fetchGraphPermissions(p.azureConfig.cred)
+	if err != nil {
+		p.graphPermissionsErr = err
+		p.verboseWriter.Write(fmt.Sprintf(
+			"Could not read Microsoft Graph application permissions, "+
+				"checking Entra ID directory roles only: %v", err))
+	}
+
 	p.caller = Caller{
-		ObjectID:       claims.ObjectID,
-		DisplayName:    claims.DisplayName,
-		PrincipalID:    claims.PrincipalID,
-		TenantID:       claims.TenantID,
-		IsAdmin:        isAdmin,
-		DirectoryRoles: claims.Wids,
+		ObjectID:         claims.ObjectID,
+		DisplayName:      claims.DisplayName,
+		PrincipalID:      claims.PrincipalID,
+		TenantID:         claims.TenantID,
+		IsAdmin:          isAdmin,
+		DirectoryRoles:   claims.Wids,
+		GraphPermissions: graphPermissions,
 	}
 
 	return nil
+}
+
+// fetchGraphPermissions reads the caller's Microsoft Graph application
+// permissions from the roles claim of a Graph-audience token. The ARM token
+// cannot carry them: app roles are scoped to the resource the token is for.
+// Only the token is requested, never a Graph API call, so this needs no
+// permission of its own.
+func fetchGraphPermissions(cred azcore.TokenCredential) ([]string, error) {
+	token, err := cred.GetToken(context.Background(), policy.TokenRequestOptions{
+		Scopes: []string{"https://graph.microsoft.com/.default"},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get token: %v", err)
+	}
+
+	claims, err := parseJWTClaims(token.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	return claims.Roles, nil
 }
 
 func checkAdminRole(cred azcore.TokenCredential, objectID, subscriptionID string) (bool, error) {
@@ -109,6 +147,7 @@ type JWTClaims struct {
 	PrincipalID string   `json:"sub"`
 	TenantID    string   `json:"tid"`
 	Wids        []string `json:"wids"`
+	Roles       []string `json:"roles"`
 }
 
 func parseJWTClaims(token string) (*JWTClaims, error) {
