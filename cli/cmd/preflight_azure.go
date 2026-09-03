@@ -131,6 +131,7 @@ func renderAzureHumanResult(result *azure.Result, integrations []string) {
 	cli.OutputHuman("  Tenant ID:    %s\n", result.Caller.TenantID)
 	cli.OutputHuman("  Subscription Owner/Contributor: %t\n", result.Caller.IsAdmin)
 	cli.OutputHuman("  Directory roles: %d\n", len(result.Caller.DirectoryRoles))
+	cli.OutputHuman("  Graph application permissions: %d\n", len(result.Caller.GraphPermissions))
 
 	if len(integrations) > 0 {
 		cli.OutputHuman("\nIntegrations checked: %s\n", strings.Join(integrations, ", "))

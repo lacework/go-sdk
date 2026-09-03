@@ -27,6 +27,9 @@ type Preflight struct {
 	caller  Caller
 	details Details
 	errors  map[IntegrationType][]string
+	// set when the caller's Microsoft Graph application permissions could not
+	// be read, so a directory-role error can say the second path was not seen
+	graphPermissionsErr error
 
 	verboseWriter verbosewriter.WriteCloser
 }
