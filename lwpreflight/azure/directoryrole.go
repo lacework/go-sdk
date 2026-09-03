@@ -48,15 +48,13 @@ func CheckDirectoryRoles(p *Preflight) error {
 			p.errors[integrationType] = append(p.errors[integrationType], fmt.Sprintf(
 				"Required Entra ID directory role missing: Application Administrator "+
 					"(or Cloud Application Administrator) to create the Lacework Entra ID "+
-					"application for %s. Activate the role in PIM or re-authenticate if it "+
-					"was just assigned", integrationType))
+					"application for %s", integrationType))
 		}
 		if assignsDirectoryRole && !canAssignDirectoryRole {
 			p.errors[integrationType] = append(p.errors[integrationType], fmt.Sprintf(
 				"Required Entra ID directory role missing: Privileged Role Administrator "+
 					"to assign the Directory Readers role to the Lacework Entra ID "+
-					"application for %s. Activate the role in PIM or re-authenticate if it "+
-					"was just assigned", integrationType))
+					"application for %s", integrationType))
 		}
 	}
 
