@@ -180,6 +180,15 @@ See help output for more details on the parameter value(s) required for Terrafor
 				GenerateAwsCommandState.LaceworkProfile = cli.Profile
 			}
 
+			// Default the AWS-organization Config module's Lacework identity to the tenant we are
+			// authenticated as
+			if GenerateAwsCommandState.ConfigOrgLWAccount == "" {
+				GenerateAwsCommandState.ConfigOrgLWAccount = cli.Account
+			}
+			if GenerateAwsCommandState.ConfigOrgLWSubaccount == "" {
+				GenerateAwsCommandState.ConfigOrgLWSubaccount = cli.Subaccount
+			}
+
 			// Setup modifiers for NewTerraform constructor
 			mods := []aws.AwsTerraformModifier{
 				aws.WithAwsProfile(GenerateAwsCommandState.AwsProfile),
