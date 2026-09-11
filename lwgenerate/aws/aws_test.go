@@ -1339,3 +1339,90 @@ var moduleImportCtWithS3BucketNotification = `module "main_cloudtrail" {
 var testVariable = `variable "var_name" {
 }
 `
+
+func TestGenerationDspm(t *testing.T) {
+	output := lwgenerate.NewOutput("lacework_integration_guid",
+		[]string{"module", "lacework_aws_fortidspm_us_west_2", "lacework_integration_guid"}, "")
+	hcl, err := NewTerraform(
+		false,
+		false,
+		false,
+		false,
+		WithAwsRegion("us-west-2"),
+		WithDspm("aws-dspm-459969247747", []string{"us-west-2", "us-east-1"}),
+		WithExtraProviderArguments(map[string]interface{}{
+			"access_key": lwgenerate.CreateSimpleTraversal([]string{"var", "access_key"}),
+		}),
+		WithCustomOutputs([]lwgenerate.HclOutput{*output}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.Equal(t, moduleImportDspm, hcl)
+}
+
+func TestGenerationDspmRequiresRegions(t *testing.T) {
+	_, err := NewTerraform(
+		false,
+		false,
+		false,
+		false,
+		WithAwsRegion("us-west-2"),
+		WithDspm("aws-dspm-459969247747", nil),
+	).Generate()
+	assert.ErrorContains(t, err, "at least one region must be set for DSPM integration")
+}
+
+var moduleImportDspm = `terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+    lacework = {
+      source  = "lacework/lacework"
+      version = "~> 2.0"
+    }
+  }
+}
+
+provider "aws" {
+  access_key = var.access_key
+  alias      = "main"
+  region     = "us-west-2"
+}
+
+provider "aws" {
+  access_key = var.access_key
+  alias      = "us_west_2"
+  region     = "us-west-2"
+}
+
+provider "aws" {
+  access_key = var.access_key
+  alias      = "us_east_1"
+  region     = "us-east-1"
+}
+
+module "lacework_aws_fortidspm_us_west_2" {
+  source                    = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.2.0"
+  global                    = true
+  lacework_integration_name = "aws-dspm-459969247747"
+  regions                   = ["us-west-2", "us-east-1"]
+
+  providers = {
+    aws = aws.us_west_2
+  }
+}
+
+module "lacework_aws_fortidspm_us_east_1" {
+  source                  = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.2.0"
+  global_module_reference = module.lacework_aws_fortidspm_us_west_2
+
+  providers = {
+    aws = aws.us_east_1
+  }
+}
+
+output "lacework_integration_guid" {
+  value = module.lacework_aws_fortidspm_us_west_2.lacework_integration_guid
+}
+`

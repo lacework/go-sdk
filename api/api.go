@@ -50,6 +50,8 @@ const (
 	apiV2CloudAccounts          = "v2/CloudAccounts"
 	apiV2CloudAccountsWithParam = "v2/CloudAccounts/%s"
 
+	apiV2FortiDspmDeploymentStatus = "v2/FortiDspm/deployments/%s/status"
+
 	apiV2AgentAccessTokens       = "v2/AgentAccessTokens"
 	apiV2AgentAccessTokensSearch = "v2/AgentAccessTokens/search"
 	apiV2AgentAccessTokenFromID  = "v2/AgentAccessTokens/%s"

@@ -397,3 +397,62 @@ func TestGenerationAgentlessScanningWithTenantIntLevelMR(t *testing.T) {
 	assert.NotNil(t, hcl)
 	assert.Equal(t, AgentlessScanning, hcl)
 }
+
+func TestGenerationDspm(t *testing.T) {
+	output := lwgenerate.NewOutput("lacework_integration_guid",
+		[]string{"module", "lacework_azure_fortidspm_westus2", "lacework_integration_guid"}, "")
+	hcl, err := azure.NewTerraform(false, false, false, false, false,
+		azure.WithSubscriptionID("51bb4964-95c7-4718-bdf5-355368aaba4a"),
+		azure.WithDspm("fbdd69b5-5210-47e3-9dce-608699edc599", "azure-dspm-51bb4964", []string{"westus2", "eastus"}),
+		azure.WithCustomOutputs([]lwgenerate.HclOutput{*output}),
+	).Generate()
+	assert.Nil(t, err)
+	assert.Equal(t, moduleImportDspm, hcl)
+}
+
+func TestGenerationDspmRequiresTenant(t *testing.T) {
+	_, err := azure.NewTerraform(false, false, false, false, false,
+		azure.WithSubscriptionID("51bb4964-95c7-4718-bdf5-355368aaba4a"),
+		azure.WithDspm("", "azure-dspm", []string{"westus2"}),
+	).Generate()
+	assert.ErrorContains(t, err, "tenant_id must be provided for DSPM integration")
+}
+
+var moduleImportDspm = `terraform {
+  required_providers {
+    lacework = {
+      source  = "lacework/lacework"
+      version = "~> 2.0"
+    }
+  }
+}
+
+provider "azuread" {
+}
+
+provider "azurerm" {
+  subscription_id = "51bb4964-95c7-4718-bdf5-355368aaba4a"
+  features {
+  }
+}
+
+module "lacework_azure_fortidspm_westus2" {
+  source                    = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.2.0"
+  global                    = true
+  lacework_integration_name = "azure-dspm-51bb4964"
+  location                  = "westus2"
+  regions                   = ["westus2", "eastus"]
+  subscription_id           = "51bb4964-95c7-4718-bdf5-355368aaba4a"
+  tenant_id                 = "fbdd69b5-5210-47e3-9dce-608699edc599"
+}
+
+module "lacework_azure_fortidspm_eastus" {
+  source                  = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.2.0"
+  global_module_reference = module.lacework_azure_fortidspm_westus2
+  location                = "eastus"
+}
+
+output "lacework_integration_guid" {
+  value = module.lacework_azure_fortidspm_westus2.lacework_integration_guid
+}
+`
