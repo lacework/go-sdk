@@ -378,7 +378,7 @@ func TestGenerationFailureWithNoOptionsSet(t *testing.T) {
 	data := &GenerateAwsTfConfigurationArgs{}
 	_, err := data.Generate()
 	assert.Error(t, err)
-	assert.Equal(t, "invalid inputs: Agentless, CloudTrail or Config integration must be enabled", err.Error())
+	assert.Equal(t, "invalid inputs: Agentless, CloudTrail, Config or DSPM integration must be enabled", err.Error())
 }
 
 func TestGenerationFailureWithNoRegionSet(t *testing.T) {
