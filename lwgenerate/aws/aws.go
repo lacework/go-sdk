@@ -341,7 +341,7 @@ func (args *GenerateAwsTfConfigurationArgs) IsEmpty() bool {
 // Ensure all combinations of inputs our valid for supported spec
 func (args *GenerateAwsTfConfigurationArgs) Validate() error {
 	if !args.Agentless && !args.Cloudtrail && !args.Config && !args.Dspm {
-		return errors.New("Agentless, CloudTrail or Config integration must be enabled")
+		return errors.New("Agentless, CloudTrail, Config or DSPM integration must be enabled")
 	}
 	if args.Dspm && len(args.DspmRegions) == 0 {
 		return errors.New("at least one region must be set for DSPM integration")
