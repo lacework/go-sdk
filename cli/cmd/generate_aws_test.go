@@ -38,7 +38,7 @@ func TestMissingValidEntityToConfigure(t *testing.T) {
 	assert.Nil(t, err)
 	err = data.Validate()
 	assert.Error(t, err)
-	assert.Equal(t, "Agentless, CloudTrail or Config integration must be enabled", err.Error())
+	assert.Equal(t, "Agentless, CloudTrail, Config or DSPM integration must be enabled", err.Error())
 }
 
 func TestArnRegex(t *testing.T) {

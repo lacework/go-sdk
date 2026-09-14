@@ -927,7 +927,7 @@ func TestGenerationAwsErrorOnNoSelection(t *testing.T) {
 				MsgRsp{cmd.QuestionEnableConfig, "n"},
 				MsgRsp{cmd.QuestionEnableCloudtrail, "n"},
 				MsgRsp{cmd.QuestionAwsOutputLocation, ""},
-				MsgOnly{"ERROR failed to generate terraform code: invalid inputs: Agentless, CloudTrail or Config integration must be enabled"},
+				MsgOnly{"ERROR failed to generate terraform code: invalid inputs: Agentless, CloudTrail, Config or DSPM integration must be enabled"},
 			})
 		},
 		"generate",
