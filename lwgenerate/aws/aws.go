@@ -155,6 +155,16 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Agentless scanning AWS accounts
 	AgentlessScanningAccounts []AwsSubAccount
 
+	// Dspm enables the FortiDSPM scan engine module, one regional module per
+	// entry in DspmRegions. The lacework_integration_aws_fortidspm resource
+	// lives in the first region's module (global = true); the others reference
+	// it for their activation token and AMI.
+	Dspm bool
+
+	DspmRegions []string
+
+	DspmIntegrationName string
+
 	// Is the AWS organization using Control Tower?
 	ControlTower bool
 
@@ -330,8 +340,11 @@ func (args *GenerateAwsTfConfigurationArgs) IsEmpty() bool {
 
 // Ensure all combinations of inputs our valid for supported spec
 func (args *GenerateAwsTfConfigurationArgs) Validate() error {
-	if !args.Agentless && !args.Cloudtrail && !args.Config {
-		return errors.New("Agentless, CloudTrail or Config integration must be enabled")
+	if !args.Agentless && !args.Cloudtrail && !args.Config && !args.Dspm {
+		return errors.New("Agentless, CloudTrail, Config or DSPM integration must be enabled")
+	}
+	if args.Dspm && len(args.DspmRegions) == 0 {
+		return errors.New("at least one region must be set for DSPM integration")
 	}
 
 	if args.AwsRegion == "" {
@@ -525,6 +538,15 @@ func WithAgentlessManagementAccountID(accountID string) AwsTerraformModifier {
 }
 
 // WithAgentlessMonitoredAccountIDs Set Agentless monitored account IDs
+// WithDspm enables the FortiDSPM scan engine deployment in the given regions.
+func WithDspm(integrationName string, regions []string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.Dspm = true
+		c.DspmIntegrationName = integrationName
+		c.DspmRegions = regions
+	}
+}
+
 func WithAgentlessMonitoredAccountIDs(accountIDs []string) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.AgentlessMonitoredAccountIDs = accountIDs
@@ -850,6 +872,10 @@ func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate aws agentless global module")
 	}
+	dspmModules, err := createDspm(args)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to generate aws dspm modules")
+	}
 
 	outputBlocks := []*hclwrite.Block{}
 	for _, output := range args.CustomOutputs {
@@ -869,6 +895,7 @@ func (args *GenerateAwsTfConfigurationArgs) Generate() (string, error) {
 			configModule,
 			cloudTrailModule,
 			agentlessModule,
+			dspmModules,
 			outputBlocks,
 			args.ExtraBlocks,
 		),
@@ -947,6 +974,11 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 	accounts = append(accounts, args.AgentlessMonitoredAccounts...)
 	accounts = append(accounts, args.AgentlessScanningAccounts...)
 	accounts = append(accounts, args.ConfigAdditionalAccounts...)
+	if args.Dspm {
+		for _, region := range args.DspmRegions {
+			accounts = append(accounts, AwsSubAccount{AwsRegion: region, Alias: dspmProviderAlias(region)})
+		}
+	}
 	if args.ControlTower {
 		accounts = append(accounts, *args.ControlTowerAuditAccount)
 		accounts = append(accounts, *args.ControlTowerLogArchiveAccount)
@@ -968,7 +1000,7 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 
 		attributes := map[string]interface{}{}
 		// set `access_key`, `secret_key` and `token` for single-account multiple-region Agentless
-		if args.Agentless || args.ControlTower {
+		if args.Agentless || args.ControlTower || args.Dspm {
 			for k, v := range args.ExtraProviderArguments {
 				attributes[k] = v
 			}
@@ -1243,6 +1275,65 @@ var agentlessMonitoredAccountFormat = regexp.MustCompile(
 // reach the two through different attributes.
 func isAgentlessOrgUnitID(id string) bool {
 	return strings.HasPrefix(id, "ou-") || strings.HasPrefix(id, "r-")
+}
+
+func dspmProviderAlias(region string) string {
+	return strings.ReplaceAll(region, "-", "_")
+}
+
+// DspmModuleName is the name of the FortiDSPM module generated for a region;
+// callers use it to address the module's outputs.
+func DspmModuleName(region string) string {
+	return "lacework_aws_fortidspm_" + dspmProviderAlias(region)
+}
+
+// createDspm emits one FortiDSPM module per region. The first region's module
+// is global: it holds the lacework_integration_aws_fortidspm resource that
+// registers the cloud account and receives the per-region activation tokens
+// and AMIs from FortiDSPM. Every module builds its own region's scan engine;
+// the non-global ones read the tokens through global_module_reference. The module source is pinned so a later destroy
+// resolves the same module version as the apply.
+func createDspm(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error) {
+	if !args.Dspm {
+		return nil, nil
+	}
+	blocks := []*hclwrite.Block{}
+	regions := []string{}
+	for _, region := range args.DspmRegions {
+		regions = append(regions, fmt.Sprintf("\"%s\"", region))
+	}
+	globalModuleName := DspmModuleName(args.DspmRegions[0])
+	for i, region := range args.DspmRegions {
+		attrs := map[string]interface{}{}
+		if i == 0 {
+			attrs["global"] = true
+			attrs["regions"] = lwgenerate.CreateSimpleTraversal(
+				[]string{fmt.Sprintf("[%s]", strings.Join(regions, ", "))},
+			)
+			if args.DspmIntegrationName != "" {
+				attrs["lacework_integration_name"] = args.DspmIntegrationName
+			}
+		} else {
+			attrs["global_module_reference"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", globalModuleName},
+			)
+		}
+		mods := []lwgenerate.HclModuleModifier{
+			lwgenerate.HclModuleWithProviderDetails(map[string]string{
+				"aws": "aws." + dspmProviderAlias(region),
+			}),
+			lwgenerate.HclModuleWithAttributes(attrs),
+		}
+		if lwgenerate.AwsFortiDspmVersion != "" {
+			mods = append(mods, lwgenerate.HclModuleWithVersion(lwgenerate.AwsFortiDspmVersion))
+		}
+		block, err := lwgenerate.NewModule(DspmModuleName(region), lwgenerate.AwsFortiDspmSource, mods...).ToBlock()
+		if err != nil {
+			return nil, err
+		}
+		blocks = append(blocks, block)
+	}
+	return blocks, nil
 }
 
 func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error) {

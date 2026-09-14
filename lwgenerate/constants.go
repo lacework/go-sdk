@@ -19,6 +19,8 @@ const (
 	AwsCloudTrailControlTowerVersion = "~> 0.3"
 	AwsEksAuditSource                = "lacework/eks-audit-log/aws"
 	AwsEksAuditVersion               = "~> 1.0"
+	AwsFortiDspmSource               = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.2.0"
+	AwsFortiDspmVersion              = ""
 
 	LWAzureConfigSource              = "lacework/config/azure"
 	LWAzureConfigVersion             = "~> 3.0"
@@ -30,6 +32,8 @@ const (
 	LWAzureEntraIdActivityLogVersion = "~> 0.3"
 	LWAzureADSource                  = "lacework/ad-application/azure"
 	LWAzureADVersion                 = "~> 2.0"
+	LWAzureFortiDspmSource           = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.2.0"
+	LWAzureFortiDspmVersion          = ""
 
 	GcpAgentlessSource       = "lacework/agentless-scanning/gcp"
 	GcpAgentlessVersion      = "~> 2.0"

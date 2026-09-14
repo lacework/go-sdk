@@ -110,6 +110,17 @@ type GenerateAzureTfConfigurationArgs struct {
 	// List of regions to deploy for agentless scanning
 	Regions []string
 
+	// Dspm enables the FortiDSPM scan engine module, one regional module per
+	// entry in DspmRegions; the first one is global and holds the
+	// lacework_integration_azure_fortidspm resource.
+	Dspm bool
+
+	DspmTenantID string
+
+	DspmRegions []string
+
+	DspmIntegrationName string
+
 	// List of subscription IDs for agentless scanning
 	AgentlessSubscriptionIds []string
 
@@ -162,8 +173,16 @@ func getCurrentPublicIP() (string, error) {
 // Ensure all combinations of inputs are valid for supported spec
 func (args *GenerateAzureTfConfigurationArgs) validate() error {
 	// Validate one of config, agentless or activity log was enabled; otherwise error out
-	if !args.ActivityLog && !args.Agentless && !args.Config && !args.EntraIdActivityLog {
-		return errors.New("audit log, agentless or config integration must be enabled")
+	if !args.ActivityLog && !args.Agentless && !args.Config && !args.EntraIdActivityLog && !args.Dspm {
+		return errors.New("audit log, agentless, config or dspm integration must be enabled")
+	}
+	if args.Dspm {
+		if args.DspmTenantID == "" {
+			return errors.New("tenant_id must be provided for DSPM integration")
+		}
+		if len(args.DspmRegions) == 0 {
+			return errors.New("at least one region must be set for DSPM integration")
+		}
 	}
 
 	if (args.ActivityLog || args.Agentless || args.Config || args.EntraIdActivityLog) && args.SubscriptionID == "" {
@@ -334,6 +353,16 @@ func WithAgentlessSubscriptionIds(agentlessSubscriptionIds []string) AzureTerraf
 	}
 }
 
+// WithDspm enables the FortiDSPM scan engine deployment in the given regions.
+func WithDspm(tenantID string, integrationName string, regions []string) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.Dspm = true
+		c.DspmTenantID = tenantID
+		c.DspmIntegrationName = integrationName
+		c.DspmRegions = regions
+	}
+}
+
 func WithRegions(regions []string) AzureTerraformModifier {
 	return func(c *GenerateAzureTfConfigurationArgs) {
 		c.Regions = regions
@@ -489,6 +518,10 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate azure Entra ID activity log module")
 	}
+	dspmModules, err := createDspm(args)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to generate azure dspm modules")
+	}
 
 	outputBlocks := []*hclwrite.Block{}
 	for _, output := range args.CustomOutputs {
@@ -511,6 +544,7 @@ func (args *GenerateAzureTfConfigurationArgs) Generate() (string, error) {
 			activityLogModule,
 			agentlessLogModule,
 			entraIdActivityLogModule,
+			dspmModules,
 			outputBlocks,
 			args.ExtraBlocks),
 	)
@@ -842,6 +876,63 @@ func createAgentless(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block,
 			lwgenerate.LWAzureAgentlessSource,
 			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.LWAzureAgentlessVersion))...,
 		).ToBlock()
+		if err != nil {
+			return nil, err
+		}
+		blocks = append(blocks, block)
+	}
+	return blocks, nil
+}
+
+// DspmModuleName is the name of the FortiDSPM module generated for a region;
+// callers use it to address the module's outputs.
+func DspmModuleName(region string) string {
+	return "lacework_azure_fortidspm_" + strings.ToLower(strings.ReplaceAll(region, " ", "_"))
+}
+
+// createDspm emits one FortiDSPM module per region. The first region's module
+// is global: it holds the lacework_integration_azure_fortidspm resource that
+// registers the cloud account and receives the per-region activation tokens
+// and image URLs from FortiDSPM. Every module builds its own region's scan
+// engine from the image URL; the non-global ones read the tokens through
+// global_module_reference. The module source is pinned so a
+// later destroy resolves the same module version as the apply.
+func createDspm(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, error) {
+	if !args.Dspm {
+		return nil, nil
+	}
+	blocks := []*hclwrite.Block{}
+	regions := []string{}
+	for _, region := range args.DspmRegions {
+		regions = append(regions, fmt.Sprintf("\"%s\"", region))
+	}
+	globalModuleName := DspmModuleName(args.DspmRegions[0])
+	for i, region := range args.DspmRegions {
+		attrs := map[string]interface{}{
+			"location": region,
+		}
+		if i == 0 {
+			attrs["global"] = true
+			attrs["tenant_id"] = args.DspmTenantID
+			if args.SubscriptionID != "" {
+				attrs["subscription_id"] = args.SubscriptionID
+			}
+			attrs["regions"] = lwgenerate.CreateSimpleTraversal(
+				[]string{fmt.Sprintf("[%s]", strings.Join(regions, ", "))},
+			)
+			if args.DspmIntegrationName != "" {
+				attrs["lacework_integration_name"] = args.DspmIntegrationName
+			}
+		} else {
+			attrs["global_module_reference"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"module", globalModuleName},
+			)
+		}
+		mods := []lwgenerate.HclModuleModifier{lwgenerate.HclModuleWithAttributes(attrs)}
+		if lwgenerate.LWAzureFortiDspmVersion != "" {
+			mods = append(mods, lwgenerate.HclModuleWithVersion(lwgenerate.LWAzureFortiDspmVersion))
+		}
+		block, err := lwgenerate.NewModule(DspmModuleName(region), lwgenerate.LWAzureFortiDspmSource, mods...).ToBlock()
 		if err != nil {
 			return nil, err
 		}
