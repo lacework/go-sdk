@@ -2,6 +2,7 @@ package aws
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
@@ -76,6 +77,36 @@ func TestGenerationAgentlessOrganization(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, hcl)
 	assert.Equal(t, moduleImportAgentlessOrganization, hcl)
+}
+
+// The scanning VPC's flow logs go to the module's own S3 bucket, whose policy grants the log
+// delivery service nothing, so creating them fails with "Access Denied for LogDestination"
+// (CAD-2352). The single-account path has disabled them since GROW-3001; assert the organization
+// path does too, on every module that would otherwise create one.
+func TestGenerationAgentlessOrganizationCreatesNoFlowLogs(t *testing.T) {
+	hcl, err := NewTerraform(
+		true,
+		true,
+		false,
+		false,
+		WithAwsProfile("main"),
+		WithAwsRegion("us-east-2"),
+		WithAgentlessManagementAccountID("123456789000"),
+		WithAgentlessMonitoredAccountIDs([]string{"ou-abcd-12345678"}),
+		WithAgentlessScanningAccounts(
+			NewAwsSubAccount("scanning-1", "us-east-1", "scanning-1-us-east-1"),
+			NewAwsSubAccount("scanning-2", "us-east-2", "scanning-2-us-east-2"),
+		),
+	).Generate()
+	assert.Nil(t, err)
+
+	// Once on the global module, once on the per-region module -- the two that set `regional`,
+	// which is what gates aws_flow_log in the Terraform module. Matched loosely because hclwrite
+	// pads the `=` to the widest key in each block.
+	disabled := regexp.MustCompile(`use_aws_flow_log\s*=\s*false`)
+	assert.Len(t, disabled.FindAllString(hcl, -1), 2,
+		"both the global and per-region modules must disable flow logs")
+	assert.NotRegexp(t, `use_aws_flow_log\s*=\s*true`, hcl)
 }
 
 func TestGenerationCloudTrail(t *testing.T) {
@@ -906,7 +937,8 @@ module "lacework_aws_agentless_scanning_global" {
     management_account = "123456789000"
     monitored_accounts = ["123456789001", "ou-abcd-12345678"]
   }
-  regional = true
+  regional         = true
+  use_aws_flow_log = false
 
   providers = {
     aws = aws.scanning-1-us-east-1
@@ -918,6 +950,7 @@ module "lacework_aws_agentless_scanning_region_scanning-2-us-east-2" {
   version                 = "~> 0.6"
   global_module_reference = module.lacework_aws_agentless_scanning_global
   regional                = true
+  use_aws_flow_log        = false
 
   providers = {
     aws = aws.scanning-2-us-east-2
@@ -1021,7 +1054,8 @@ module "lacework_aws_agentless_scanning_global" {
     management_account = "123456789000"
     monitored_accounts = ["ou-abcd-12345678", "123456789001"]
   }
-  regional = true
+  regional         = true
+  use_aws_flow_log = false
 
   providers = {
     aws = aws.us-east-1
@@ -1033,6 +1067,7 @@ module "lacework_aws_agentless_scanning_region_us-east-2" {
   version                 = "~> 0.6"
   global_module_reference = module.lacework_aws_agentless_scanning_global
   regional                = true
+  use_aws_flow_log        = false
 
   providers = {
     aws = aws.us-east-2
@@ -1134,7 +1169,8 @@ module "lacework_aws_agentless_scanning_global" {
     management_account = "123456789000"
     monitored_accounts = ["123456789001", "123456789002"]
   }
-  regional = true
+  regional         = true
+  use_aws_flow_log = false
 
   providers = {
     aws = aws.us-east-1
