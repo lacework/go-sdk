@@ -6,7 +6,7 @@ const (
 	LaceworkProviderVersion = "~> 2.0"
 
 	AwsProviderSource                = "hashicorp/aws"
-	AwsProviderVersion               = "~> 5.0"
+	AwsProviderVersion               = ">= 5.0, < 7.0"
 	AwsAgentlessSource               = "lacework/agentless-scanning/aws"
 	AwsAgentlessVersion              = "~> 0.6"
 	AwsConfigSource                  = "lacework/config/aws"

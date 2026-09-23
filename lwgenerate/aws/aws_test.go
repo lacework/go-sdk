@@ -481,7 +481,7 @@ var requiredProvidersWithCustomBlock = `terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = ">= 5.0, < 7.0"
     }
     lacework = {
       source  = "lacework/lacework"
@@ -497,7 +497,7 @@ var requiredProviders = `terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = ">= 5.0, < 7.0"
     }
     lacework = {
       source  = "lacework/lacework"
@@ -634,7 +634,7 @@ var moduleImportAgentless = `terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = ">= 5.0, < 7.0"
     }
     lacework = {
       source  = "lacework/lacework"
@@ -885,7 +885,7 @@ var moduleImportAgentlessOrganization = `terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = ">= 5.0, < 7.0"
     }
     lacework = {
       source  = "lacework/lacework"
@@ -1008,7 +1008,7 @@ var moduleImportAgentlessOrganizationMixedTargets = `terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = ">= 5.0, < 7.0"
     }
     lacework = {
       source  = "lacework/lacework"
@@ -1129,7 +1129,7 @@ var moduleImportAgentlessOrganizationAccountTargetsOnly = `terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = ">= 5.0, < 7.0"
     }
     lacework = {
       source  = "lacework/lacework"
@@ -1229,7 +1229,7 @@ var moduleImportConfigWithProviderTags = `terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = ">= 5.0, < 7.0"
     }
     lacework = {
       source  = "lacework/lacework"
@@ -1280,7 +1280,7 @@ var moduleImportConfigWithMultipleAccounts = `terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = ">= 5.0, < 7.0"
     }
     lacework = {
       source  = "lacework/lacework"
@@ -1411,7 +1411,7 @@ var moduleImportDspm = `terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = ">= 5.0, < 7.0"
     }
     lacework = {
       source  = "lacework/lacework"
