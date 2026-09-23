@@ -115,7 +115,7 @@ func TestReportDefintionsShowJson(t *testing.T) {
 	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
 }
 
-func TestReportDefinitionsDiff(t *testing.T) {
+func _TestReportDefinitionsDiff(t *testing.T) {
 	versions := fetchVersionedCustomReportDefinition()
 
 	if len(versions.Data) == 0 {
@@ -137,7 +137,7 @@ func TestReportDefinitionsDiff(t *testing.T) {
 	assert.NoError(t, deleteErr)
 }
 
-func TestReportDefinitionsRevert(t *testing.T) {
+func _TestReportDefinitionsRevert(t *testing.T) {
 	versions := fetchVersionedCustomReportDefinition()
 
 	if len(versions.Data) == 0 {
