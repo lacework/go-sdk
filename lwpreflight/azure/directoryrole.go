@@ -2,8 +2,32 @@ package azure
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
+	"strings"
 )
+
+// aadstsCode matches an Entra ID error code and its description, up to the end
+// of the JSON string it sits in.
+var aadstsCode = regexp.MustCompile(`AADSTS\d+: [^"\\\n]*`)
+
+// graphErrorReason condenses a token error to one line, since it is appended
+// to every directory-role message. azidentity errors run to a dozen lines of
+// request dump, and when the token endpoint answered, their first line only
+// says authentication failed: the reason is the AADSTS code in the body. The
+// verbose log keeps the full text.
+func graphErrorReason(err error) string {
+	text := err.Error()
+	if code := aadstsCode.FindString(text); code != "" {
+		// first sentence only; descriptions go on to trace and correlation IDs
+		if sentence, _, found := strings.Cut(code, ". "); found {
+			return sentence + "."
+		}
+		return strings.TrimSpace(code)
+	}
+	first, _, _ := strings.Cut(text, "\n")
+	return strings.TrimSpace(first)
+}
 
 // CheckDirectoryRoles validates the Entra ID privileges that deployment needs
 // but that ARM permission checks cannot see. Deployment creates an Entra ID
@@ -46,8 +70,8 @@ func CheckDirectoryRoles(p *Preflight) error {
 	unread := ""
 	if p.graphPermissionsErr != nil {
 		unread = fmt.Sprintf(
-			" (Microsoft Graph application permissions could not be read: %v)",
-			p.graphPermissionsErr)
+			" (Microsoft Graph application permissions could not be read: %s)",
+			graphErrorReason(p.graphPermissionsErr))
 	}
 
 	for _, integrationType := range p.integrationTypes {

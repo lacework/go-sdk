@@ -173,19 +173,50 @@ func TestCheckDirectoryRolesMixedRoleAndGraphPermission(t *testing.T) {
 }
 
 func TestCheckDirectoryRolesUnreadableGraphPermissions(t *testing.T) {
-	p := preflightWithRoles(nil, nil, Agentless)
-	p.graphPermissionsErr = errors.New("AADSTS900023: tenant not found")
+	// the shape azidentity produces when the token endpoint answers: the first
+	// line says only that authentication failed, the reason is in the body
+	p := preflightWithRoles(nil, nil, Agentless, Config)
+	p.graphPermissionsErr = errors.New("failed to get token: ClientSecretCredential authentication failed. \n" +
+		"POST https://login.microsoftonline.com/tenant/oauth2/v2.0/token\n" +
+		"--------------------------------------------------------------------------------\n" +
+		"RESPONSE 401: 401 Unauthorized\n" +
+		"--------------------------------------------------------------------------------\n" +
+		"{\n" +
+		"  \"error\": \"invalid_client\",\n" +
+		"  \"error_description\": \"AADSTS7000215: Invalid client secret provided. Ensure the secret being " +
+		"sent in the request is the client secret value, not the client secret ID, for a secret added to app " +
+		"'00000000-0000-0000-0000-000000000000'. Trace ID: abc\\r\\nCorrelation ID: def\\r\\nTimestamp: 2026-09-23 19:00:00Z\"\n" +
+		"}\n" +
+		"--------------------------------------------------------------------------------\n" +
+		"To troubleshoot, visit https://aka.ms/azsdk/go/identity/troubleshoot#client-secret")
 	assert.NoError(t, CheckDirectoryRoles(p))
 
 	require.Len(t, p.errors[Agentless], 1)
-	// the caller learns the second path was never looked at, so the missing
-	// directory role is not reported as the whole story
-	assert.Contains(t, p.errors[Agentless][0], "could not be read")
-	assert.Contains(t, p.errors[Agentless][0], "AADSTS900023")
+	require.Len(t, p.errors[Config], 2)
+	// the caller learns the second path was never looked at, and why, on both
+	// kinds of message, without the request dump
+	for _, msg := range append(p.errors[Agentless], p.errors[Config]...) {
+		assert.Contains(t, msg, "could not be read: AADSTS7000215: Invalid client secret provided.)")
+		assert.NotContains(t, msg, "RESPONSE 401")
+		assert.NotContains(t, msg, "Trace ID")
+		assert.NotContains(t, msg, "\n")
+	}
 
 	// nothing appended when the permissions were read fine
 	p = preflightWithRoles(nil, nil, Agentless)
 	assert.NoError(t, CheckDirectoryRoles(p))
 	require.Len(t, p.errors[Agentless], 1)
 	assert.NotContains(t, p.errors[Agentless][0], "could not be read")
+}
+
+func TestGraphErrorReason(t *testing.T) {
+	// no response from the token endpoint: the first line is the whole story
+	assert.Equal(t, "failed to get token: dial tcp: lookup login.microsoftonline.com: no such host",
+		graphErrorReason(errors.New("failed to get token: dial tcp: lookup login.microsoftonline.com: no such host")))
+	// a multi-line error without an AADSTS code keeps its first line, trimmed
+	assert.Equal(t, "failed to get token: DefaultAzureCredential: failed to acquire a token.",
+		graphErrorReason(errors.New("failed to get token: DefaultAzureCredential: failed to acquire a token. \nAttempted credentials:")))
+	// dotted names inside the first sentence do not cut it short
+	assert.Equal(t, "AADSTS90002: Tenant 'contoso.onmicrosoft.com' not found.",
+		graphErrorReason(errors.New(`"AADSTS90002: Tenant 'contoso.onmicrosoft.com' not found. Check to make sure you have the correct tenant ID."`)))
 }
