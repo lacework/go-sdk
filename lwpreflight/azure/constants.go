@@ -8,6 +8,34 @@ const (
 	Agentless   IntegrationType = "azure_agentless"
 )
 
+// Entra ID directory role template IDs
+// https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference
+const (
+	GlobalAdministratorRoleID           = "62e90394-69f5-4237-9190-012177145e10"
+	ApplicationAdministratorRoleID      = "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3"
+	CloudApplicationAdministratorRoleID = "158c047a-c907-4556-b7ef-446551a6b5f7"
+	PrivilegedRoleAdministratorRoleID   = "e8611ab8-c189-46e8-94e1-60213ab1f814"
+)
+
+// Microsoft Graph application permissions that grant the same capability as the
+// directory roles above. An app-only principal can hold these instead of a
+// directory role, in which case its wids claim says nothing about what it can do.
+// https://learn.microsoft.com/en-us/graph/permissions-reference
+//
+// Deliberately limited to the permissions Microsoft documents as sufficient on
+// their own. A missing entry costs a false failure, which the caller can fix by
+// assigning a directory role; a wrong entry would wave a caller through to a
+// deployment that then fails.
+const (
+	// Create and manage any application registration and service principal.
+	GraphApplicationReadWriteAllPermission = "Application.ReadWrite.All"
+	// Create applications, and manage the ones this principal owns, which
+	// includes every application it creates.
+	GraphApplicationReadWriteOwnedByPermission = "Application.ReadWrite.OwnedBy"
+	// Assign a directory role, such as Directory Readers, to a principal.
+	GraphRoleManagementReadWriteDirectoryPermission = "RoleManagement.ReadWrite.Directory"
+)
+
 var RequiredPermissions = map[IntegrationType][]string{
 	Config: {
 		"Microsoft.Authorization/roleAssignments/read",

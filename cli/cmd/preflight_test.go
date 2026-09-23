@@ -70,17 +70,44 @@ func TestIntegrationsRequestedAws(t *testing.T) {
 }
 
 func TestIntegrationsRequestedAzure(t *testing.T) {
-	got := integrationsRequestedAzure(struct {
-		agentless      bool
-		config         bool
-		activityLog    bool
-		subscriptionID string
-		tenantID       string
-		clientID       string
-		clientSecret   string
-		region         string
-	}{config: true, activityLog: true})
+	got := integrationsRequestedAzure(azurePreflightOptions{config: true, activityLog: true})
 	assert.Equal(t, []string{"azure_config", "azure_activity_log"}, got)
+}
+
+func TestExistingAdApplicationsAzure(t *testing.T) {
+	tests := []struct {
+		name     string
+		options  azurePreflightOptions
+		expected map[azure.IntegrationType]bool
+	}{
+		{
+			name:    "both integrations shorthand",
+			options: azurePreflightOptions{existingAdApplication: true},
+			expected: map[azure.IntegrationType]bool{
+				azure.Config: true, azure.ActivityLog: true,
+			},
+		},
+		{
+			name:    "config only",
+			options: azurePreflightOptions{configExistingAdApplication: true},
+			expected: map[azure.IntegrationType]bool{
+				azure.Config: true, azure.ActivityLog: false,
+			},
+		},
+		{
+			name:    "activity log only",
+			options: azurePreflightOptions{activityLogExistingAdApplication: true},
+			expected: map[azure.IntegrationType]bool{
+				azure.Config: false, azure.ActivityLog: true,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assert.Equal(t, test.expected, existingAdApplicationsAzure(test.options))
+		})
+	}
 }
 
 func TestIntegrationsRequestedGcp(t *testing.T) {
