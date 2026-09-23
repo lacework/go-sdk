@@ -202,9 +202,12 @@ func TestCheckDirectoryRolesUnreadableGraphPermissions(t *testing.T) {
 		assert.NotContains(t, msg, "\n")
 	}
 
+	assert.True(t, p.caller.GraphPermissionsUnread)
+
 	// nothing appended when the permissions were read fine
 	p = preflightWithRoles(nil, nil, Agentless)
 	assert.NoError(t, CheckDirectoryRoles(p))
+	assert.False(t, p.caller.GraphPermissionsUnread)
 	require.Len(t, p.errors[Agentless], 1)
 	assert.NotContains(t, p.errors[Agentless][0], "could not be read")
 }
@@ -219,4 +222,31 @@ func TestGraphErrorReason(t *testing.T) {
 	// dotted names inside the first sentence do not cut it short
 	assert.Equal(t, "AADSTS90002: Tenant 'contoso.onmicrosoft.com' not found.",
 		graphErrorReason(errors.New(`"AADSTS90002: Tenant 'contoso.onmicrosoft.com' not found. Check to make sure you have the correct tenant ID."`)))
+}
+
+func TestCheckDirectoryRolesReportsCapabilities(t *testing.T) {
+	cases := []struct {
+		name                 string
+		roles, graph         []string
+		canCreate, canAssign bool
+	}{
+		{"none", nil, nil, false, false},
+		{"application administrator only", []string{ApplicationAdministratorRoleID}, nil, true, false},
+		{"privileged role administrator only", []string{PrivilegedRoleAdministratorRoleID}, nil, false, true},
+		{"global administrator", []string{GlobalAdministratorRoleID}, nil, true, true},
+		{"graph owned-by only", nil, []string{GraphApplicationReadWriteOwnedByPermission}, true, false},
+		{"graph both", nil, []string{GraphApplicationReadWriteAllPermission, GraphRoleManagementReadWriteDirectoryPermission}, true, true},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			// reported whatever the existing-application answers, so a caller
+			// that waived the checks can still tell whether it had a choice
+			p := preflightWithRoles(c.roles, map[IntegrationType]bool{Config: true, ActivityLog: true}, Config, ActivityLog)
+			p.caller.GraphPermissions = c.graph
+			require.NoError(t, CheckDirectoryRoles(p))
+			assert.Equal(t, c.canCreate, p.caller.CanCreateApplication)
+			assert.Equal(t, c.canAssign, p.caller.CanAssignDirectoryRole)
+			assert.Empty(t, p.errors)
+		})
+	}
 }
