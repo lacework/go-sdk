@@ -31,6 +31,16 @@ type Caller struct {
 	// credential, whose effective permission is bounded by its own directory
 	// roles anyway.
 	GraphPermissions []string
+	// Whether the caller can create an Entra ID application, and assign it a
+	// directory role, through either a directory role or the equivalent Graph
+	// permission. Config and Activity Log need both to create their own
+	// application; without them the caller must reuse an existing one. Set by
+	// CheckDirectoryRoles.
+	CanCreateApplication   bool
+	CanAssignDirectoryRole bool
+	// true when the Graph application permissions could not be read, so both
+	// capabilities above reflect directory roles alone
+	GraphPermissionsUnread bool
 }
 
 func FetchCaller(p *Preflight) error {

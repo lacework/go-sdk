@@ -64,6 +64,9 @@ func CheckDirectoryRoles(p *Preflight) error {
 		GlobalAdministratorRoleID,
 		GraphRoleManagementReadWriteDirectoryPermission,
 	)
+	p.caller.CanCreateApplication = canCreateApp
+	p.caller.CanAssignDirectoryRole = canAssignDirectoryRole
+	p.caller.GraphPermissionsUnread = p.graphPermissionsErr != nil
 
 	// A caller can hold the Graph permission rather than the directory role, so
 	// a failure to read those permissions makes either message a guess.
