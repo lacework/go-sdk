@@ -3,6 +3,8 @@ name: Test Build
 on:
   workflow_dispatch:
   pull_request:
+    # labeled: adding run-all-integration re-runs the workflow with every integration test.
+    types: [opened, synchronize, reopened, labeled]
   push:
     branches:
       - main
@@ -33,6 +35,11 @@ jobs:
         run: |
           make coverage-ci
 
+      # make test-only skips every package under integration/, including the tag selector.
+      - name: Run integration test selector tests
+        run: |
+          go test ./integration/context/
+
       # TODO Display test report
 
       - name: Notify Slack on Failure
@@ -60,37 +67,86 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_GROWTH_ENG_ALERTS }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
-  run-integration-tests:
+  select-integration-tags:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # To run integration tests with different tags in parallel
-        index: [0, 1, 2, 3, 4]
+    outputs:
+      tags: ${{ steps.select.outputs.tags }}
     steps:
-      # To wait for the existing test-build run to complete to avoid running same integration tests at the same time
-      - name: Turnstyle
-        uses: softprops/turnstyle@v1
-        with:
-          same-branch-only: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
           go-version: 1.24.x
 
+      # A PR runs only the integration tests its changes need; see integration/context.
+      # Pushes to main, manual runs and PRs labeled run-all-integration run everything.
+      - name: Select integration test tags
+        id: select
+        env:
+          RUN_ALL: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'run-all-integration') }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ "$RUN_ALL" = "true" ]; then
+            echo "tags=all" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changes=$(git diff --name-only "origin/${BASE_REF}...HEAD")
+          echo "Changed files:"
+          echo "$changes"
+          # "--" keeps go run from compiling the changed .go files as part of the program.
+          tags=$(go run integration/context/ctx_cfg.go -- $changes)
+          echo "tags=${tags}" >> "$GITHUB_OUTPUT"
+
+  run-integration-tests:
+    needs: select-integration-tags
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # To run integration tests with different tags in parallel
+        index: [0, 1, 2, 3, 4]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Select this subset's tags
+        id: subset
+        env:
+          TAGS: ${{ needs.select-integration-tags.outputs.tags }}
+        run: |
+          tags=$(make -s integration-subset-tags index=${{ matrix.index }} tags="$TAGS")
+          echo "tags=${tags}" >> "$GITHUB_OUTPUT"
+          echo "Integration test tags for this subset: ${tags:-none}"
+
+      # To wait for the existing test-build run to complete to avoid running same integration tests at the same time
+      - name: Turnstyle
+        if: steps.subset.outputs.tags != ''
+        uses: softprops/turnstyle@v1
+        with:
+          same-branch-only: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
+      - name: Setup Go
+        if: steps.subset.outputs.tags != ''
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.24.x
+
       - name: Build cross-platform binaries
+        if: steps.subset.outputs.tags != ''
         run: |
           make prepare
           make build
 
       - name: Run integration tests
+        if: steps.subset.outputs.tags != ''
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -104,8 +160,10 @@ jobs:
           CI_API_SECRET: ${{ secrets.CI_API_SECRET }}
           LW_INT_TEST_AWS_ACC: ${{ secrets.LW_INT_TEST_AWS_ACC }}
           LW_CLI_BIN: lacework
+          # lwupdater calls the GitHub API; unauthenticated it shares the runners' anonymous rate limit.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          make integration-only-subset index=${{ matrix.index }}
+          make integration-only-subset index=${{ matrix.index }} tags="${{ steps.subset.outputs.tags }}"
 
       - name: Notify Slack on Failure
         uses: slackapi/slack-github-action@v1.25.0

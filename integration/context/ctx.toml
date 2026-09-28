@@ -42,7 +42,7 @@
 [alert_channel]
     files = [
         "alert_channel.go",
-        "integration_aws_cloudwatch.go,",
+        "integration_aws_cloudwatch.go",
         "integration_aws_s3_channel.go",
         "integration_cisco_webex.go",
         "integration_datadog.go",
@@ -83,7 +83,7 @@
         "component_args.go",
         "component_dev.go"
     ]
-    dirs = ["cdk/", "lwcomponent/"]
+    dirs = ["lwcomponent/"]
 
 [compliance]
     files = [
@@ -149,12 +149,11 @@
         "generate_gcp.go",
         "generate_gke.go",
         "generate_k8s.go",
-        "constants.go"
     ]
-dirs = ["lwgenerate/"]
+    dirs = ["lwgenerate/"]
 
 [help]
-    files = ["doc.go"]
+    files = []
     dirs = ["integration/test_resources/help/"]
 
 [report_definitions]
@@ -171,10 +170,20 @@ dirs = ["lwgenerate/"]
     files = [
         "resource_group_v2.go",
         "resource_groups.go",
-        "resource_groups_v2.go",
-        "resource_groups_version_service.go"
     ]
     dirs = []
+
+[agent_token]
+    files = ["agent.go"]
+    dirs = []
+
+[configure]
+    files = ["configure.go", "configure_switch_profile.go"]
+    dirs = []
+
+[preflight]
+    files = ["preflight.go", "preflight_aws.go", "preflight_azure.go", "preflight_gcp.go"]
+    dirs = ["lwpreflight/"]
 
 [team_member]
     files = ["team_members.go"]
@@ -182,7 +191,7 @@ dirs = ["lwgenerate/"]
 
 [version]
     files = ["version.go"]
-    dirs = []
+    dirs = ["lwupdater/"]
 
 [vulnerability]
     files = [
@@ -208,5 +217,5 @@ dirs = ["lwgenerate/"]
 
 # If these files change run all tests
 [all]
-    files = ["cache.go", "cli_state.go", "root.go", "table_render.go", "honeyvent.go", "errors.go", "outputs.go"]
+    files = ["cache.go", "cli_state.go", "root.go", "table_render.go", "errors.go", "outputs.go"]
     dirs = ["lwtime/", "lwdomain/", "lwconfig/"]
