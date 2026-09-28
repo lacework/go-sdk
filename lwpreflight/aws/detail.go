@@ -214,7 +214,9 @@ func fetchEligibleTrail(p *Preflight) (*cloudtrailTypes.Trail, error) {
 		trailSvc = cloudtrail.NewFromConfig(p.awsConfig, func(o *cloudtrail.Options) {
 			o.Region = *trailInfo.HomeRegion
 		})
-		trailOutput, err := trailSvc.GetTrail(ctx, &cloudtrail.GetTrailInput{Name: trailInfo.Name})
+		// By ARN: in a member account the organization trail is a shadow trail, which GetTrail
+		// cannot resolve by name.
+		trailOutput, err := trailSvc.GetTrail(ctx, &cloudtrail.GetTrailInput{Name: trailInfo.TrailARN})
 		if err != nil {
 			return nil, err
 		}
@@ -250,10 +252,11 @@ func fetchControlTowerTrail(p *Preflight) (*cloudtrailTypes.Trail, error) {
 	}
 
 	trailRegion := ""
-	trailName := "aws-controltower-BaselineCloudTrail"
+	trailARN := ""
 	for _, trail := range trailsOutput.Trails {
-		if *trail.Name == trailName {
-			trailRegion = *trail.HomeRegion
+		if aws.ToString(trail.Name) == "aws-controltower-BaselineCloudTrail" {
+			trailRegion = aws.ToString(trail.HomeRegion)
+			trailARN = aws.ToString(trail.TrailARN)
 			break
 		}
 	}
@@ -264,7 +267,8 @@ func fetchControlTowerTrail(p *Preflight) (*cloudtrailTypes.Trail, error) {
 	trailSvc = cloudtrail.NewFromConfig(p.awsConfig, func(o *cloudtrail.Options) {
 		o.Region = trailRegion
 	})
-	trailOutput, err := trailSvc.GetTrail(ctx, &cloudtrail.GetTrailInput{Name: &trailName})
+	// By ARN, as in fetchEligibleTrail: outside the trail's home account it is a shadow trail.
+	trailOutput, err := trailSvc.GetTrail(ctx, &cloudtrail.GetTrailInput{Name: &trailARN})
 	if err != nil {
 		return nil, err
 	}
