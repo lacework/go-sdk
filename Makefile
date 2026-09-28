@@ -85,19 +85,25 @@ integration-generation-only: ## Run integration tests
 
 .PHONY: integration-only
 integration-only: install-tools ## Run integration tests
-	PATH="$(PWD)/bin:${PATH}" gotestsum -f testname --packages="github.com/lacework/go-sdk/v2/integration" \
+	PATH="$(PWD)/bin:${PATH}" gotestsum --rerun-fails=1 -f testname --packages="github.com/lacework/go-sdk/v2/integration" \
 		-- -v github.com/lacework/go-sdk/v2/integration -timeout 30m -tags="$(INTEGRATION_TEST_TAGS)" -run=$(regex)
+
+# A subset is the index'th group of five INTEGRATION_TEST_TAGS, narrowed to $(tags) when that names
+# the tags a change needs (see integration/context). tags=all keeps the whole group.
+tags ?= all
+SUBSET_TAGS = $(wordlist $(shell echo 1+$(index)*5 | bc),$(shell echo 5+$(index)*5 | bc),$(INTEGRATION_TEST_TAGS))
+SELECTED_SUBSET_TAGS = $(if $(filter all,$(tags)),$(SUBSET_TAGS),$(filter $(tags),$(SUBSET_TAGS)))
+
+.PHONY: integration-subset-tags
+integration-subset-tags: ## Print the tags a subset of integration tests runs
+	@echo $(SELECTED_SUBSET_TAGS)
 
 .PHONY: integration-only-subset
 integration-only-subset: install-tools ## Run a subset of integration tests
-	$(eval START := $(shell echo 1+$(index)*5 | bc))
-	$(eval END := $(shell echo 5+$(index)*5 | bc))
-	$(eval LENGTH := ${words $(INTEGRATION_TEST_TAGS)})
-	if [ ${START} -le ${LENGTH} ]; then \
-		PATH="$(PWD)/bin:${PATH}" gotestsum -f testname --packages="github.com/lacework/go-sdk/v2/integration" \
+	if [ -n "$(SELECTED_SUBSET_TAGS)" ]; then \
+		PATH="$(PWD)/bin:${PATH}" gotestsum --rerun-fails=1 -f testname --packages="github.com/lacework/go-sdk/v2/integration" \
 			-- -v github.com/lacework/go-sdk/v2/integration -timeout 30m \
-			-tags="${wordlist $(START), $(END), $(INTEGRATION_TEST_TAGS)}" -run=$(regex) \
-		exit 1; \
+			-tags="$(SELECTED_SUBSET_TAGS)" -run=$(regex); \
 	fi
 
 .PHONY: integration-lql
