@@ -90,10 +90,11 @@ Grab a CVE id and feed it to the command:
 			}
 
 			// Keyed per collector: the fetch filters on the collector type, so an assessment cached
-			// for one must not answer a request for the other.
+			// for one must not answer a request for the other. v3, because older CLIs cached
+			// host/assessment/v2/<mid> as a file, and each "/" in a key is a directory on disk.
 			var assessment api.VulnerabilitiesHostResponse
 			expired := cli.ReadCachedAsset(
-				fmt.Sprintf("host/assessment/v2/%s/%s", args[0], strings.ToLower(vulCmdState.CollectorType)),
+				fmt.Sprintf("host/assessment/v3/%s/%s", args[0], strings.ToLower(vulCmdState.CollectorType)),
 				&assessment,
 			)
 			if expired {
@@ -165,7 +166,7 @@ Grab a CVE id and feed it to the command:
 
 				// Under the collector actually fetched: a fallback to Agent must not be cached as Agentless.
 				cli.WriteAssetToCache(
-					fmt.Sprintf("host/assessment/v2/%s/%s", args[0], strings.ToLower(vulCmdState.CollectorType)),
+					fmt.Sprintf("host/assessment/v3/%s/%s", args[0], strings.ToLower(vulCmdState.CollectorType)),
 					time.Now().Add(time.Hour*1),
 					assessment,
 				)

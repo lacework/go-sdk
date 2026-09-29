@@ -194,3 +194,19 @@ func TestShowAssessmentFindsAHostLastSeenOutsideTheDefaultWindow(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, out, "CVE-2026-0001")
 }
+
+// Older CLIs cached host/assessment/v2/<mid> as a file, and the cache turns each "/" in a key into a
+// directory, so a key below it could never be written and the host was never cached again.
+func TestShowAssessmentCachesAHostAnOlderCLICached(t *testing.T) {
+	calls := newAgentOnlyHostAPI(t)
+	require.NoError(t, cli.writeAssetToCache(
+		"host/assessment/v2/"+agentOnlyMid, time.Now().Add(time.Hour), api.VulnerabilitiesHostResponse{}))
+
+	_, err := showAssessment(vulnHostCollectorTypeAgent)
+	require.NoError(t, err)
+	agentCalls := calls[vulnHostCollectorTypeAgent]
+	_, err = showAssessment(vulnHostCollectorTypeAgent)
+	require.NoError(t, err)
+
+	assert.Equal(t, agentCalls, calls[vulnHostCollectorTypeAgent], "the repeat is served from the cache")
+}
