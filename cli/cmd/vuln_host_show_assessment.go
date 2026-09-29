@@ -89,12 +89,13 @@ Grab a CVE id and feed it to the command:
 				return err
 			}
 
-			var (
-				assessment api.VulnerabilitiesHostResponse
-				cacheKey   = fmt.Sprintf("host/assessment/v2/%s", args[0])
+			// Keyed per collector: the fetch filters on the collector type, so an assessment cached
+			// for one must not answer a request for the other.
+			var assessment api.VulnerabilitiesHostResponse
+			expired := cli.ReadCachedAsset(
+				fmt.Sprintf("host/assessment/v2/%s/%s", args[0], strings.ToLower(vulCmdState.CollectorType)),
+				&assessment,
 			)
-
-			expired := cli.ReadCachedAsset(cacheKey, &assessment)
 			if expired {
 				// check machine exists
 				var machinesResponse api.MachinesEntityResponse
@@ -122,7 +123,7 @@ Grab a CVE id and feed it to the command:
 					fmt.Sprintf("Searching for latest host evaluation for machine %s (%d)...",
 						machineDetails.Hostname, machineDetails.Mid,
 					))
-				evalGUID, err := searchLatestHostEvaluationGuid(args[0])
+				evalGUID, err := searchLatestHostEvaluationGuid(args[0], !c.Flags().Changed("collector_type"))
 				cli.StopProgress()
 				if err != nil {
 					return errors.Wrapf(err, "unable to find information of host '%s'", args[0])
@@ -162,7 +163,12 @@ Grab a CVE id and feed it to the command:
 				}
 				cli.StopProgress()
 
-				cli.WriteAssetToCache(cacheKey, time.Now().Add(time.Hour*1), assessment)
+				// Under the collector actually fetched: a fallback to Agent must not be cached as Agentless.
+				cli.WriteAssetToCache(
+					fmt.Sprintf("host/assessment/v2/%s/%s", args[0], strings.ToLower(vulCmdState.CollectorType)),
+					time.Now().Add(time.Hour*1),
+					assessment,
+				)
 			}
 
 			if err := buildVulnHostReports(assessment); err != nil {
@@ -228,7 +234,10 @@ func buildVulnHostReports(response api.VulnerabilitiesHostResponse) error {
 	}
 }
 
-func searchLatestHostEvaluationGuid(mid string) (string, error) {
+// searchLatestHostEvaluationGuid finds the host's latest evaluation for the collector type. With
+// fallback allowed, which is only when the user did not ask for a collector, a host with no Agentless
+// evaluation falls back to Agent.
+func searchLatestHostEvaluationGuid(mid string, fallback bool) (string, error) {
 	var (
 		now    = time.Now().UTC()
 		before = now.AddDate(0, 0, -7) // 7 days from ago
@@ -260,9 +269,9 @@ func searchLatestHostEvaluationGuid(mid string) (string, error) {
 
 	if len(response.Data) == 0 {
 		cli.Log.Infow("no data found", "collector_type", vulCmdState.CollectorType)
-		if vulCmdState.CollectorType == vulnHostCollectorTypeAgentless {
+		if fallback && vulCmdState.CollectorType == vulnHostCollectorTypeAgentless {
 			vulCmdState.CollectorType = vulnHostCollectorTypeAgent
-			return searchLatestHostEvaluationGuid(mid)
+			return searchLatestHostEvaluationGuid(mid, false)
 		}
 
 		return "", errors.Errorf("no data found with %s collector\n", vulCmdState.CollectorType)
