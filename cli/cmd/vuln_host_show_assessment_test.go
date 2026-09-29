@@ -62,7 +62,15 @@ func newAgentOnlyHostAPI(t *testing.T) map[string]int {
 	)
 	server := lacework.MockServer()
 	server.MockToken("TOKEN")
-	server.MockAPI("Entities/Machines/search", func(w http.ResponseWriter, _ *http.Request) {
+	// Like the API, a search without a time filter covers only a short default window, and this host
+	// was last seen before it.
+	server.MockAPI("Entities/Machines/search", func(w http.ResponseWriter, r *http.Request) {
+		var filter api.SearchFilter
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&filter))
+		if filter.TimeFilter == nil {
+			fmt.Fprint(w, `{"data": [], "paging": {}}`)
+			return
+		}
 		fmt.Fprintf(w, `{"data": [{"mid": %s, "hostname": "agent-only"}], "paging": {}}`, agentOnlyMid)
 	})
 	server.MockAPI("Vulnerabilities/Hosts/search", func(w http.ResponseWriter, r *http.Request) {
@@ -174,4 +182,15 @@ func TestShowAssessmentHonoursAnExplicitAgentless(t *testing.T) {
 
 	assert.ErrorContains(t, err, "no data found with Agentless collector")
 	assert.Zero(t, calls[vulnHostCollectorTypeAgent], "an explicit Agentless request never asks for Agent data")
+}
+
+// The machine lookup had no time filter, so a host with recent evaluations that the Machines entity
+// last saw days ago was reported as "no hosts found".
+func TestShowAssessmentFindsAHostLastSeenOutsideTheDefaultWindow(t *testing.T) {
+	newAgentOnlyHostAPI(t)
+
+	out, err := showAssessment(vulnHostCollectorTypeAgent)
+
+	require.NoError(t, err)
+	assert.Contains(t, out, "CVE-2026-0001")
 }

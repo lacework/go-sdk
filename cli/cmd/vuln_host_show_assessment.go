@@ -98,12 +98,21 @@ Grab a CVE id and feed it to the command:
 			)
 			if expired {
 				// check machine exists
-				var machinesResponse api.MachinesEntityResponse
-				filter := api.SearchFilter{Filters: []api.Filter{{
-					Expression: "eq",
-					Field:      "mid",
-					Value:      args[0],
-				}}}
+				var (
+					machinesResponse api.MachinesEntityResponse
+					now              = time.Now().UTC()
+					before           = now.AddDate(0, 0, -7) // 7 days from ago
+					// The same window as the evaluation search: without one the API searches only its
+					// default window, which misses a host with recent evaluations that it last saw earlier.
+					filter = api.SearchFilter{
+						TimeFilter: &api.TimeFilter{StartTime: &before, EndTime: &now},
+						Filters: []api.Filter{{
+							Expression: "eq",
+							Field:      "mid",
+							Value:      args[0],
+						}},
+					}
+				)
 
 				cli.StartProgress(fmt.Sprintf("Searching for machine with id '%s'...", args[0]))
 				err := cli.LwApi.V2.Entities.Search(&machinesResponse, filter)
@@ -131,15 +140,6 @@ Grab a CVE id and feed it to the command:
 
 				cli.Log.Infow("latest assessment found", "eval_guid", evalGUID, "collector_type", vulCmdState.CollectorType)
 
-				var (
-					now    = time.Now().UTC()
-					before = now.AddDate(0, 0, -7) // 7 days from ago
-				)
-
-				filter.TimeFilter = &api.TimeFilter{
-					StartTime: &before,
-					EndTime:   &now,
-				}
 				filter.Filters = append(filter.Filters, api.Filter{
 					Expression: "eq",
 					Field:      "evalGuid",
