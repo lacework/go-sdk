@@ -47,7 +47,10 @@ func main() {
 func integrationCtx(files []string) []string {
 	var tags []string
 	for _, file := range files {
-		if file == "" || file == "--" ||
+		// A unit test outside integration/ is never compiled into the CLI binary the integration
+		// tests run, and the unit-test job already covers it.
+		unitTest := strings.HasSuffix(file, "_test.go") && !strings.HasPrefix(file, "integration/")
+		if file == "" || file == "--" || unitTest ||
 			slices.ContainsFunc(skipped.suffixes, func(s string) bool { return strings.HasSuffix(file, s) }) ||
 			slices.ContainsFunc(skipped.prefixes, func(p string) bool { return strings.HasPrefix(file, p) }) ||
 			slices.Contains(skipped.files, file) {

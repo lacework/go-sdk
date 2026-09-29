@@ -29,6 +29,10 @@ func TestIntegrationCtx(t *testing.T) {
 		{"an [all] entry runs every tag", []string{"cli/cmd/root.go"}, allTags()},
 		{"a same-named file outside cli/cmd is not the command", []string{"lwgenerate/aws/account.go"}, []string{"generation", "help"}},
 		{"an untagged test file runs every tag", []string{"integration/framework_test.go"}, allTags()},
+		{"a unit test only rides along with its source", []string{
+			"cli/cmd/vuln_host_show_assessment.go", "cli/cmd/vuln_host_show_assessment_test.go",
+		}, []string{"help", "vulnerability"}},
+		{"a unit test on its own runs nothing", []string{"lwpreflight/aws/detail_test.go"}, nil},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.want, integrationCtx(tc.files))
