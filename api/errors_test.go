@@ -19,6 +19,8 @@
 package api_test
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -252,4 +254,31 @@ func TestErrorInvalidStatusCode(t *testing.T) {
 			"We would never catch this error!",
 		)
 	}
+}
+
+func TestIsErrorStatusCode(t *testing.T) {
+	fakeServer := lacework.MockServer()
+	fakeServer.MockAPI(
+		"any/endpoint",
+		func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, `{"message": "Api Rate Limit Exceeded. Try again later!"}`, http.StatusTooManyRequests)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test",
+		api.WithToken("TOKEN"),
+		api.WithURL(fakeServer.URL()),
+	)
+	assert.Nil(t, err)
+
+	var v interface{}
+	apiErr := c.RequestDecoder("GET", "any/endpoint", nil, v)
+	if assert.NotNil(t, apiErr) {
+		assert.True(t, api.IsErrorStatusCode(apiErr, http.StatusTooManyRequests))
+		assert.False(t, api.IsErrorStatusCode(apiErr, http.StatusUnauthorized))
+		assert.True(t, api.IsErrorStatusCode(fmt.Errorf("wrapped: %w", apiErr), http.StatusTooManyRequests))
+	}
+	assert.False(t, api.IsErrorStatusCode(errors.New("not an api error"), http.StatusTooManyRequests))
+	assert.False(t, api.IsErrorStatusCode(nil, http.StatusTooManyRequests))
 }

@@ -20,12 +20,16 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"path"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/lacework/go-sdk/v2/api"
+	"github.com/lacework/go-sdk/v2/internal/lacework"
 )
 
 func TestCacheGlobal(t *testing.T) {
@@ -319,6 +323,51 @@ func TestHash(t *testing.T) {
 		t.Run(fmt.Sprintf("second case %d", i), func(t *testing.T) {
 			assert.Equal(t, kase.expectedHash, hash(kase.v),
 				fmt.Sprintf("mismatch %d vs %d", kase.expectedHash, hash(kase.v)))
+		})
+	}
+}
+
+func TestWriteCachedTokenSurfacesAPIError(t *testing.T) {
+	cases := []struct {
+		name     string
+		code     int
+		message  string
+		expected []string
+	}{
+		{"rate limit", http.StatusTooManyRequests, "Api Rate Limit Exceeded. Try again later!",
+			[]string{"unable to generate access token", "[429] Api Rate Limit Exceeded. Try again later!"}},
+		{"unauthorized", http.StatusUnauthorized, "Invalid credentials",
+			[]string{"Validate your credentials are properly configured and not expired", "[401] Invalid credentials"}},
+		{"forbidden", http.StatusForbidden, "Access denied",
+			[]string{"Validate your credentials are properly configured and not expired", "[403] Access denied"}},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			fakeServer := lacework.MockServer()
+			fakeServer.MockAPI("access/tokens", func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, fmt.Sprintf(`{"message": %q}`, tc.message), tc.code)
+			})
+			defer fakeServer.Close()
+
+			client, err := api.NewClient("test",
+				api.WithApiKeys("KEY", "SECRET"),
+				api.WithURL(fakeServer.URL()),
+			)
+			assert.Nil(t, err)
+
+			state := NewDefaultState()
+			state.LwApi = client
+
+			err = state.WriteCachedToken()
+			if assert.NotNil(t, err) {
+				for _, msg := range tc.expected {
+					assert.Contains(t, err.Error(), msg)
+				}
+			}
+			if tc.code == http.StatusTooManyRequests {
+				assert.NotContains(t, err.Error(), "Validate your credentials")
+			}
 		})
 	}
 }

@@ -20,6 +20,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -68,6 +69,13 @@ func (r *errorResponse) Error() string {
 		r.Response.StatusCode,
 		r.Message,
 	)
+}
+
+// IsErrorStatusCode returns true if the provided error is a Lacework API
+// error response with the provided HTTP status code
+func IsErrorStatusCode(err error, code int) bool {
+	var errRes *errorResponse
+	return errors.As(err, &errRes) && errRes.Response != nil && errRes.Response.StatusCode == code
 }
 
 // checkResponse checks the provided response and generates an Error
