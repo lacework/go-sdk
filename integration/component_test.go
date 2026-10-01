@@ -20,10 +20,12 @@ package integration
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestComponentList(t *testing.T) {
@@ -223,6 +225,25 @@ func TestComponentDevEnter(t *testing.T) {
 	assert.Nil(t, err)
 
 	cleanup(dir)
+}
+
+func TestComponentDoesNotShadowABuiltInCommand(t *testing.T) {
+	dir := setup()
+	defer cleanup(dir)
+
+	componentDir := filepath.Join(dir, ".config", "lacework", "components", "preflight")
+	require.NoError(t, os.MkdirAll(componentDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(componentDir, ".version"), []byte("0.8.21"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(componentDir, ".info"), []byte(`{"type":"CLI_COMMAND"}`), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(componentDir, "preflight"),
+		[]byte("#!/bin/sh\necho the preflight component ran\n"), 0o755))
+
+	out, stderr, exitcode := LaceworkCLIWithHome(dir, "preflight", "--help")
+
+	assert.Equal(t, 0, exitcode, "EXITCODE is not the expected one")
+	assert.Contains(t, out.String(), "lacework preflight [command]", "the built-in command runs")
+	assert.NotContains(t, out.String(), "the preflight component ran")
+	assert.Contains(t, stderr.String(), "lacework component uninstall preflight")
 }
 
 func setup() string {
