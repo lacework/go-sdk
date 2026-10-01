@@ -155,6 +155,11 @@ type GenerateAwsTfConfigurationArgs struct {
 	// Agentless scanning AWS accounts
 	AgentlessScanningAccounts []AwsSubAccount
 
+	// AgentlessCreateIntegrationVariable names a root bool variable the global Agentless module reads
+	// as create_lacework_integration, so the caller can apply every AWS resource before the
+	// Lacework integration. The caller declares the variable.
+	AgentlessCreateIntegrationVariable string
+
 	// Dspm enables the FortiDSPM scan engine module, one regional module per
 	// entry in DspmRegions. The lacework_integration_aws_fortidspm resource
 	// lives in the first region's module (global = true); the others reference
@@ -572,6 +577,14 @@ func WithAgentlessOrganizationRootID(rootID string) AwsTerraformModifier {
 func WithAgentlessScanningAccounts(accounts ...AwsSubAccount) AwsTerraformModifier {
 	return func(c *GenerateAwsTfConfigurationArgs) {
 		c.AgentlessScanningAccounts = accounts
+	}
+}
+
+// WithAgentlessCreateIntegrationVariable makes the global Agentless module create the Lacework
+// integration only when the named root variable is true
+func WithAgentlessCreateIntegrationVariable(name string) AwsTerraformModifier {
+	return func(c *GenerateAwsTfConfigurationArgs) {
+		c.AgentlessCreateIntegrationVariable = name
 	}
 }
 
@@ -1371,20 +1384,26 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 		for _, accountID := range args.AgentlessMonitoredAccountIDs {
 			monitoredAccountIDs = append(monitoredAccountIDs, fmt.Sprintf("\"%s\"", accountID))
 		}
+		globalAttributes := map[string]interface{}{
+			"global":   true,
+			"regional": true,
+			// Disable aws_flow_log creation due to https://lacework.atlassian.net/browse/GROW-3001
+			"use_aws_flow_log": false,
+			"organization": lwgenerate.CreateMapTraversalTokens(map[string]string{
+				"management_account": fmt.Sprintf("\"%s\"", args.AgentlessManagementAccountID),
+				"monitored_accounts": fmt.Sprintf("[%s]", strings.Join(monitoredAccountIDs, ", ")),
+			}),
+		}
+		if args.AgentlessCreateIntegrationVariable != "" {
+			globalAttributes["create_lacework_integration"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"var", args.AgentlessCreateIntegrationVariable},
+			)
+		}
 		globalModule, err := lwgenerate.NewModule(
 			"lacework_aws_agentless_scanning_global",
 			lwgenerate.AwsAgentlessSource,
 			lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
-			lwgenerate.HclModuleWithAttributes(map[string]interface{}{
-				"global":   true,
-				"regional": true,
-				// Disable aws_flow_log creation due to https://lacework.atlassian.net/browse/GROW-3001
-				"use_aws_flow_log": false,
-				"organization": lwgenerate.CreateMapTraversalTokens(map[string]string{
-					"management_account": fmt.Sprintf("\"%s\"", args.AgentlessManagementAccountID),
-					"monitored_accounts": fmt.Sprintf("[%s]", strings.Join(monitoredAccountIDs, ", ")),
-				}),
-			}),
+			lwgenerate.HclModuleWithAttributes(globalAttributes),
 			lwgenerate.HclModuleWithProviderDetails(
 				map[string]string{"aws": fmt.Sprintf("aws.%s", args.AgentlessScanningAccounts[0].Alias)},
 			),
@@ -1497,9 +1516,14 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 				"snapshot_role",
 				lwgenerate.HclResourceWithAttributesAndProviderDetails(
 					map[string]interface{}{
-						"capabilities":     lwgenerate.CreateSimpleTraversal([]string{"[\"CAPABILITY_NAMED_IAM\"]"}),
-						"description":      "Lacework AWS Agentless Workload Scanning Organization Roles",
-						"name":             "lacework-agentless-scanning-stackset",
+						"capabilities": lwgenerate.CreateSimpleTraversal([]string{"[\"CAPABILITY_NAMED_IAM\"]"}),
+						"description":  "Lacework AWS Agentless Workload Scanning Organization Roles",
+						// Suffixed like every other Agentless resource, so a StackSet another install
+						// left in the management account can't block this one.
+						"name": lwgenerate.CreateSimpleTraversal([]string{
+							`"${module.lacework_aws_agentless_scanning_global.prefix}-stackset-` +
+								`${module.lacework_aws_agentless_scanning_global.suffix}"`,
+						}),
 						"permission_model": "SERVICE_MANAGED",
 						"template_url": "https://agentless-workload-scanner.s3.amazonaws.com" +
 							"/cloudformation-lacework/latest/snapshot-role.json",
@@ -1615,12 +1639,17 @@ func createAgentless(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, e
 		}
 	} else {
 		// Create Agenetless integration for single account
+		globalAttributes := map[string]interface{}{"global": true, "regional": true, "use_aws_flow_log": false}
+		if args.AgentlessCreateIntegrationVariable != "" {
+			globalAttributes["create_lacework_integration"] = lwgenerate.CreateSimpleTraversal(
+				[]string{"var", args.AgentlessCreateIntegrationVariable},
+			)
+		}
 		globalModule, err := lwgenerate.NewModule(
 			"lacework_aws_agentless_scanning_global",
 			lwgenerate.AwsAgentlessSource,
 			lwgenerate.HclModuleWithVersion(lwgenerate.AwsAgentlessVersion),
-			lwgenerate.HclModuleWithAttributes(map[string]interface{}{"global": true,
-				"regional": true, "use_aws_flow_log": false}),
+			lwgenerate.HclModuleWithAttributes(globalAttributes),
 			lwgenerate.HclModuleWithProviderDetails(
 				map[string]string{"aws": "aws.main"},
 			),
