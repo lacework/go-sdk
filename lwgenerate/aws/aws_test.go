@@ -56,6 +56,44 @@ func TestGenerationWithProviderTags(t *testing.T) {
 	assert.Equal(t, moduleImportConfigWithProviderTags, hcl)
 }
 
+// Only the global module creates the integration, so only it reads the variable.
+func TestGenerationAgentlessCreateIntegrationVariable(t *testing.T) {
+	gate := regexp.MustCompile(`\n\s+create_lacework_integration\s+= var\.deploy_integration\n`)
+	for _, tc := range []struct {
+		name string
+		org  bool
+		opts []AwsTerraformModifier
+	}{
+		{"single account", false, nil},
+		{"organization", true, []AwsTerraformModifier{
+			WithAgentlessManagementAccountID("123456789000"),
+			WithAgentlessMonitoredAccountIDs([]string{"123456789001"}),
+			WithAgentlessOrganizationRootID("r-abcd"),
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			opts := append([]AwsTerraformModifier{
+				WithAwsProfile("main"),
+				WithAwsRegion("us-east-2"),
+				WithAgentlessScanningAccounts(
+					NewAwsSubAccount("", "us-east-1", "us-east-1"),
+					NewAwsSubAccount("", "us-west-2", "us-west-2"),
+				),
+			}, tc.opts...)
+
+			hcl, err := NewTerraform(tc.org, true, false, false, opts...).Generate()
+			assert.NoError(t, err)
+			assert.Empty(t, gate.FindAllString(hcl, -1), "without the option the module creates it as before")
+
+			hcl, err = NewTerraform(tc.org, true, false, false,
+				append(opts, WithAgentlessCreateIntegrationVariable("deploy_integration"))...).Generate()
+			assert.NoError(t, err)
+			assert.Len(t, gate.FindAllString(hcl, -1), 1)
+			assert.Regexp(t, `module "lacework_aws_agentless_scanning_global" \{[^}]*create_lacework_integration`, hcl)
+		})
+	}
+}
+
 func TestGenerationAgentlessOrganization(t *testing.T) {
 	hcl, err := NewTerraform(
 		true,
@@ -971,7 +1009,7 @@ module "lacework_aws_agentless_monitored_scanning_role_monitored-account-1-us-we
 resource "aws_cloudformation_stack_set" "snapshot_role" {
   capabilities = ["CAPABILITY_NAMED_IAM"]
   description  = "Lacework AWS Agentless Workload Scanning Organization Roles"
-  name         = "lacework-agentless-scanning-stackset"
+  name         = "${module.lacework_aws_agentless_scanning_global.prefix}-stackset-${module.lacework_aws_agentless_scanning_global.suffix}"
   parameters = {
     ECSTaskRoleArn     = module.lacework_aws_agentless_scanning_global.agentless_scan_ecs_task_role_arn
     ExternalId         = module.lacework_aws_agentless_scanning_global.external_id
@@ -1077,7 +1115,7 @@ module "lacework_aws_agentless_scanning_region_us-east-2" {
 resource "aws_cloudformation_stack_set" "snapshot_role" {
   capabilities = ["CAPABILITY_NAMED_IAM"]
   description  = "Lacework AWS Agentless Workload Scanning Organization Roles"
-  name         = "lacework-agentless-scanning-stackset"
+  name         = "${module.lacework_aws_agentless_scanning_global.prefix}-stackset-${module.lacework_aws_agentless_scanning_global.suffix}"
   parameters = {
     ECSTaskRoleArn     = module.lacework_aws_agentless_scanning_global.agentless_scan_ecs_task_role_arn
     ExternalId         = module.lacework_aws_agentless_scanning_global.external_id
@@ -1180,7 +1218,7 @@ module "lacework_aws_agentless_scanning_global" {
 resource "aws_cloudformation_stack_set" "snapshot_role" {
   capabilities = ["CAPABILITY_NAMED_IAM"]
   description  = "Lacework AWS Agentless Workload Scanning Organization Roles"
-  name         = "lacework-agentless-scanning-stackset"
+  name         = "${module.lacework_aws_agentless_scanning_global.prefix}-stackset-${module.lacework_aws_agentless_scanning_global.suffix}"
   parameters = {
     ECSTaskRoleArn     = module.lacework_aws_agentless_scanning_global.agentless_scan_ecs_task_role_arn
     ExternalId         = module.lacework_aws_agentless_scanning_global.external_id
