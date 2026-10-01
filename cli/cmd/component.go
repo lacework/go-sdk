@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/Masterminds/semver"
@@ -121,12 +122,6 @@ func init() {
 	componentsCmd.AddCommand(componentsUpdateCmd)
 	componentsCmd.AddCommand(componentsUninstallCmd)
 	componentsCmd.AddCommand(componentsDevModeCmd)
-
-	// load components dynamically
-	cli.PrototypeLoadComponents()
-
-	// v1 components
-	cli.LoadComponents()
 }
 
 // hasInstalledCommands is used inside the cobra template for generating the usage
@@ -171,17 +166,15 @@ func (c *cliState) LoadComponents() {
 	}
 
 	for _, component := range components {
-		exists := false
-
-		for _, cmd := range rootCmd.Commands() {
-			if cmd.Use == component.Name {
-				exists = true
-				break
+		idx := slices.IndexFunc(rootCmd.Commands(), func(cmd *cobra.Command) bool {
+			return cmd.Name() == component.Name
+		})
+		if idx >= 0 {
+			// A component never replaces a built-in command.
+			if !isComponent(rootCmd.Commands()[idx].Annotations) && len(os.Args) > 1 && os.Args[1] == component.Name {
+				fmt.Fprintf(os.Stderr, "WARN the installed %[1]s component is superseded by the built-in "+
+					"'lacework %[1]s' command; remove it with 'lacework component uninstall %[1]s'\n", component.Name)
 			}
-		}
-
-		// Skip components that were added by the prototype code
-		if exists {
 			continue
 		}
 
@@ -277,10 +270,11 @@ func (c *cliState) PrototypeLoadComponents() {
 
 	c.LwComponents = state
 
-	// @dhazekamp how do we ensure component command names don't overlap with other commands?
-
 	for _, component := range c.LwComponents.Components {
-		if component.IsInstalled() && component.IsCommandType() {
+		taken := slices.ContainsFunc(rootCmd.Commands(), func(cmd *cobra.Command) bool {
+			return cmd.Name() == component.Name
+		})
+		if !taken && component.IsInstalled() && component.IsCommandType() {
 			c.installedCmd = true
 
 			ver, err := component.CurrentVersion()

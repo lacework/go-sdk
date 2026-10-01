@@ -154,6 +154,11 @@ func Execute() (err error) {
 	}()
 	defer cli.Wait()
 
+	// Loaded here rather than in an init(), so every built-in command is registered first and a
+	// component of the same name can't shadow it.
+	cli.PrototypeLoadComponents()
+	cli.LoadComponents()
+
 	setupRootHelpCommand()
 
 	// first, verify if the user provided a command to execute,
