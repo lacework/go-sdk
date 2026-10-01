@@ -20,10 +20,12 @@ package cmd
 
 import (
 	"encoding/json"
+	"net/http"
 	"path"
 	"strings"
 	"time"
 
+	"github.com/lacework/go-sdk/v2/api"
 	"github.com/lacework/go-sdk/v2/internal/cache"
 	"github.com/lacework/go-sdk/v2/internal/format"
 	"github.com/mitchellh/hashstructure/v2"
@@ -164,7 +166,12 @@ func (c *cliState) WriteCachedToken() error {
 	if c.Token == "" || c.cachedTokenExpiryEminent() {
 		response, err := c.LwApi.GenerateToken()
 		if err != nil {
-			return errors.New("Failed to generate token. Validate your credentials are properly configured and not expired.")
+			if api.IsErrorStatusCode(err, http.StatusUnauthorized) ||
+				api.IsErrorStatusCode(err, http.StatusForbidden) {
+				return errors.Wrap(err,
+					"failed to generate token. Validate your credentials are properly configured and not expired")
+			}
+			return errors.Wrap(err, "unable to generate access token")
 		}
 
 		c.Log.Debugw("saving token",
