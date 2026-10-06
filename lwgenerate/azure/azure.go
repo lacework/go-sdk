@@ -884,6 +884,10 @@ func createAgentless(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block,
 	return blocks, nil
 }
 
+// EntraIdActivityLogModuleName is the name of the generated Entra ID Activity Log module;
+// callers use it to address the module's outputs.
+const EntraIdActivityLogModuleName = "microsoft-entra-id-activity-log"
+
 // DspmModuleName is the name of the FortiDSPM module generated for a region;
 // callers use it to address the module's outputs.
 func DspmModuleName(region string) string {
@@ -980,7 +984,7 @@ func createEntraIdActivityLog(args *GenerateAzureTfConfigurationArgs) ([]*hclwri
 		)
 
 		moduleBlock, err := lwgenerate.NewModule(
-			"microsoft-entra-id-activity-log",
+			EntraIdActivityLogModuleName,
 			lwgenerate.LWAzureEntraIdActivityLogSource,
 			append(moduleDetails, lwgenerate.HclModuleWithVersion(lwgenerate.LWAzureEntraIdActivityLogVersion))...,
 		).ToBlock()

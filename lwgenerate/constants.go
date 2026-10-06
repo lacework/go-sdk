@@ -29,7 +29,7 @@ const (
 	LWAzureActivityLogSource         = "lacework/activity-log/azure"
 	LWAzureActivityLogVersion        = "~> 3.0"
 	LWAzureEntraIdActivityLogSource  = "lacework/microsoft-entra-id-activity-log/azure"
-	LWAzureEntraIdActivityLogVersion = "~> 0.3"
+	LWAzureEntraIdActivityLogVersion = "~> 0.4"
 	LWAzureADSource                  = "lacework/ad-application/azure"
 	LWAzureADVersion                 = "~> 2.0"
 	LWAzureFortiDspmSource           = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.2.0"

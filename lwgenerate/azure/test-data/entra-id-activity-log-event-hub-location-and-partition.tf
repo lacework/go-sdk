@@ -23,7 +23,7 @@ module "az_ad_application" {
 
 module "microsoft-entra-id-activity-log" {
   source                      = "lacework/microsoft-entra-id-activity-log/azure"
-  version                     = "~> 0.3"
+  version                     = "~> 0.4"
   application_id              = module.az_ad_application.application_id
   application_password        = module.az_ad_application.application_password
   location                    = "West US 2"
