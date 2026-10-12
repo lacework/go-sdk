@@ -19,9 +19,8 @@ To send the request body from a file (or from stdin with "-f -"):
     lacework api patch /api/v2/Policies -f policies.json
     lacework api patch /api/v2/Policies -d '@policies.json'
 
-Use "--file" in Windows PowerShell 5.1 and PowerShell 7.2 or earlier. These
-versions remove the double quotes inside "--data", so the API receives
-invalid JSON.
+Use "--file" in PowerShell 7.2 or earlier. These versions remove the double
+quotes inside "--data", so the API receives invalid JSON.
 
 For a complete list of available API v2 endpoints visit:
 
