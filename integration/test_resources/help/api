@@ -14,6 +14,15 @@ To receive a json response of all agents within the given time window:
 
     lacework api post /api/v2/AgentInfo/search -d "{}"
 
+To send the request body from a file (or from stdin with "-f -"):
+
+    lacework api patch /api/v2/Policies -f policies.json
+    lacework api patch /api/v2/Policies -d '@policies.json'
+
+Use "--file" in Windows PowerShell 5.1 and PowerShell 7.2 or earlier. These
+versions remove the double quotes inside "--data", so the API receives
+invalid JSON.
+
 For a complete list of available API v2 endpoints visit:
 
     https://<ACCOUNT>.lacework.net/api/v2/docs
@@ -22,7 +31,8 @@ Usage:
   lacework api <method> <path> [flags]
 
 Flags:
-  -d, --data string   data to send only for post and patch requests
+  -d, --data string   data to send only for post and patch requests, '@<file>' reads it from a file
+  -f, --file string   file with the data to send, use '-' to read from stdin
   -h, --help          help for api
 
 Global Flags:

@@ -20,6 +20,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -48,4 +50,30 @@ func TestAPICleanupEndpoint(t *testing.T) {
 			assert.Equal(t, kase.expectedEndpoint, cleanupEndpoint(kase.endpoint))
 		})
 	}
+}
+
+func TestAPIReadDataFile(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "policies.json")
+	body := `[{ "policyId" : "lacework-global-118", "enabled" : false }]`
+	assert.NoError(t, os.WriteFile(path, []byte(body), 0o600))
+
+	data, err := readApiDataFile(path)
+	assert.NoError(t, err)
+	assert.Equal(t, body, string(data))
+
+	assert.NoError(t, os.WriteFile(path, append([]byte{0xEF, 0xBB, 0xBF}, body...), 0o600))
+	data, err = readApiDataFile(path)
+	assert.NoError(t, err)
+	assert.Equal(t, body, string(data))
+
+	assert.NoError(t, os.WriteFile(path, []byte{0xFF, 0xFE, '[', 0, ']', 0}, 0o600))
+	_, err = readApiDataFile(path)
+	assert.ErrorContains(t, err, "UTF-16")
+
+	assert.NoError(t, os.WriteFile(path, nil, 0o600))
+	_, err = readApiDataFile(path)
+	assert.ErrorContains(t, err, "empty")
+
+	_, err = readApiDataFile(filepath.Join(t.TempDir(), "missing.json"))
+	assert.ErrorContains(t, err, "unable to read data file")
 }

@@ -19,7 +19,11 @@
 package cmd
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -34,6 +38,9 @@ var (
 
 	// data to send for POST/PATCH request
 	apiData string
+
+	// file to read the data from, "-" reads it from stdin
+	apiDataFile string
 
 	// apiCmd represents the api command
 	apiCmd = &cobra.Command{
@@ -55,6 +62,15 @@ To receive a json response of all agents within the given time window:
 
     lacework api post /api/v2/AgentInfo/search -d "{}"
 
+To send the request body from a file (or from stdin with "-f -"):
+
+    lacework api patch /api/v2/Policies -f policies.json
+    lacework api patch /api/v2/Policies -d '@policies.json'
+
+Use "--file" in Windows PowerShell 5.1 and PowerShell 7.2 or earlier. These
+versions remove the double quotes inside "--data", so the API receives
+invalid JSON.
+
 For a complete list of available API v2 endpoints visit:
 
     https://<ACCOUNT>.lacework.net/api/v2/docs
@@ -70,20 +86,45 @@ func init() {
 
 	apiCmd.Flags().StringVarP(&apiData,
 		"data", "d", "",
-		"data to send only for post and patch requests",
+		"data to send only for post and patch requests, '@<file>' reads it from a file",
 	)
+	apiCmd.Flags().StringVarP(&apiDataFile,
+		"file", "f", "",
+		"file with the data to send, use '-' to read from stdin",
+	)
+	apiCmd.MarkFlagsMutuallyExclusive("data", "file")
 }
 
 func runApiCommand(_ *cobra.Command, args []string) error {
+	path := apiDataFile
+	if strings.HasPrefix(apiData, "@") {
+		path = strings.TrimPrefix(apiData, "@")
+		if path == "" {
+			return errors.New("missing file name after '@' in '--data'")
+		}
+	}
+	if path != "" {
+		data, err := readApiDataFile(path)
+		if err != nil {
+			return err
+		}
+		apiData = string(data)
+	}
+
 	switch args[0] {
 	case "patch":
 		if apiData == "" {
-			return fmt.Errorf("missing '--data' parameter patch requests")
+			return fmt.Errorf("missing '--data' or '--file' parameter for patch requests")
 		}
 	case "get":
 		if apiData != "" {
-			return fmt.Errorf("use '--data' only for post, delete and patch requests")
+			return fmt.Errorf("use '--data' or '--file' only for post, delete and patch requests")
 		}
+	}
+
+	if apiData != "" && !json.Valid([]byte(apiData)) {
+		return errors.New("the request data is not valid JSON. If your shell removes " +
+			"the double quotes (PowerShell 7.2 or earlier does), put the JSON in a file and use '--file'")
 	}
 
 	response := new(interface{})
@@ -101,6 +142,30 @@ func runApiCommand(_ *cobra.Command, args []string) error {
 		return errors.Wrap(err, "unable to format json response")
 	}
 	return nil
+}
+
+func readApiDataFile(path string) ([]byte, error) {
+	var (
+		data []byte
+		err  error
+	)
+	if path == "-" {
+		data, err = io.ReadAll(os.Stdin)
+	} else {
+		data, err = os.ReadFile(path)
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to read data file")
+	}
+	// Windows PowerShell 5.1 writes UTF-16 with '>' and Notepad can add a UTF-8 BOM
+	if bytes.HasPrefix(data, []byte{0xFF, 0xFE}) || bytes.HasPrefix(data, []byte{0xFE, 0xFF}) {
+		return nil, errors.New("the data file is UTF-16 encoded, save it as UTF-8")
+	}
+	data = bytes.TrimPrefix(data, []byte{0xEF, 0xBB, 0xBF})
+	if len(data) == 0 {
+		return nil, errors.New("the data file is empty")
+	}
+	return data, nil
 }
 
 func argsApiValidator(_ *cobra.Command, args []string) error {
