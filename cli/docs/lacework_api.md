@@ -46,7 +46,7 @@ lacework api <method> <path> [flags]
 ### Options
 
 ```
-  -d, --data string   data to send only for post and patch requests, '@<file>' reads it from a file
+  -d, --data string   data to send only for post, delete and patch requests, '@<file>' reads it from a file
   -f, --file string   file with the data to send, use '-' to read from stdin
   -h, --help          help for api
 ```

@@ -82,6 +82,11 @@ func TestAPIRunCommandDataValidation(t *testing.T) {
 	dir := t.TempDir()
 	badFile := filepath.Join(dir, "bad.json")
 	assert.NoError(t, os.WriteFile(badFile, []byte("{not json"), 0o600))
+	emptyFile := filepath.Join(dir, "empty.json")
+	assert.NoError(t, os.WriteFile(emptyFile, nil, 0o600))
+	missingFile := filepath.Join(dir, "none.json")
+
+	const inlineHint = "put the JSON in a file and use '--file'"
 
 	// every case fails before the request is sent, so no API client is needed
 	cases := []struct {
@@ -90,14 +95,17 @@ func TestAPIRunCommandDataValidation(t *testing.T) {
 		data     string
 		file     string
 		expected string
+		hint     bool // the PowerShell hint is only for inline --data
 	}{
-		{"invalid json in --data", []string{"post", "/api/v2/Foo"}, "{not json", "", "not valid JSON"},
-		{"invalid json from --file", []string{"post", "/api/v2/Foo"}, "", badFile, "not valid JSON"},
-		{"invalid json from @file", []string{"patch", "/api/v2/Foo"}, "@" + badFile, "", "not valid JSON"},
-		{"missing file after @", []string{"post", "/api/v2/Foo"}, "@", "", "missing file name"},
-		{"missing data file", []string{"post", "/api/v2/Foo"}, "", filepath.Join(dir, "none.json"), "unable to read data file"},
-		{"patch without data", []string{"patch", "/api/v2/Foo"}, "", "", "'--data' or '--file' parameter for patch"},
-		{"get with data", []string{"get", "/api/v2/Foo"}, "{}", "", "'--data' or '--file' only"},
+		{"invalid json in --data", []string{"post", "/api/v2/Foo"}, "{not json", "", "not valid JSON", true},
+		{"invalid json from --file", []string{"post", "/api/v2/Foo"}, "", badFile, "the JSON in file '" + badFile + "' is not valid", false},
+		{"invalid json from @file", []string{"patch", "/api/v2/Foo"}, "@" + badFile, "", "the JSON in file '" + badFile + "' is not valid", false},
+		{"missing file after @", []string{"post", "/api/v2/Foo"}, "@", "", "missing file name", false},
+		{"missing data file", []string{"post", "/api/v2/Foo"}, "", missingFile, "unable to read data file", false},
+		{"patch without data", []string{"patch", "/api/v2/Foo"}, "", "", "'--data' or '--file' parameter for patch", false},
+		{"get with data", []string{"get", "/api/v2/Foo"}, "{}", "", "'--data' or '--file' only", false},
+		{"get with missing file", []string{"get", "/api/v2/Foo"}, "", missingFile, "'--data' or '--file' only", false},
+		{"get with empty @file", []string{"get", "/api/v2/Foo"}, "@" + emptyFile, "", "'--data' or '--file' only", false},
 	}
 
 	for _, c := range cases {
@@ -105,7 +113,43 @@ func TestAPIRunCommandDataValidation(t *testing.T) {
 			apiData, apiDataFile = c.data, c.file
 			t.Cleanup(func() { apiData, apiDataFile = "", "" })
 
-			assert.ErrorContains(t, runApiCommand(nil, c.args), c.expected)
+			err := runApiCommand(nil, c.args)
+			assert.ErrorContains(t, err, c.expected)
+			if c.hint {
+				assert.ErrorContains(t, err, inlineHint)
+			} else {
+				assert.NotContains(t, err.Error(), inlineHint)
+			}
+		})
+	}
+}
+
+func TestAPIRunCommandStdinValidation(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"invalid json", "{not json", "the JSON read from stdin is not valid"},
+		{"empty", "", "the data file is empty"},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			r, w, err := os.Pipe()
+			assert.NoError(t, err)
+			_, err = w.WriteString(c.input)
+			assert.NoError(t, err)
+			assert.NoError(t, w.Close())
+
+			stdin := os.Stdin
+			os.Stdin = r
+			apiDataFile = "-"
+			t.Cleanup(func() { os.Stdin, apiDataFile = stdin, ""; r.Close() })
+
+			err = runApiCommand(nil, []string{"post", "/api/v2/Foo"})
+			assert.ErrorContains(t, err, c.expected)
+			assert.NotContains(t, err.Error(), "put the JSON in a file")
 		})
 	}
 }
