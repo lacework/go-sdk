@@ -77,3 +77,35 @@ func TestAPIReadDataFile(t *testing.T) {
 	_, err = readApiDataFile(filepath.Join(t.TempDir(), "missing.json"))
 	assert.ErrorContains(t, err, "unable to read data file")
 }
+
+func TestAPIRunCommandDataValidation(t *testing.T) {
+	dir := t.TempDir()
+	badFile := filepath.Join(dir, "bad.json")
+	assert.NoError(t, os.WriteFile(badFile, []byte("{not json"), 0o600))
+
+	// every case fails before the request is sent, so no API client is needed
+	cases := []struct {
+		name     string
+		args     []string
+		data     string
+		file     string
+		expected string
+	}{
+		{"invalid json in --data", []string{"post", "/api/v2/Foo"}, "{not json", "", "not valid JSON"},
+		{"invalid json from --file", []string{"post", "/api/v2/Foo"}, "", badFile, "not valid JSON"},
+		{"invalid json from @file", []string{"patch", "/api/v2/Foo"}, "@" + badFile, "", "not valid JSON"},
+		{"missing file after @", []string{"post", "/api/v2/Foo"}, "@", "", "missing file name"},
+		{"missing data file", []string{"post", "/api/v2/Foo"}, "", filepath.Join(dir, "none.json"), "unable to read data file"},
+		{"patch without data", []string{"patch", "/api/v2/Foo"}, "", "", "'--data' or '--file' parameter for patch"},
+		{"get with data", []string{"get", "/api/v2/Foo"}, "{}", "", "'--data' or '--file' only"},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			apiData, apiDataFile = c.data, c.file
+			t.Cleanup(func() { apiData, apiDataFile = "", "" })
+
+			assert.ErrorContains(t, runApiCommand(nil, c.args), c.expected)
+		})
+	}
+}
