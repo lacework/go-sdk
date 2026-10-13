@@ -85,7 +85,7 @@ func init() {
 
 	apiCmd.Flags().StringVarP(&apiData,
 		"data", "d", "",
-		"data to send only for post, delete and patch requests, '@<file>' reads it from a file",
+		"data to send only for post and patch requests, '@<file>' reads it from a file",
 	)
 	apiCmd.Flags().StringVarP(&apiDataFile,
 		"file", "f", "",
