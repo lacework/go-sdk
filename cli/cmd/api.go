@@ -102,6 +102,19 @@ func runApiCommand(_ *cobra.Command, args []string) error {
 			return errors.New("missing file name after '@' in '--data'")
 		}
 	}
+
+	hasBody := apiData != "" || path != ""
+	switch args[0] {
+	case "patch":
+		if !hasBody {
+			return fmt.Errorf("missing '--data' or '--file' parameter for patch requests")
+		}
+	case "get":
+		if hasBody {
+			return fmt.Errorf("use '--data' or '--file' only for post, delete and patch requests")
+		}
+	}
+
 	if path != "" {
 		data, err := readApiDataFile(path)
 		if err != nil {
@@ -110,20 +123,16 @@ func runApiCommand(_ *cobra.Command, args []string) error {
 		apiData = string(data)
 	}
 
-	switch args[0] {
-	case "patch":
-		if apiData == "" {
-			return fmt.Errorf("missing '--data' or '--file' parameter for patch requests")
-		}
-	case "get":
-		if apiData != "" {
-			return fmt.Errorf("use '--data' or '--file' only for post, delete and patch requests")
-		}
-	}
-
 	if apiData != "" && !json.Valid([]byte(apiData)) {
-		return errors.New("the request data is not valid JSON. If your shell removes " +
-			"the double quotes (PowerShell 7.2 or earlier does), put the JSON in a file and use '--file'")
+		switch path {
+		case "":
+			return errors.New("the request data is not valid JSON. If your shell removes " +
+				"the double quotes (PowerShell 7.2 or earlier does), put the JSON in a file and use '--file'")
+		case "-":
+			return errors.New("the JSON read from stdin is not valid. Check the JSON syntax and try again")
+		default:
+			return fmt.Errorf("the JSON in file '%s' is not valid. Check the JSON syntax and try again", path)
+		}
 	}
 
 	response := new(interface{})
