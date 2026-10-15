@@ -18,6 +18,11 @@
 
 package api
 
+import (
+	"net/url"
+	"strings"
+)
+
 // ReportsService is a service that interacts with the Reports
 // endpoints from the Lacework APIv2 Server
 type ReportsService struct {
@@ -54,6 +59,13 @@ func (r reportFilter) String() string {
 	return reportFilterTypes[r]
 }
 
+func reportStatusQuery(statuses []string) string {
+	if len(statuses) == 0 {
+		return ""
+	}
+	return "&status=" + url.QueryEscape(strings.Join(statuses, ","))
+}
+
 type ReportSummary struct {
 	NumRecommendations        int `json:"NUM_RECOMMENDATIONS"`
 	NumSeverity2NonCompliance int `json:"NUM_SEVERITY_2_NON_COMPLIANCE"`
@@ -82,6 +94,8 @@ type RecommendationV2 struct {
 	Category              string                  `json:"CATEGORY"`
 	Title                 string                  `json:"TITLE"`
 	Violations            []ComplianceViolationV2 `json:"VIOLATIONS"`
+	CompliantResources    []ComplianceViolationV2 `json:"COMPLIANT_RESOURCES,omitempty"`
+	NotAssessedResources  []ComplianceViolationV2 `json:"NOT_ASSESSED_RESOURCES,omitempty"`
 	ResourceCount         int                     `json:"RESOURCE_COUNT"`
 	Severity              int                     `json:"SEVERITY"`
 }

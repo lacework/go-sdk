@@ -186,6 +186,12 @@ To retrieve a specific report by its report name:
 				config.Value = reportType.String()
 			}
 
+			statuses, err := complianceStatusesToAPI()
+			if err != nil {
+				return err
+			}
+			config.Statuses = statuses
+
 			if compCmdState.Pdf {
 				pdfName := fmt.Sprintf(
 					"%s_Report_%s_%s_%s_%s.pdf",
@@ -213,13 +219,6 @@ To retrieve a specific report by its report name:
 					)
 				}
 			}
-			if compCmdState.Status != "" {
-				if !array.ContainsStr(api.ValidComplianceStatus, compCmdState.Status) {
-					return errors.Errorf("the status %s is not valid, use one of %s",
-						compCmdState.Status, strings.Join(api.ValidComplianceStatus, ", "),
-					)
-				}
-			}
 
 			// diagonals are file separators and therefore we need to clean the organization
 			// ID if it is "n/a" or we will create two directories "n/a/..."
@@ -231,7 +230,7 @@ To retrieve a specific report by its report name:
 			var (
 				report   api.GcpReport
 				cacheKey = fmt.Sprintf("compliance/google/v2/%s/%s/%s",
-					orgIDForCache, config.ProjectID, config.Value)
+					orgIDForCache, config.ProjectID, config.Value) + statusCacheSuffix(config.Statuses)
 			)
 			expired := cli.ReadCachedAsset(cacheKey, &report)
 			if expired {
@@ -557,8 +556,8 @@ valid types:%s`, prettyPrintReportTypes(api.GcpReportTypes())),
 			lwseverity.ValidSeverities.String()),
 	)
 
-	complianceGcpGetReportCmd.Flags().StringVar(&compCmdState.Status, "status", "",
-		fmt.Sprintf("filter report details by status (%s)",
+	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Status, "status", []string{},
+		fmt.Sprintf("list resources by status, comma separated (%s)",
 			strings.Join(api.ValidComplianceStatus, ", ")),
 	)
 }
