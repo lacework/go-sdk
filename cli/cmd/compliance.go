@@ -54,8 +54,8 @@ var (
 		// Filter the recommendations table by severity
 		Severity string
 
-		// Filter the recommendations table by status
-		Status string
+		// List resources by status
+		Status []string
 
 		// output resources affected by recommendationID
 		RecommendationID string
@@ -186,7 +186,7 @@ func complianceReportRecommendationsTable(recommendations []api.RecommendationV2
 			recommend.Status,
 			recommend.SeverityString(),
 			recommend.Service,
-			fmt.Sprint(len(recommend.Violations)),
+			affectedCount(recommend),
 			fmt.Sprint(recommend.AssessedResourceCount),
 		})
 	}
@@ -259,7 +259,7 @@ func complianceCSVReportRecommendationsTable(details *complianceCSVReportDetails
 
 	for _, recommendation := range details.Recommendations {
 		// GROW-1266: Do not add if status flag filters suppressed
-		if compCmdState.Status == "" || compCmdState.Status == "suppressed" {
+		if len(compCmdState.Status) == 0 || array.ContainsStr(compCmdState.Status, "suppressed") {
 			for _, suppression := range recommendation.Suppressions {
 				out = append(out,
 					append(details.GetReportMetaData(),
@@ -274,11 +274,30 @@ func complianceCSVReportRecommendationsTable(details *complianceCSVReportDetails
 			}
 		}
 
-		// @afiune The platform today only returns a list of resources that are in violation, that
-		// means, "non-compliant" resources. We currently do not return the list of resources that
-		// are "compliant", "requires-manual-assessment" or "could-not-assess" - For those cases
-		// our CSV output will only show the number of resources. (GROW-2316)
-		if len(recommendation.Violations) == 0 {
+		for _, status := range []struct {
+			name      string
+			resources []api.ComplianceViolationV2
+		}{
+			{"Compliant", recommendation.CompliantResources},
+			{"CouldNotAssess", recommendation.NotAssessedResources},
+		} {
+			for _, resource := range status.resources {
+				out = append(out,
+					append(details.GetReportMetaData(),
+						recommendation.Category,
+						recommendation.RecID,
+						recommendation.Title,
+						status.name,
+						recommendation.SeverityString(),
+						resource.Resource,
+						resource.Region,
+						strings.Join(resource.Reasons, ",")))
+			}
+		}
+
+		listedSuppressions := array.ContainsStr(compCmdState.Status, "suppressed") && len(recommendation.Suppressions) > 0
+		if len(recommendation.Violations) == 0 && !listedSuppressions &&
+			len(recommendation.CompliantResources) == 0 && len(recommendation.NotAssessedResources) == 0 {
 			out = append(out,
 				append(details.GetReportMetaData(),
 					recommendation.Category,
@@ -365,9 +384,9 @@ func buildComplianceReportTable(
 		}
 		mainReport.WriteString("\n")
 
-		if compCmdState.Status == "" {
+		if len(compCmdState.Status) == 0 {
 			mainReport.WriteString(
-				"Try adding '--status non-compliant' to show only non-compliant recommendations.",
+				"Try adding '--status compliant,could-not-assess' to list resources by status.",
 			)
 		} else if compCmdState.Severity == "" {
 			mainReport.WriteString(
@@ -423,35 +442,61 @@ func matchRecommendationsFilters(r api.RecommendationV2) bool {
 		results = append(results, array.ContainsStrCaseInsensitive(compCmdState.Service, r.Service))
 	}
 
-	if compCmdState.Status != "" {
-		results = append(results, r.Status == statusToProperTypes(compCmdState.Status))
-	}
-
 	return !array.ContainsBool(results, false)
 }
 
 func complianceFiltersEnabled() bool {
 	return len(compCmdState.Category) > 0 ||
-		compCmdState.Status != "" ||
+		len(compCmdState.Status) > 0 ||
 		compCmdState.Severity != "" ||
 		len(compCmdState.Service) > 0
 }
 
-func statusToProperTypes(status string) string {
-	switch strings.ToLower(status) {
-	case "non-compliant", "noncompliant":
-		return "NonCompliant"
-	case "compliant":
-		return "Compliant"
-	case "could-not-assess", "couldnotassess":
-		return "CouldNotAssess"
-	case "suppressed":
-		return "Suppressed"
-	case "requires-manual-assessment", "requiresmanualassessment":
-		return "RequiresManualAssessment"
-	default:
-		return "Unknown"
+var complianceStatusAPIValues = map[string]string{
+	"non-compliant":              "NonCompliant",
+	"compliant":                  "Compliant",
+	"could-not-assess":           "CouldNotAssess",
+	"suppressed":                 "Suppressed",
+	"requires-manual-assessment": "Manual",
+}
+
+func complianceStatusesToAPI() ([]string, error) {
+	statuses := make([]string, 0, len(compCmdState.Status))
+	requested := make([]string, 0, len(compCmdState.Status))
+	for _, status := range compCmdState.Status {
+		status = strings.TrimSpace(status)
+		if status == "" || array.ContainsStr(requested, status) {
+			continue
+		}
+		value, ok := complianceStatusAPIValues[status]
+		if !ok {
+			return nil, errors.Errorf("the status %s is not valid, use one of %s",
+				status, strings.Join(api.ValidComplianceStatus, ", "),
+			)
+		}
+		requested = append(requested, status)
+		statuses = append(statuses, value)
 	}
+	compCmdState.Status = requested
+	return statuses, nil
+}
+
+func statusCacheSuffix(statuses []string) string {
+	if len(statuses) == 0 {
+		return ""
+	}
+	return "_" + strings.Join(statuses, ",")
+}
+
+func violationsRequested() bool {
+	return len(compCmdState.Status) == 0 || array.ContainsStr(compCmdState.Status, "non-compliant")
+}
+
+func affectedCount(recommendation api.RecommendationV2) string {
+	if !violationsRequested() {
+		return "-"
+	}
+	return fmt.Sprint(len(recommendation.Violations))
 }
 
 func outputResourcesByRecommendationID(report api.CloudComplianceReportV2) error {
@@ -466,18 +511,21 @@ func outputResourcesByRecommendationID(report api.CloudComplianceReportV2) error
 		return cli.OutputJSON(recommendation)
 	}
 
+	details := [][]string{
+		{"ID", compCmdState.RecommendationID},
+		{"SEVERITY", recommendation.SeverityString()},
+		{"SERVICE", recommendation.Service},
+		{"CATEGORY", recommendation.Category},
+		{"STATUS", recommendation.Status},
+		{"ASSESSED RESOURCES", strconv.Itoa(recommendation.AssessedResourceCount)},
+	}
+	if violationsRequested() {
+		details = append(details, []string{"AFFECTED RESOURCES", strconv.Itoa(affectedResources)})
+	}
 	cli.OutputHuman(
 		renderOneLineCustomTable("RECOMMENDATION DETAILS",
 			renderCustomTable([]string{},
-				[][]string{
-					{"ID", compCmdState.RecommendationID},
-					{"SEVERITY", recommendation.SeverityString()},
-					{"SERVICE", recommendation.Service},
-					{"CATEGORY", recommendation.Category},
-					{"STATUS", recommendation.Status},
-					{"ASSESSED RESOURCES", strconv.Itoa(recommendation.AssessedResourceCount)},
-					{"AFFECTED RESOURCES", strconv.Itoa(affectedResources)},
-				},
+				details,
 				tableFunc(func(t *tablewriter.Table) {
 					t.SetBorder(false)
 					t.SetColumnSeparator(" ")
@@ -490,18 +538,38 @@ func outputResourcesByRecommendationID(report api.CloudComplianceReportV2) error
 			}),
 		))
 
-	if affectedResources == 0 {
+	if affectedResources == 0 && violationsRequested() {
 		cli.OutputHuman("\nNo resources found affected by '%s'\n", compCmdState.RecommendationID)
-		return nil
+	} else if affectedResources > 0 {
+		cli.OutputHuman(
+			renderSimpleTable(
+				[]string{"AFFECTED RESOURCE", "REGION", "REASON"},
+				violationsToTable(violations),
+			),
+		)
 	}
 
-	cli.OutputHuman(
-		renderSimpleTable(
-			[]string{"AFFECTED RESOURCE", "REGION", "REASON"},
-			violationsToTable(violations),
-		),
-	)
+	outputResourcesTable("COMPLIANT RESOURCE", recommendation.CompliantResources)
+	outputResourcesTable("NOT ASSESSED RESOURCE", recommendation.NotAssessedResources)
+	if array.ContainsStr(compCmdState.Status, "suppressed") && len(recommendation.Suppressions) > 0 {
+		excepted := make([][]string, 0, len(recommendation.Suppressions))
+		for _, suppression := range recommendation.Suppressions {
+			excepted = append(excepted, []string{suppression})
+		}
+		cli.OutputHuman("\n%s", renderSimpleTable([]string{"EXCEPTED RESOURCE"}, excepted))
+	}
 	return nil
+}
+
+func outputResourcesTable(header string, resources []api.ComplianceViolationV2) {
+	if len(resources) == 0 {
+		return
+	}
+	rows := make([][]string, 0, len(resources))
+	for _, r := range resources {
+		rows = append(rows, []string{r.Resource, r.Region})
+	}
+	cli.OutputHuman("\n%s", renderSimpleTable([]string{header, "REGION"}, rows))
 }
 
 func violationsToTable(violations []api.ComplianceViolationV2) (resourceTable [][]string) {

@@ -40,6 +40,7 @@ type AzureReportConfig struct {
 	SubscriptionID string
 	Value          string
 	Parameter      reportFilter
+	Statuses       []string
 }
 
 type AzureReportType int
@@ -109,7 +110,7 @@ func (svc *azureReportsService) Get(reportCfg AzureReportConfig) (response Azure
 		"json",
 		reportCfg.Parameter.String(),
 		reportCfg.Value,
-	)
+	) + reportStatusQuery(reportCfg.Statuses)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
@@ -125,7 +126,7 @@ func (svc *azureReportsService) DownloadPDF(filepath string, config AzureReportC
 		"pdf",
 		config.Parameter.String(),
 		config.Value,
-	)
+	) + reportStatusQuery(config.Statuses)
 
 	request, err := svc.client.NewRequest("GET", apiPath, nil)
 	if err != nil {
