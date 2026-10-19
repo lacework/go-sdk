@@ -829,6 +829,12 @@ func createAgentless(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block,
 	isTenant := strings.EqualFold(args.IntegrationLevel, "TENANT")
 	isSubscription := strings.EqualFold(args.IntegrationLevel, "SUBSCRIPTION")
 
+	provider, err := createAgentlessAzureRMProvider(args)
+	if err != nil {
+		return nil, err
+	}
+	blocks = append(blocks, provider)
+
 	var firstModuleName string
 	for i, region := range regions {
 		isFirstRegion := (i == 0)
@@ -870,6 +876,7 @@ func createAgentless(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block,
 		// Create module details
 		moduleDetails := []lwgenerate.HclModuleModifier{
 			lwgenerate.HclModuleWithAttributes(attrs),
+			lwgenerate.HclModuleWithProviderDetails(map[string]string{"azurerm": "azurerm.agentless"}),
 		}
 		block, err := lwgenerate.NewModule(
 			moduleName,
@@ -882,6 +889,40 @@ func createAgentless(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block,
 		blocks = append(blocks, block)
 	}
 	return blocks, nil
+}
+
+// createAgentlessAzureRMProvider creates the one azurerm provider every agentless region
+// shares. Since v2 the agentless module no longer configures azurerm itself, which made
+// Terraform start one azurerm process (~200MB) per region. The alias keeps
+// prevent_deletion_if_contains_resources = false, needed because the scanner leaves disks in
+// its resource group, away from the provider the other integrations use.
+func createAgentlessAzureRMProvider(args *GenerateAzureTfConfigurationArgs) (*hclwrite.Block, error) {
+	attrs := map[string]interface{}{}
+	for k, v := range args.ExtraAZRMArguments {
+		attrs[k] = v
+	}
+	if args.SubscriptionID != "" {
+		attrs["subscription_id"] = args.SubscriptionID
+	}
+	attrs["alias"] = "agentless"
+
+	resourceGroup, err := lwgenerate.HclCreateGenericBlock(
+		"resource_group", []string{}, map[string]interface{}{"prevent_deletion_if_contains_resources": false},
+	)
+	if err != nil {
+		return nil, err
+	}
+	features, err := lwgenerate.HclCreateGenericBlock("features", []string{}, map[string]interface{}{})
+	if err != nil {
+		return nil, err
+	}
+	features.Body().AppendBlock(resourceGroup)
+
+	return lwgenerate.NewProvider(
+		"azurerm",
+		lwgenerate.HclProviderWithAttributes(attrs),
+		lwgenerate.HclProviderWithGenericBlocks(features),
+	).ToBlock()
 }
 
 // EntraIdActivityLogModuleName is the name of the generated Entra ID Activity Log module;

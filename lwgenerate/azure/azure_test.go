@@ -384,6 +384,26 @@ func TestGenerationAgentlessScanningWithTenantIntLevelSR(t *testing.T) {
 	assert.Equal(t, AgentlessScanning, hcl)
 }
 
+// Self-deployment passes credentials as extra azurerm arguments; the agentless provider must
+// carry them too, with the scanning subscription winning over a subscription_id argument.
+func TestGenerationAgentlessScanningWithExtraAzureRMProviderArgs(t *testing.T) {
+	AgentlessScanning, fileErr := getFileContent("test-data/agentless_tenant_extra_azurerm_args.tf")
+	assert.Nil(t, fileErr)
+	hcl, err := azure.NewTerraform(false, false, true, false, false,
+		azure.WithSubscriptionID("11111111-2222-3333-4444-111111111111"),
+		azure.WithExtraAZRMArguments(map[string]interface{}{
+			"client_id":       lwgenerate.CreateSimpleTraversal([]string{"var", "client_id"}),
+			"subscription_id": lwgenerate.CreateSimpleTraversal([]string{"var", "subscription_id"}),
+		}),
+		azure.WithIntegrationLevel("TENANT"),
+		azure.WithRegions([]string{"West US", "East US"}),
+		azure.WithGlobal(true),
+	).Generate()
+	assert.Nil(t, err)
+	assert.NotNil(t, hcl)
+	assert.Equal(t, AgentlessScanning, hcl)
+}
+
 func TestGenerationAgentlessScanningWithTenantIntLevelMR(t *testing.T) {
 	AgentlessScanning, fileErr := getFileContent("test-data/agentless_tenant_multiregion.tf")
 	assert.Nil(t, fileErr)
