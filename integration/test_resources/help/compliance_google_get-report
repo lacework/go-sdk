@@ -28,7 +28,7 @@ Flags:
       --report_name string   report name to display, run 'lacework report-definitions list' for more information. (default "GCP CIS Benchmark 1.3")
       --service strings      filter report details by service (gcp:storage:bucket, gcp:kms:cryptoKey, gcp:project, ...)
       --severity string      filter report details by severity threshold (critical, high, medium, low, info)
-      --status string        filter report details by status (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
+      --status strings       list resources by status, comma separated (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)
 
 Global Flags:
   -a, --account string      account subdomain of URL (i.e. <ACCOUNT>.lacework.net)

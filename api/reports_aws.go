@@ -39,6 +39,7 @@ type AwsReportConfig struct {
 	AccountID string
 	Value     string
 	Parameter reportFilter
+	Statuses  []string
 }
 
 type AwsReportType int
@@ -107,7 +108,8 @@ func (svc *awsReportsService) Get(reportCfg AwsReportConfig) (response AwsReport
 		return AwsReportResponse{}, errors.New("specify an account id")
 	}
 
-	apiPath := fmt.Sprintf(apiV2Reports, reportCfg.AccountID, "json", reportCfg.Parameter.String(), reportCfg.Value)
+	apiPath := fmt.Sprintf(apiV2Reports, reportCfg.AccountID, "json", reportCfg.Parameter.String(), reportCfg.Value) +
+		reportStatusQuery(reportCfg.Statuses)
 	err = svc.client.RequestDecoder("GET", apiPath, nil, &response)
 	return
 }
@@ -118,7 +120,8 @@ func (svc *awsReportsService) DownloadPDF(filepath string, config AwsReportConfi
 	}
 
 	// if name is set in config, fetch report by case
-	apiPath := fmt.Sprintf(apiV2Reports, config.AccountID, "pdf", config.Parameter.String(), config.Value)
+	apiPath := fmt.Sprintf(apiV2Reports, config.AccountID, "pdf", config.Parameter.String(), config.Value) +
+		reportStatusQuery(config.Statuses)
 
 	request, err := svc.client.NewRequest("GET", apiPath, nil)
 	if err != nil {

@@ -3,6 +3,7 @@ package api_test
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"testing"
 
 	"github.com/lacework/go-sdk/v2/api"
@@ -37,6 +38,42 @@ func TestV2ReportsAwsGet(t *testing.T) {
 		assert.Equal(t, "test", response.Data[0].AccountAlias)
 		assert.Equal(t, "example-region", response.Data[0].Recommendations[1].Violations[0].Region)
 	}
+}
+
+func TestV2ReportsStatusQuery(t *testing.T) {
+	var queries []string
+	fakeServer := lacework.MockServer()
+	fakeServer.MockToken("TOKEN")
+	fakeServer.MockAPI("Reports",
+		func(w http.ResponseWriter, r *http.Request) {
+			queries = append(queries, r.URL.Query().Get("status"))
+			fmt.Fprint(w, mockAwsReport)
+		},
+	)
+	defer fakeServer.Close()
+
+	c, err := api.NewClient("test", api.WithToken("TOKEN"), api.WithURL(fakeServer.URL()))
+	assert.NoError(t, err)
+
+	statuses := []string{"Compliant", "CouldNotAssess"}
+	_, err = c.V2.Reports.Aws.Get(api.AwsReportConfig{AccountID: "123456789", Value: api.AWS_CIS_14.String(),
+		Parameter: api.ReportFilterType, Statuses: statuses})
+	assert.NoError(t, err)
+	_, err = c.V2.Reports.Azure.Get(api.AzureReportConfig{TenantID: "tenant", SubscriptionID: "sub",
+		Value: "Azure CIS", Parameter: api.ReportFilterName, Statuses: statuses})
+	assert.NoError(t, err)
+	_, err = c.V2.Reports.Gcp.Get(api.GcpReportConfig{OrganizationID: "org", ProjectID: "project",
+		Value: "GCP CIS", Parameter: api.ReportFilterName, Statuses: statuses})
+	assert.NoError(t, err)
+	_, err = c.V2.Reports.Aws.Get(api.AwsReportConfig{AccountID: "123456789", Value: api.AWS_CIS_14.String(),
+		Parameter: api.ReportFilterType})
+	assert.NoError(t, err)
+	assert.NoError(t, c.V2.Reports.Aws.DownloadPDF(filepath.Join(t.TempDir(), "report.pdf"),
+		api.AwsReportConfig{AccountID: "123456789", Value: api.AWS_CIS_14.String(), Parameter: api.ReportFilterType,
+			Statuses: []string{"Manual"}}))
+
+	assert.Equal(t, []string{"Compliant,CouldNotAssess", "Compliant,CouldNotAssess", "Compliant,CouldNotAssess", "",
+		"Manual"}, queries)
 }
 
 func TestV2ReportsAwsGetByName(t *testing.T) {

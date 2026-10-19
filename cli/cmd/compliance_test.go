@@ -94,14 +94,14 @@ func TestComplianceRecommendationsFilterOnSeverityCritical(t *testing.T) {
 	clearFilters()
 }
 
-func TestComplianceRecommendationsFilterOnStatus(t *testing.T) {
+func TestComplianceRecommendationsStatusDoesNotFilter(t *testing.T) {
 	mockRecommendations := []api.RecommendationV2{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
-	compCmdState.Status = "non-compliant"
+	compCmdState.Status = []string{"non-compliant"}
 	result, output := filterRecommendations(mockRecommendations)
 
-	assert.Equal(t, len(result), 2)
-	assert.Equal(t, output, "2 of 4 recommendations showing \n")
+	assert.Equal(t, len(result), 4)
+	assert.Equal(t, output, "4 of 4 recommendations showing \n")
 	clearFilters()
 }
 
@@ -109,12 +109,12 @@ func TestComplianceRecommendationsFilterMultiple(t *testing.T) {
 	mockRecommendations := []api.RecommendationV2{mockRecommendationOne, mockRecommendationTwo,
 		mockRecommendationThree, mockRecommendationFour}
 	compCmdState.Severity = "high"
-	compCmdState.Status = "non-compliant"
+	compCmdState.Status = []string{"non-compliant"}
 
 	result, output := filterRecommendations(mockRecommendations)
 
-	assert.Equal(t, len(result), 2)
-	assert.Equal(t, output, "2 of 4 recommendations showing \n")
+	assert.Equal(t, len(result), 3)
+	assert.Equal(t, output, "3 of 4 recommendations showing \n")
 	clearFilters()
 }
 
@@ -142,18 +142,96 @@ func TestComplianceRecommendationsFilterMultipleServices(t *testing.T) {
 	clearFilters()
 }
 
-func TestStatusInputToProperTransform(t *testing.T) {
-	status := statusToProperTypes("non-compliant")
-	assert.Equal(t, status, "NonCompliant")
+func TestComplianceStatusesToAPI(t *testing.T) {
+	compCmdState.Status = []string{"non-compliant", "compliant", "could-not-assess", "suppressed",
+		"requires-manual-assessment"}
+	statuses, err := complianceStatusesToAPI()
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"NonCompliant", "Compliant", "CouldNotAssess", "Suppressed", "Manual"}, statuses)
 
-	status = statusToProperTypes("compliant")
-	assert.Equal(t, status, "Compliant")
+	compCmdState.Status = []string{}
+	statuses, err = complianceStatusesToAPI()
+	assert.NoError(t, err)
+	assert.Empty(t, statuses)
 
-	status = statusToProperTypes("suppressed")
-	assert.Equal(t, status, "Suppressed")
+	compCmdState.Status = []string{" compliant", "compliant ", "", " non-compliant"}
+	statuses, err = complianceStatusesToAPI()
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"Compliant", "NonCompliant"}, statuses)
+	assert.Equal(t, []string{"compliant", "non-compliant"}, compCmdState.Status)
+	assert.Equal(t, "1", affectedCount(mockRecommendationOne))
 
-	status = statusToProperTypes("requires-manual-assessment")
-	assert.Equal(t, status, "RequiresManualAssessment")
+	compCmdState.Status = []string{"", " "}
+	statuses, err = complianceStatusesToAPI()
+	assert.NoError(t, err)
+	assert.Empty(t, statuses)
+	assert.Empty(t, compCmdState.Status)
+
+	compCmdState.Status = []string{"compliant", "Compliant"}
+	_, err = complianceStatusesToAPI()
+	assert.EqualError(t, err, "the status Compliant is not valid, use one of "+
+		"non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess")
+	clearFilters()
+}
+
+func TestComplianceCSVListsResourcesByStatus(t *testing.T) {
+	compCmdState.Status = []string{"compliant", "could-not-assess"}
+	recommendation := mockRecommendationFour
+	recommendation.CompliantResources = []api.ComplianceViolationV2{{Region: "us-east-1", Resource: "arn:compliant"}}
+	recommendation.NotAssessedResources = []api.ComplianceViolationV2{{Region: "us-west-2", Resource: "arn:not-assessed"}}
+
+	rows := complianceCSVReportRecommendationsTable(&complianceCSVReportDetails{
+		AccountID: "123", ReportType: "AWS_CIS_14", Recommendations: []api.RecommendationV2{recommendation},
+	})
+
+	assert.Equal(t, [][]string{
+		{"AWS_CIS_14", "0001-01-01T00:00:00Z", "123", "Logging", "AWS_CIS_2_2", "Mock Log Two", "Compliant", "Low",
+			"arn:compliant", "us-east-1", ""},
+		{"AWS_CIS_14", "0001-01-01T00:00:00Z", "123", "Logging", "AWS_CIS_2_2", "Mock Log Two", "CouldNotAssess", "Low",
+			"arn:not-assessed", "us-west-2", ""},
+	}, rows)
+	clearFilters()
+}
+
+func TestComplianceCSVListsSuppressionsWithoutCountRow(t *testing.T) {
+	compCmdState.Status = []string{"suppressed"}
+	recommendation := mockRecommendationFour
+	recommendation.Suppressions = []string{"arn:excepted"}
+
+	rows := complianceCSVReportRecommendationsTable(&complianceCSVReportDetails{
+		AccountID: "123", ReportType: "AWS_CIS_14", Recommendations: []api.RecommendationV2{recommendation},
+	})
+
+	assert.Equal(t, [][]string{
+		{"AWS_CIS_14", "0001-01-01T00:00:00Z", "123", "Logging", "AWS_CIS_2_2", "Mock Log Two", "Suppressed", "Low",
+			"arn:excepted", "", ""},
+	}, rows)
+	clearFilters()
+}
+
+func TestComplianceStatusCacheSuffix(t *testing.T) {
+	assert.Equal(t, "", statusCacheSuffix(nil))
+	assert.Equal(t, "_Compliant,CouldNotAssess", statusCacheSuffix([]string{"Compliant", "CouldNotAssess"}))
+}
+
+func TestComplianceAffectedCountHiddenWhenNonCompliantNotRequested(t *testing.T) {
+	assert.Equal(t, "1", affectedCount(mockRecommendationOne))
+	compCmdState.Status = []string{"compliant"}
+	assert.Equal(t, "-", affectedCount(mockRecommendationOne))
+	compCmdState.Status = []string{"compliant", "non-compliant"}
+	assert.Equal(t, "1", affectedCount(mockRecommendationOne))
+	clearFilters()
+}
+
+func TestComplianceCSVCountRowWithoutResources(t *testing.T) {
+	rows := complianceCSVReportRecommendationsTable(&complianceCSVReportDetails{
+		AccountID: "123", ReportType: "AWS_CIS_14", Recommendations: []api.RecommendationV2{mockRecommendationFour},
+	})
+
+	assert.Equal(t, [][]string{
+		{"AWS_CIS_14", "0001-01-01T00:00:00Z", "123", "Logging", "AWS_CIS_2_2", "Mock Log Two", "Compliant", "Low",
+			"1", "", ""},
+	}, rows)
 }
 
 func TestFiltersEnabled(t *testing.T) {
@@ -161,7 +239,7 @@ func TestFiltersEnabled(t *testing.T) {
 	assert.Equal(t, NoneEnabled, false)
 
 	compCmdState.Category = []string{"s3"}
-	compCmdState.Status = "non-compliant"
+	compCmdState.Status = []string{"non-compliant"}
 	compCmdState.Severity = "high"
 	compCmdState.Service = []string{"aws:s3"}
 	AllEnabled := complianceFiltersEnabled()
@@ -202,7 +280,7 @@ func clearFilters() {
 	compCmdState.Category = []string{}
 	compCmdState.Severity = ""
 	compCmdState.Service = []string{}
-	compCmdState.Status = ""
+	compCmdState.Status = []string{}
 }
 
 var (
