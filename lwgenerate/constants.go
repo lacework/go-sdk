@@ -24,8 +24,8 @@ const (
 
 	LWAzureConfigSource              = "lacework/config/azure"
 	LWAzureConfigVersion             = "~> 3.0"
-	LWAzureAgentlessSource           = "lacework/agentless-scanning/azure"
-	LWAzureAgentlessVersion          = "~> 2.0"
+	LWAzureAgentlessSource           = "git::https://github.com/lacework/terraform-azure-agentless-scanning.git?ref=9e78a367dde60bcf95eccea3bb77370311ded004"
+	LWAzureAgentlessVersion          = ""
 	LWAzureActivityLogSource         = "lacework/activity-log/azure"
 	LWAzureActivityLogVersion        = "~> 3.0"
 	LWAzureEntraIdActivityLogSource  = "lacework/microsoft-entra-id-activity-log/azure"
