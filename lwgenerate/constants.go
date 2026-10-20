@@ -19,7 +19,7 @@ const (
 	AwsCloudTrailControlTowerVersion = "~> 0.3"
 	AwsEksAuditSource                = "lacework/eks-audit-log/aws"
 	AwsEksAuditVersion               = "~> 1.0"
-	AwsFortiDspmSource               = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.3.0"
+	AwsFortiDspmSource               = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.4.0"
 	AwsFortiDspmVersion              = ""
 
 	LWAzureConfigSource              = "lacework/config/azure"
