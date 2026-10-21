@@ -95,6 +95,9 @@ type AzureFortiDspmData struct {
 	TenantID       string   `json:"tenantId"`
 	SubscriptionID string   `json:"subscriptionId,omitempty"`
 	Regions        []string `json:"regions"`
+
+	// TENANT or SUBSCRIPTION
+	IntegrationLevel string `json:"integrationLevel,omitempty"`
 }
 
 // FortiDspmDeployment is what FortiDSPM issued for a new cloud account.

@@ -121,6 +121,10 @@ type GenerateAzureTfConfigurationArgs struct {
 
 	DspmIntegrationName string
 
+	// DspmTenantLevel scans every subscription in the tenant: every FortiDSPM
+	// module gets tenant_level = true.
+	DspmTenantLevel bool
+
 	// List of subscription IDs for agentless scanning
 	AgentlessSubscriptionIds []string
 
@@ -360,6 +364,14 @@ func WithDspm(tenantID string, integrationName string, regions []string) AzureTe
 		c.DspmTenantID = tenantID
 		c.DspmIntegrationName = integrationName
 		c.DspmRegions = regions
+	}
+}
+
+// WithDspmTenantLevel makes the FortiDSPM deployment tenant-level (every
+// subscription in the tenant) instead of the deployment subscription only.
+func WithDspmTenantLevel(tenantLevel bool) AzureTerraformModifier {
+	return func(c *GenerateAzureTfConfigurationArgs) {
+		c.DspmTenantLevel = tenantLevel
 	}
 }
 
@@ -955,6 +967,11 @@ func createDspm(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, erro
 	for i, region := range args.DspmRegions {
 		attrs := map[string]interface{}{
 			"location": region,
+		}
+		// Every instance has its own scan engine identity, so each one needs
+		// its own tenant-wide grants.
+		if args.DspmTenantLevel {
+			attrs["tenant_level"] = true
 		}
 		if i == 0 {
 			attrs["global"] = true
