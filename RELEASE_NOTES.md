@@ -1,11 +1,12 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v2.19.5`.
+Another day, another release. These are the release notes for the version `v2.20.0`.
 
-## Bug Fixes
-* fix(cli): show a file-specific error for invalid JSON in api data files (CAD-2445) (#1885) (Lokesh Vadlamudi)([7f321d1b](https://github.com/lacework/go-sdk/commit/7f321d1bc3d728e48a0d5acdc8b2e49ef7945be7))
-* fix(cli): read api request data from a file or stdin (LINK-4010) (#1884) (Lokesh Vadlamudi)([5ebbc229](https://github.com/lacework/go-sdk/commit/5ebbc2291ea336b1e3152134a654e3b196b149e9))
+## Features
+* feat(lwgenerate): one azurerm provider for Azure agentless (LINK-4537) (#1888) (Lokesh Vadlamudi)([8d1b150a](https://github.com/lacework/go-sdk/commit/8d1b150a8eccc27308d532e013aca40b74c5d29b))
+* feat(INS-1366): send --status to the Reports API and list resources (#1887) (Charanbir)([a6849a93](https://github.com/lacework/go-sdk/commit/a6849a930f24fc25e6a57b4834eeebf49067f1c1))
 ## Other Changes
-* ci: version bump to v2.19.5-dev (Lacework)([8984756b](https://github.com/lacework/go-sdk/commit/8984756b1ba9ac6195b7f02d60a06836d3b8fe9f))
+* chore(lwgenerate): bump FortiDSPM module refs to v0.3.0 (DSPM-27) (#1889) (ynancy-fortinet)([4fcf37ba](https://github.com/lacework/go-sdk/commit/4fcf37ba677475387587eb315d884a4d9e01fd81))
+* ci: version bump to v2.19.6-dev (Lacework)([7d669ab9](https://github.com/lacework/go-sdk/commit/7d669ab930811204d91ad63951f77b19b1121bc7))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
