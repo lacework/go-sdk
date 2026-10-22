@@ -1464,35 +1464,25 @@ provider "aws" {
   region     = "us-west-2"
 }
 
-provider "aws" {
-  access_key = var.access_key
-  alias      = "us_west_2"
-  region     = "us-west-2"
-}
-
-provider "aws" {
-  access_key = var.access_key
-  alias      = "us_east_1"
-  region     = "us-east-1"
-}
-
 module "lacework_aws_fortidspm_us_west_2" {
-  source                    = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.3.0"
+  source                    = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.4.0"
   global                    = true
   lacework_integration_name = "aws-dspm-459969247747"
+  region                    = "us-west-2"
   regions                   = ["us-west-2", "us-east-1"]
 
   providers = {
-    aws = aws.us_west_2
+    aws = aws.main
   }
 }
 
 module "lacework_aws_fortidspm_us_east_1" {
-  source                  = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.3.0"
+  source                  = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.4.0"
   global_module_reference = module.lacework_aws_fortidspm_us_west_2
+  region                  = "us-east-1"
 
   providers = {
-    aws = aws.us_east_1
+    aws = aws.main
   }
 }
 

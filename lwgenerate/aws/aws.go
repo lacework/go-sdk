@@ -161,9 +161,9 @@ type GenerateAwsTfConfigurationArgs struct {
 	AgentlessCreateIntegrationVariable string
 
 	// Dspm enables the FortiDSPM scan engine module, one regional module per
-	// entry in DspmRegions. The lacework_integration_aws_fortidspm resource
-	// lives in the first region's module (global = true); the others reference
-	// it for their activation token and AMI.
+	// entry in DspmRegions, all on the single "main" aws provider (see
+	// createDspm). The lacework_integration_aws_fortidspm resource lives in the
+	// first region's module (global = true); the others reference it.
 	Dspm bool
 
 	DspmRegions []string
@@ -987,11 +987,6 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 	accounts = append(accounts, args.AgentlessMonitoredAccounts...)
 	accounts = append(accounts, args.AgentlessScanningAccounts...)
 	accounts = append(accounts, args.ConfigAdditionalAccounts...)
-	if args.Dspm {
-		for _, region := range args.DspmRegions {
-			accounts = append(accounts, AwsSubAccount{AwsRegion: region, Alias: dspmProviderAlias(region)})
-		}
-	}
 	if args.ControlTower {
 		accounts = append(accounts, *args.ControlTowerAuditAccount)
 		accounts = append(accounts, *args.ControlTowerLogArchiveAccount)
@@ -1013,7 +1008,7 @@ func createAwsProvider(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block,
 
 		attributes := map[string]interface{}{}
 		// set `access_key`, `secret_key` and `token` for single-account multiple-region Agentless
-		if args.Agentless || args.ControlTower || args.Dspm {
+		if args.Agentless || args.ControlTower {
 			for k, v := range args.ExtraProviderArguments {
 				attributes[k] = v
 			}
@@ -1290,22 +1285,28 @@ func isAgentlessOrgUnitID(id string) bool {
 	return strings.HasPrefix(id, "ou-") || strings.HasPrefix(id, "r-")
 }
 
-func dspmProviderAlias(region string) string {
+func dspmRegionSuffix(region string) string {
 	return strings.ReplaceAll(region, "-", "_")
 }
 
 // DspmModuleName is the name of the FortiDSPM module generated for a region;
 // callers use it to address the module's outputs.
 func DspmModuleName(region string) string {
-	return "lacework_aws_fortidspm_" + dspmProviderAlias(region)
+	return "lacework_aws_fortidspm_" + dspmRegionSuffix(region)
 }
 
 // createDspm emits one FortiDSPM module per region. The first region's module
 // is global: it holds the lacework_integration_aws_fortidspm resource that
 // registers the cloud account and receives the per-region activation tokens
 // and AMIs from FortiDSPM. Every module builds its own region's scan engine;
-// the non-global ones read the tokens through global_module_reference. The module source is pinned so a later destroy
-// resolves the same module version as the apply.
+// the non-global ones read the tokens through global_module_reference. All
+// modules share the "main" provider and get their region as the module's
+// region input (module >= v0.4.0, which sets it on each resource via the AWS
+// provider's resource-level region, aws >= 6.0), so terraform runs one aws
+// provider process instead of one per region: each aliased provider was a
+// separate ~300 MiB process, and 20+ regions OOM-killed the deployment. The
+// module source is pinned so a later destroy resolves the same module version
+// as the apply.
 func createDspm(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	if !args.Dspm {
 		return nil, nil
@@ -1317,7 +1318,7 @@ func createDspm(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error)
 	}
 	globalModuleName := DspmModuleName(args.DspmRegions[0])
 	for i, region := range args.DspmRegions {
-		attrs := map[string]interface{}{}
+		attrs := map[string]interface{}{"region": region}
 		if i == 0 {
 			attrs["global"] = true
 			attrs["regions"] = lwgenerate.CreateSimpleTraversal(
@@ -1332,9 +1333,7 @@ func createDspm(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error)
 			)
 		}
 		mods := []lwgenerate.HclModuleModifier{
-			lwgenerate.HclModuleWithProviderDetails(map[string]string{
-				"aws": "aws." + dspmProviderAlias(region),
-			}),
+			lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}),
 			lwgenerate.HclModuleWithAttributes(attrs),
 		}
 		if lwgenerate.AwsFortiDspmVersion != "" {
