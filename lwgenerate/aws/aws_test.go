@@ -1465,7 +1465,7 @@ provider "aws" {
 }
 
 module "lacework_aws_fortidspm_us_west_2" {
-  source                    = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.4.0"
+  source                    = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.5.0"
   global                    = true
   lacework_integration_name = "aws-dspm-459969247747"
   region                    = "us-west-2"
@@ -1477,7 +1477,7 @@ module "lacework_aws_fortidspm_us_west_2" {
 }
 
 module "lacework_aws_fortidspm_us_east_1" {
-  source                  = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.4.0"
+  source                  = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.5.0"
   global_module_reference = module.lacework_aws_fortidspm_us_west_2
   region                  = "us-east-1"
 
