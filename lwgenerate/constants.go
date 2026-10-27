@@ -32,7 +32,7 @@ const (
 	LWAzureEntraIdActivityLogVersion = "~> 0.4"
 	LWAzureADSource                  = "lacework/ad-application/azure"
 	LWAzureADVersion                 = "~> 2.0"
-	LWAzureFortiDspmSource           = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.0"
+	LWAzureFortiDspmSource           = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.1"
 	LWAzureFortiDspmVersion          = ""
 
 	GcpAgentlessSource       = "lacework/agentless-scanning/gcp"
