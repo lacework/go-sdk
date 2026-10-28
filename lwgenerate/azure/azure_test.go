@@ -470,7 +470,7 @@ provider "azurerm" {
 }
 
 module "lacework_azure_fortidspm_westus2" {
-  source                    = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.0"
+  source                    = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.1"
   global                    = true
   lacework_integration_name = "azure-dspm-51bb4964"
   location                  = "westus2"
@@ -480,7 +480,7 @@ module "lacework_azure_fortidspm_westus2" {
 }
 
 module "lacework_azure_fortidspm_eastus" {
-  source                  = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.0"
+  source                  = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.1"
   global_module_reference = module.lacework_azure_fortidspm_westus2
   location                = "eastus"
 }
@@ -509,7 +509,7 @@ provider "azurerm" {
 }
 
 module "lacework_azure_fortidspm_westus2" {
-  source                    = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.0"
+  source                    = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.1"
   global                    = true
   lacework_integration_name = "azure-dspm-51bb4964"
   location                  = "westus2"
@@ -520,7 +520,7 @@ module "lacework_azure_fortidspm_westus2" {
 }
 
 module "lacework_azure_fortidspm_eastus" {
-  source                  = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.0"
+  source                  = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.1"
   global_module_reference = module.lacework_azure_fortidspm_westus2
   location                = "eastus"
   tenant_level            = true
