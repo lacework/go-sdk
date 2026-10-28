@@ -1,10 +1,10 @@
 # Release Notes
-Another day, another release. These are the release notes for the version `v2.23.0`.
+Another day, another release. These are the release notes for the version `v2.23.1`.
 
-## Features
-* feat(DSPM-56): pin terraform-azure-fortidspm v0.5.0 (#1897) (ynancy-fortinet)([69d34880](https://github.com/lacework/go-sdk/commit/69d348804980916df7fda42bff4ea78eafc3be6b))
+## Bug Fixes
+* fix(DSPM-38): pin terraform-azure-fortidspm v0.5.1 (#1899) (dhhuang-ftnt)([d3958130](https://github.com/lacework/go-sdk/commit/d3958130406a417a731c7354724e5f7df5f672c0))
 ## Other Changes
-* ci: version bump to v2.22.1-dev (Lacework)([4cadca0e](https://github.com/lacework/go-sdk/commit/4cadca0e2e662f016f4d7787d44493a9e05303b5))
+* ci: version bump to v2.23.1-dev (Lacework)([69356a89](https://github.com/lacework/go-sdk/commit/69356a8967f9320e7b6e898f6f6031c86fd78925))
 
 ## :whale: [Docker Image](https://hub.docker.com/r/lacework/lacework-cli)
 ```
