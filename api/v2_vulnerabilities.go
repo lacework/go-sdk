@@ -381,6 +381,25 @@ type VulnerabilityContainer struct {
 		FixAvailable  int    `json:"fix_available"`
 		FixedVersion  string `json:"fixed_version"`
 	} `json:"fixInfo"`
+	RiskInfo struct {
+		Factors          []string `json:"factors"`
+		FactorsBreakdown struct {
+			ActiveContainers int `json:"active_containers"`
+			CveCounts        struct {
+				Critical int `json:"Critical"`
+				High     int `json:"High"`
+				Medium   int `json:"Medium"`
+				Other    int `json:"Other"`
+			} `json:"cve_counts"`
+			ExploitSummary struct {
+				DisclosureInWild    string `json:"disclosure_in_wild"`
+				ExploitPublic       string `json:"exploit_public"`
+				ExploitVirusMalware string `json:"exploit_virus_malware"`
+				ExploitWormified    string `json:"exploit_wormified"`
+			} `json:"exploit_summary"`
+			InternetReachability string `json:"internet_reachability"`
+		} `json:"factors_breakdown"`
+	} `json:"riskInfo"`
 	ImageID   string    `json:"imageId"`
 	Severity  string    `json:"severity"`
 	StartTime time.Time `json:"startTime"`
