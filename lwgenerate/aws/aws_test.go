@@ -1477,9 +1477,16 @@ module "lacework_aws_fortidspm_us_west_2" {
 }
 
 module "lacework_aws_fortidspm_us_east_1" {
-  source                  = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.5.0"
-  global_module_reference = module.lacework_aws_fortidspm_us_west_2
-  region                  = "us-east-1"
+  source = "git::https://github.com/lacework/terraform-aws-fortidspm.git?ref=v0.5.0"
+  global_module_reference = {
+    activation_tokens         = module.lacework_aws_fortidspm_us_west_2.activation_tokens
+    deployment_id             = module.lacework_aws_fortidspm_us_west_2.deployment_id
+    deployment_name           = module.lacework_aws_fortidspm_us_west_2.deployment_name
+    env_id                    = module.lacework_aws_fortidspm_us_west_2.env_id
+    image_ids                 = module.lacework_aws_fortidspm_us_west_2.image_ids
+    lacework_integration_guid = module.lacework_aws_fortidspm_us_west_2.lacework_integration_guid
+  }
+  region = "us-east-1"
 
   providers = {
     aws = aws.main

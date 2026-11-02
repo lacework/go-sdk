@@ -480,9 +480,17 @@ module "lacework_azure_fortidspm_westus2" {
 }
 
 module "lacework_azure_fortidspm_eastus" {
-  source                  = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.1"
-  global_module_reference = module.lacework_azure_fortidspm_westus2
-  location                = "eastus"
+  source = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.1"
+  global_module_reference = {
+    activation_tokens         = module.lacework_azure_fortidspm_westus2.activation_tokens
+    deployment_id             = module.lacework_azure_fortidspm_westus2.deployment_id
+    deployment_name           = module.lacework_azure_fortidspm_westus2.deployment_name
+    env_id                    = module.lacework_azure_fortidspm_westus2.env_id
+    hyperv_generations        = module.lacework_azure_fortidspm_westus2.hyperv_generations
+    image_urls                = module.lacework_azure_fortidspm_westus2.image_urls
+    lacework_integration_guid = module.lacework_azure_fortidspm_westus2.lacework_integration_guid
+  }
+  location = "eastus"
 }
 
 output "lacework_integration_guid" {
@@ -520,10 +528,18 @@ module "lacework_azure_fortidspm_westus2" {
 }
 
 module "lacework_azure_fortidspm_eastus" {
-  source                  = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.1"
-  global_module_reference = module.lacework_azure_fortidspm_westus2
-  location                = "eastus"
-  tenant_level            = true
+  source = "git::https://github.com/lacework/terraform-azure-fortidspm.git?ref=v0.5.1"
+  global_module_reference = {
+    activation_tokens         = module.lacework_azure_fortidspm_westus2.activation_tokens
+    deployment_id             = module.lacework_azure_fortidspm_westus2.deployment_id
+    deployment_name           = module.lacework_azure_fortidspm_westus2.deployment_name
+    env_id                    = module.lacework_azure_fortidspm_westus2.env_id
+    hyperv_generations        = module.lacework_azure_fortidspm_westus2.hyperv_generations
+    image_urls                = module.lacework_azure_fortidspm_westus2.image_urls
+    lacework_integration_guid = module.lacework_azure_fortidspm_westus2.lacework_integration_guid
+  }
+  location     = "eastus"
+  tenant_level = true
 }
 
 output "lacework_integration_guid" {

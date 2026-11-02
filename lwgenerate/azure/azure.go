@@ -941,6 +941,19 @@ func createAgentlessAzureRMProvider(args *GenerateAzureTfConfigurationArgs) (*hc
 // callers use it to address the module's outputs.
 const EntraIdActivityLogModuleName = "microsoft-entra-id-activity-log"
 
+// dspmGlobalReferenceOutputs are the fields of terraform-azure-fortidspm's
+// global_module_reference variable, read from the global module's outputs of
+// the same names.
+var dspmGlobalReferenceOutputs = []string{
+	"lacework_integration_guid",
+	"deployment_id",
+	"deployment_name",
+	"env_id",
+	"activation_tokens",
+	"image_urls",
+	"hyperv_generations",
+}
+
 // DspmModuleName is the name of the FortiDSPM module generated for a region;
 // callers use it to address the module's outputs.
 func DspmModuleName(region string) string {
@@ -954,6 +967,12 @@ func DspmModuleName(region string) string {
 // engine from the image URL; the non-global ones read the tokens through
 // global_module_reference. The module source is pinned so a
 // later destroy resolves the same module version as the apply.
+//
+// global_module_reference lists the integration outputs one by one instead of
+// passing the whole module: a reference to module.<global> waits for every
+// output, vm_id included, so the other regions would not start until the
+// global region's scan engine VM was up (DSPM-82). These outputs depend only
+// on the integration resource.
 func createDspm(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	if !args.Dspm {
 		return nil, nil
@@ -986,9 +1005,11 @@ func createDspm(args *GenerateAzureTfConfigurationArgs) ([]*hclwrite.Block, erro
 				attrs["lacework_integration_name"] = args.DspmIntegrationName
 			}
 		} else {
-			attrs["global_module_reference"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", globalModuleName},
-			)
+			globalRef := map[string]string{}
+			for _, output := range dspmGlobalReferenceOutputs {
+				globalRef[output] = fmt.Sprintf("module.%s.%s", globalModuleName, output)
+			}
+			attrs["global_module_reference"] = lwgenerate.CreateMapTraversalTokens(globalRef)
 		}
 		mods := []lwgenerate.HclModuleModifier{lwgenerate.HclModuleWithAttributes(attrs)}
 		if lwgenerate.LWAzureFortiDspmVersion != "" {

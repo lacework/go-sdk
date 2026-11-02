@@ -1289,6 +1289,18 @@ func dspmRegionSuffix(region string) string {
 	return strings.ReplaceAll(region, "-", "_")
 }
 
+// dspmGlobalReferenceOutputs are the fields of terraform-aws-fortidspm's
+// global_module_reference variable, read from the global module's outputs of
+// the same names.
+var dspmGlobalReferenceOutputs = []string{
+	"lacework_integration_guid",
+	"deployment_id",
+	"deployment_name",
+	"env_id",
+	"activation_tokens",
+	"image_ids",
+}
+
 // DspmModuleName is the name of the FortiDSPM module generated for a region;
 // callers use it to address the module's outputs.
 func DspmModuleName(region string) string {
@@ -1307,6 +1319,12 @@ func DspmModuleName(region string) string {
 // separate ~300 MiB process, and 20+ regions OOM-killed the deployment. The
 // module source is pinned so a later destroy resolves the same module version
 // as the apply.
+//
+// global_module_reference lists the integration outputs one by one instead of
+// passing the whole module: a reference to module.<global> waits for every
+// output, instance_id and the NAT gateway's IP included, so the other regions
+// would not start until the global region's scan engine was up (DSPM-82).
+// These outputs depend only on the integration resource.
 func createDspm(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error) {
 	if !args.Dspm {
 		return nil, nil
@@ -1328,9 +1346,11 @@ func createDspm(args *GenerateAwsTfConfigurationArgs) ([]*hclwrite.Block, error)
 				attrs["lacework_integration_name"] = args.DspmIntegrationName
 			}
 		} else {
-			attrs["global_module_reference"] = lwgenerate.CreateSimpleTraversal(
-				[]string{"module", globalModuleName},
-			)
+			globalRef := map[string]string{}
+			for _, output := range dspmGlobalReferenceOutputs {
+				globalRef[output] = fmt.Sprintf("module.%s.%s", globalModuleName, output)
+			}
+			attrs["global_module_reference"] = lwgenerate.CreateMapTraversalTokens(globalRef)
 		}
 		mods := []lwgenerate.HclModuleModifier{
 			lwgenerate.HclModuleWithProviderDetails(map[string]string{"aws": "aws.main"}),
