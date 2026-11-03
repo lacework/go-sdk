@@ -158,7 +158,7 @@ To show recommendation details and affected resources for a recommendation id:
 
 To retrieve a specific report by its report name:
 
-    lacework compliance azure get-report <tenant_id> <subscriptions_id> --report_name 'Azure CIS 1.3.1 Report'
+    lacework compliance azure get-report <tenant_id> <subscriptions_id> --report_name 'CIS Microsoft Azure Foundations Benchmark v1.5.0'
 `,
 		Args: cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -521,7 +521,7 @@ func init() {
 	// Azure report types: AZURE_CIS_131, AZURE_NIST_800_171_REV2, AZURE_NIST_800_53_REV5, AZURE_NIST_CSF,
 	//AZURE_PCI, AZURE_SOC_Rev2, AZURE_ISO_27001, AZURE_SOC, AZURE_HIPAA, AZURE_CIS, AZURE_PCI_Rev2
 	complianceAzureGetReportCmd.Flags().StringVar(&compAzCmdState.Type, "type", "AZURE_CIS_131",
-		fmt.Sprintf(`report type to display, run 'lacework report-definitions list' for more information.
+		fmt.Sprintf(`report type to display.
 valid types:%s`, prettyPrintReportTypes(api.AzureReportTypes())),
 	)
 
@@ -531,7 +531,7 @@ valid types:%s`, prettyPrintReportTypes(api.AzureReportTypes())),
 	// Run 'lacework report-definition --subtype Azure' for a full list of Azure report names
 	complianceAzureGetReportCmd.Flags().StringVar(&compAzCmdState.ReportName, "report_name",
 		api.ComplianceReportDefaultAzure,
-		"report name to display, run 'lacework report-definitions list' for more information.")
+		"report name to display, run 'lacework api get /v2/Frameworks' to list valid names")
 
 	complianceAzureGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
 		"filter report details by category (networking, storage, ...)",
