@@ -24,7 +24,8 @@ To show recommendation details and affected resources for a recommendation id:
 
 To retrieve a specific report by its report name:
 
-    lacework compliance aws get-report <account_id> --report_name 'AWS CSA CCM 4.0.5'
+    lacework compliance aws get-report <account_id> \
+      --report_name 'CIS Amazon Web Services Foundations Benchmark v4.0.1'
 
 
 ```
@@ -39,7 +40,7 @@ lacework compliance aws get-report <account_id> [recommendation_id] [flags]
       --details              increase details about the compliance report
   -h, --help                 help for get-report
       --pdf                  download report in PDF format
-      --report_name string   report name to display, run 'lacework report-definitions list' for more information. (default "CIS Amazon Web Services Foundations Benchmark v1.4.0")
+      --report_name string   report name to display, use a 'name' from 'lacework api get /v2/Frameworks' (default "CIS Amazon Web Services Foundations Benchmark v1.4.0")
       --service strings      filter report details by service (aws:s3, aws:iam, aws:cloudtrail, ...)
       --severity string      filter report details by severity threshold (critical, high, medium, low, info)
       --status strings       list resources by status, comma separated (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)

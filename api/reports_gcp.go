@@ -33,7 +33,7 @@ type gcpReportsService struct {
 	client *Client
 }
 
-const ComplianceReportDefaultGcp = "GCP CIS Benchmark 1.3"
+const ComplianceReportDefaultGcp = "CIS Google Cloud Platform Foundation Benchmark v1.3.0"
 
 type GcpReportConfig struct {
 	OrganizationID string

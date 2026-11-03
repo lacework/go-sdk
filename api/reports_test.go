@@ -151,7 +151,7 @@ func TestV2ReportsAzureGetByName(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	response, err := c.V2.Reports.Azure.Get(api.AzureReportConfig{TenantID: "example-tenant", SubscriptionID: "example-subscription", Value: "Azure CIS 1.3.1 Report", Parameter: api.ReportFilterName})
+	response, err := c.V2.Reports.Azure.Get(api.AzureReportConfig{TenantID: "example-tenant", SubscriptionID: "example-subscription", Value: api.ComplianceReportDefaultAzure, Parameter: api.ReportFilterName})
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 	if assert.Equal(t, 1, len(response.Data)) {
@@ -209,7 +209,7 @@ func TestV2ReportsGcpGetByName(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	response, err := c.V2.Reports.Gcp.Get(api.GcpReportConfig{OrganizationID: "example-org", ProjectID: "example-project", Value: "GCP CIS Benchmark 1.3", Parameter: api.ReportFilterName})
+	response, err := c.V2.Reports.Gcp.Get(api.GcpReportConfig{OrganizationID: "example-org", ProjectID: "example-project", Value: api.ComplianceReportDefaultGcp, Parameter: api.ReportFilterName})
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 	if assert.Equal(t, 1, len(response.Data)) {

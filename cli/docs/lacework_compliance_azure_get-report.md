@@ -23,7 +23,8 @@ To show recommendation details and affected resources for a recommendation id:
 
 To retrieve a specific report by its report name:
 
-    lacework compliance azure get-report <tenant_id> <subscriptions_id> --report_name 'Azure CIS 1.3.1 Report'
+    lacework compliance azure get-report <tenant_id> <subscriptions_id> \
+      --report_name 'Azure NIST 800-53 rev5'
 
 
 ```
@@ -38,7 +39,7 @@ lacework compliance azure get-report <tenant_id> <subscriptions_id> [flags]
       --details              increase details about the compliance report
   -h, --help                 help for get-report
       --pdf                  download report in PDF format
-      --report_name string   report name to display, run 'lacework report-definitions list' for more information. (default "CIS Microsoft Azure Foundations Benchmark v1.5.0")
+      --report_name string   report name to display, use a 'name' from 'lacework api get /v2/Frameworks' (default "CIS Microsoft Azure Foundations Benchmark v1.5.0")
       --service strings      filter report details by service (azure:ms:storage, azure:ms:sql, azure:ms:network, ...)
       --severity string      filter report details by severity threshold (critical, high, medium, low, info)
       --status strings       list resources by status, comma separated (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)

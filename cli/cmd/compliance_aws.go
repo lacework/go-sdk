@@ -103,7 +103,8 @@ To show recommendation details and affected resources for a recommendation id:
 
 To retrieve a specific report by its report name:
 
-    lacework compliance aws get-report <account_id> --report_name 'AWS CSA CCM 4.0.5'
+    lacework compliance aws get-report <account_id> \
+      --report_name 'CIS Amazon Web Services Foundations Benchmark v4.0.1'
 `,
 		Args: cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -569,16 +570,15 @@ func init() {
 	//AWS_ISO_27001:2013, AWS_CIS_14, AWS_CMMC_1.02, HIPAA, AWS_SOC_2, AWS_CIS_1_4_ISO_IEC_27002_2022, NIST_800-171_Rev2,
 	//AWS_NIST_800-171_rev2
 	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.Type, "type", "AWS_CIS_14",
-		fmt.Sprintf(`report type to display, run 'lacework report-definitions list' for more information.
+		fmt.Sprintf(`report type to display.
 valid types:%s`, prettyPrintReportTypes(api.AwsReportTypes())))
 
 	// mark report type flag as deprecated
 	errcheckWARN(complianceAwsGetReportCmd.Flags().MarkDeprecated("type", "use --report_name flag instead"))
 
-	// Run 'lacework report-definition --subtype AWS' for a full list of AWS report names
 	complianceAwsGetReportCmd.Flags().StringVar(&compAwsCmdState.ReportName, "report_name",
 		api.ComplianceReportDefaultAws,
-		"report name to display, run 'lacework report-definitions list' for more information.")
+		"report name to display, use a 'name' from 'lacework api get /v2/Frameworks'")
 
 	complianceAwsGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
 		"filter report details by category (identity-and-access-management, s3, logging...)",
