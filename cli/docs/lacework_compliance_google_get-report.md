@@ -23,7 +23,8 @@ To show recommendation details and affected resources for a recommendation id:
 
 To retrieve a specific report by its report name:
 
-    lacework compliance gcp get-report <organization_id> <project_id> --report_name 'CIS Google Cloud Platform Foundation Benchmark v1.3.0'
+    lacework compliance gcp get-report <organization_id> <project_id> \
+      --report_name 'CIS Google Cloud Platform Foundation Benchmark v2.0.0'
 
 
 ```
@@ -38,7 +39,7 @@ lacework compliance google get-report <organization_id> <project_id> [flags]
       --details              increase details about the compliance report
   -h, --help                 help for get-report
       --pdf                  download report in PDF format
-      --report_name string   report name to display, run 'lacework api get /v2/Frameworks' to list valid names (default "CIS Google Cloud Platform Foundation Benchmark v1.3.0")
+      --report_name string   report name to display, use a 'name' from 'lacework api get /v2/Frameworks' (default "CIS Google Cloud Platform Foundation Benchmark v1.3.0")
       --service strings      filter report details by service (gcp:storage:bucket, gcp:kms:cryptoKey, gcp:project, ...)
       --severity string      filter report details by severity threshold (critical, high, medium, low, info)
       --status strings       list resources by status, comma separated (non-compliant, requires-manual-assessment, suppressed, compliant, could-not-assess)

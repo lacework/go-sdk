@@ -158,7 +158,8 @@ To show recommendation details and affected resources for a recommendation id:
 
 To retrieve a specific report by its report name:
 
-    lacework compliance azure get-report <tenant_id> <subscriptions_id> --report_name 'CIS Microsoft Azure Foundations Benchmark v1.5.0'
+    lacework compliance azure get-report <tenant_id> <subscriptions_id> \
+      --report_name 'Azure NIST 800-53 rev5'
 `,
 		Args: cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -528,10 +529,9 @@ valid types:%s`, prettyPrintReportTypes(api.AzureReportTypes())),
 	// mark report type flag as deprecated
 	errcheckWARN(complianceAzureGetReportCmd.Flags().MarkDeprecated("type", "use --report_name flag instead"))
 
-	// Run 'lacework report-definition --subtype Azure' for a full list of Azure report names
 	complianceAzureGetReportCmd.Flags().StringVar(&compAzCmdState.ReportName, "report_name",
 		api.ComplianceReportDefaultAzure,
-		"report name to display, run 'lacework api get /v2/Frameworks' to list valid names")
+		"report name to display, use a 'name' from 'lacework api get /v2/Frameworks'")
 
 	complianceAzureGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
 		"filter report details by category (networking, storage, ...)",

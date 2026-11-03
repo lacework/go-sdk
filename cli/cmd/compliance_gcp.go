@@ -158,7 +158,8 @@ To show recommendation details and affected resources for a recommendation id:
 
 To retrieve a specific report by its report name:
 
-    lacework compliance gcp get-report <organization_id> <project_id> --report_name 'CIS Google Cloud Platform Foundation Benchmark v1.3.0'
+    lacework compliance gcp get-report <organization_id> <project_id> \
+      --report_name 'CIS Google Cloud Platform Foundation Benchmark v2.0.0'
 `,
 		Args: cobra.RangeArgs(2, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -538,10 +539,9 @@ valid types:%s`, prettyPrintReportTypes(api.GcpReportTypes())),
 	// mark report type flag as deprecated
 	errcheckWARN(complianceGcpGetReportCmd.Flags().MarkDeprecated("type", "use --report_name flag instead"))
 
-	// Run 'lacework report-definition --subtype GCP' for a full list of GCP report names
 	complianceGcpGetReportCmd.Flags().StringVar(&compGcpCmdState.ReportName, "report_name",
 		api.ComplianceReportDefaultGcp,
-		"report name to display, run 'lacework api get /v2/Frameworks' to list valid names")
+		"report name to display, use a 'name' from 'lacework api get /v2/Frameworks'")
 
 	complianceGcpGetReportCmd.Flags().StringSliceVar(&compCmdState.Category, "category", []string{},
 		"filter report details by category (storage, networking, identity-and-access-management, ...)",
