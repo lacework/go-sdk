@@ -19,6 +19,7 @@
 package api_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -266,6 +267,13 @@ func TestAlertRuleSeveritiesToString(t *testing.T) {
 
 	severityStrings := api.NewAlertRuleSeveritiesFromIntSlice(sevInts).ToStringSlice()
 	assert.Equal(t, expectedSeverityStrings, severityStrings)
+}
+
+func TestAlertRuleEmptySubCategoriesMarshalAsEmptyArray(t *testing.T) {
+	rule := api.NewAlertRule("foo", api.AlertRuleConfig{})
+	body, err := json.Marshal(rule)
+	assert.NoError(t, err)
+	assert.Contains(t, string(body), `"subCategory":[]`)
 }
 
 func generateAlertRules(guids []string) string {

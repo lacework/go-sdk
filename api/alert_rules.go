@@ -150,8 +150,9 @@ func convertSeverityInt(sev int) alertRuleSeverity {
 }
 
 // Convert deprecated eventCatory values to subCategory values
+// Returns a non-nil slice so "no subcategories" marshals as [] (the API rejects null)
 func convertEventCategories(categories []string) []string {
-	var res []string
+	res := make([]string, 0, len(categories))
 	for _, c := range categories {
 		switch c {
 		case "App":
